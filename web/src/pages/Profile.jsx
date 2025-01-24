@@ -123,7 +123,7 @@ const RecentOrders = ({ orders }) => (
                     {order.status}
                   </span>
                 </td>
-                <td className="py-2">${order.totalFiatAmount}</td>
+      <td className="py-2">${order.totalAmount}</td>
                 <td className="py-2">{new Date(order.createdAt).toLocaleDateString()}</td>
                 <td className="py-2">
                   <button className="text-blue-600 hover:text-blue-800 mr-2">
@@ -183,7 +183,7 @@ function Profile() {
   const mockStats = {
     overview: {
       total_orders: 25,
-      pending_shipments: 5,
+      active_orders: 5,
       total_sales: '$2,450'
     },
     topProducts: [
@@ -197,13 +197,13 @@ function Profile() {
     {
       id: '12345678-1234-5678-1234-567812345678',
       status: 'pending',
-      totalFiatAmount: '150.00',
+      totalAmount: '150.00',
       createdAt: '2024-01-22T10:00:00Z'
     },
     {
       id: '87654321-8765-4321-8765-432187654321',
       status: 'completed',
-      totalFiatAmount: '299.99',
+      totalAmount: '299.99',
       createdAt: '2024-01-21T15:30:00Z'
     }
   ];
@@ -213,7 +213,6 @@ function Profile() {
     firstName: '',
     lastName: '',
     email: '',
-    walletAddress: '',
   });
 
   useEffect(() => {
@@ -230,7 +229,6 @@ function Profile() {
         firstName: firstName || '',
         lastName: lastNameParts.join(' ') || '',
         email: user.email || '',
-        walletAddress: user.walletAddress || '',
         storeName: user.store?.name || ''
       });
       setIsSellerView(user.role === 'seller');
@@ -257,7 +255,6 @@ function Profile() {
       const result = await dispatch(updateProfile({
         username: `${formData.firstName} ${formData.lastName}`.trim(),
         email: formData.email,
-        walletAddress: formData.walletAddress,
         storeName: formData.storeName
       })).unwrap();
       
@@ -367,26 +364,7 @@ function Profile() {
               </div>
             )}
 
-            <div>
-              <label
-                htmlFor="walletAddress"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Wallet Address
-              </label>
-              <input
-                type="text"
-                id="walletAddress"
-                name="walletAddress"
-                value={formData.walletAddress}
-                onChange={handleInputChange}
-                placeholder="0x..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                Your Ethereum wallet address for NFT transactions
-              </p>
-            </div>
+
 
             <button
               type="submit"

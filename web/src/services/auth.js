@@ -19,18 +19,13 @@ export const authService = {
     // Map frontend userType to database role
     const role = userType === 'buyer' ? 'user' : 'seller';
 
-    // Validate seller types and store information
-    if (userType !== 'buyer') {
-      // Validate seller type
-      if (!['manufacturer', 'retailer'].includes(userType)) {
-        throw new Error('Invalid seller type. Must be either manufacturer or retailer');
-      }
-
+    // Validate seller store information
+    if (userType === 'seller') {
       if (!store) {
-        throw new Error(`Store information is required for ${userType}s`);
+        throw new Error('Store information is required for sellers');
       }
       if (!store.name?.trim()) {
-        throw new Error(`${userType.charAt(0).toUpperCase() + userType.slice(1)} name is required`);
+        throw new Error('Store name is required');
       }
       if (!store.phone?.trim()) {
         throw new Error('Business phone is required');
@@ -48,16 +43,15 @@ export const authService = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       role, // Mapped from userType
-      ...(userType !== 'buyer' && {
+      ...(userType === 'seller' && {
         store: {
           name: store.name.trim(),
           description: store.description?.trim() || '',
           email: email.trim(), // Use registration email as store email
           phone: store.phone.trim(),
           address: store.address.trim(),
-          isVerified: false,
-          type: userType, // Store the specific seller type
-          status: 'pending_verification' // Initial status for blockchain verification
+          isVerified: true, // Default to verified since we're not using blockchain
+          status: 'active' // Default active status
         }
       })
     };
@@ -126,16 +120,7 @@ export const authService = {
         localStorage.setItem('token', data.token);
       }
 
-      // Add store status to localStorage for pending verification handling
-      if (data.user?.store?.status === 'pending_verification') {
-        localStorage.setItem('storeStatus', 'pending_verification');
-        console.log('Store pending blockchain verification');
-      }
-
-      return {
-        ...data,
-        pendingVerification: data.user?.store?.status === 'pending_verification'
-      };
+      return data;
     } catch (error) {
       if (retryCount < MAX_RETRIES && (
         error.message === 'Failed to fetch' || 

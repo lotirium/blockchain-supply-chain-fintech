@@ -146,6 +146,10 @@ const authSlice = createSlice({
       state.registrationSuccess = false;
       state.error = null;
     },
+    setUserType: (state, action) => {
+      state.userType = action.payload;
+      localStorage.setItem('userType', action.payload);
+    },
   },
   extraReducers: (builder) => {
     // Register
@@ -159,12 +163,12 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
-        state.userType = action.payload.user.role;
+        state.userType = action.payload.user.role === 'user' ? 'buyer' : 'seller';
         state.isAuthenticated = true;
         state.registrationSuccess = true;
         state.error = null;
         localStorage.setItem('token', action.payload.token);
-        localStorage.setItem('userType', action.payload.user.role);
+        localStorage.setItem('userType', state.userType);
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
@@ -185,10 +189,10 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
-        state.userType = action.payload.user.role;
+        state.userType = action.payload.user.role === 'user' ? 'buyer' : 'seller';
         state.isAuthenticated = true;
         localStorage.setItem('token', action.payload.token);
-        localStorage.setItem('userType', action.payload.user.role);
+        localStorage.setItem('userType', state.userType);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;

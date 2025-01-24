@@ -35,9 +35,8 @@ function Login() {
         userType: formData.userType
       })).unwrap();
       
-      // Check the role from the response to determine redirection
-      const isSellerType = response.user.role === 'manufacturer' || response.user.role === 'retailer';
-      if (isSellerType && response.user.store) {
+      // Navigate based on user role
+      if (response.user.role === 'seller') {
         navigate('/seller-dashboard', { replace: true });
       } else {
         navigate(from, { replace: true });
@@ -76,23 +75,12 @@ function Login() {
                 <input
                   type="radio"
                   name="userType"
-                  value="manufacturer"
-                  checked={formData.userType === 'manufacturer'}
+                  value="seller"
+                  checked={formData.userType === 'seller'}
                   onChange={handleInputChange}
                   className="form-radio h-4 w-4 text-blue-600"
                 />
-                <span className="ml-2">Manufacturer</span>
-              </label>
-              <label className="inline-flex items-center">
-                <input
-                  type="radio"
-                  name="userType"
-                  value="retailer"
-                  checked={formData.userType === 'retailer'}
-                  onChange={handleInputChange}
-                  className="form-radio h-4 w-4 text-blue-600"
-                />
-                <span className="ml-2">Retailer</span>
+                <span className="ml-2">Seller</span>
               </label>
             </div>
           </div>
