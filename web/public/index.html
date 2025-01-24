@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EShop - Your Online Store</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Core Libraries -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+    
+    <!-- React Router -->
+    <script crossorigin src="https://unpkg.com/history@5.3.0/umd/history.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-router@6.21.1/dist/umd/react-router.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-router-dom@6.21.1/dist/umd/react-router-dom.development.js"></script>
+    
+    <!-- Redux -->
+    <script crossorigin src="https://unpkg.com/redux@4.2.1/dist/redux.js"></script>
+    <script crossorigin src="https://unpkg.com/react-redux@9.0.4/dist/react-redux.js"></script>
+    <script crossorigin src="https://unpkg.com/@reduxjs/toolkit@2.0.1/dist/redux-toolkit.umd.js"></script>
+
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
+
+    <!-- Store -->
+    <script type="text/babel" src="/js/store/cartSlice.js"></script>
+    <script type="text/babel" src="/js/store/productsSlice.js"></script>
+    <script type="text/babel" src="/js/store/authSlice.js"></script>
+    <script type="text/babel" src="/js/store/index.js"></script>
+
+    <!-- Components -->
+    <script type="text/babel" src="/js/components/Layout.js"></script>
+    <script type="text/babel" src="/js/components/ProtectedRoute.js"></script>
+
+    <!-- Pages -->
+    <script type="text/babel" src="/js/pages/Home.js"></script>
+    <script type="text/babel" src="/js/pages/Products.js"></script>
+    <script type="text/babel" src="/js/pages/ProductDetails.js"></script>
+    <script type="text/babel" src="/js/pages/Cart.js"></script>
+    <script type="text/babel" src="/js/pages/Checkout.js"></script>
+    <script type="text/babel" src="/js/pages/CheckoutSuccess.js"></script>
+    <script type="text/babel" src="/js/pages/Login.js"></script>
+    <script type="text/babel" src="/js/pages/Register.js"></script>
+    <script type="text/babel" src="/js/pages/Profile.js"></script>
+
+    <!-- App -->
+    <script type="text/babel" src="/js/App.js"></script>
+    <script type="text/babel" src="/js/main.js"></script>
+</body>
+</html>

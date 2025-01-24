@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="800" fill="#f3f4f6"/>
+  <g transform="translate(400,400)">
+    <!-- Headband -->
+    <path d="M-150,-50 A200,200 0 0,1 150,-50" 
+          fill="none" stroke="#4b5563" stroke-width="20"/>
+    
+    <!-- Left Earpiece -->
+    <g transform="translate(-150,0)">
+      <rect x="-40" y="-60" width="80" height="120" rx="40" fill="#4b5563"/>
+      <circle cx="0" cy="0" r="30" fill="#9ca3af"/>
+    </g>
+    
+    <!-- Right Earpiece -->
+    <g transform="translate(150,0)">
+      <rect x="-40" y="-60" width="80" height="120" rx="40" fill="#4b5563"/>
+      <circle cx="0" cy="0" r="30" fill="#9ca3af"/>
+    </g>
+  </g>
+  <text x="400" y="650" font-family="Arial" font-size="24" fill="#4b5563" text-anchor="middle">Wireless Headphones</text>
+</svg>
