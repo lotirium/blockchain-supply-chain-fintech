@@ -1,0 +1,115 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  frontend:
+    name: Frontend Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      
+      - name: Install Dependencies
+        working-directory: web
+        run: npm ci
+      
+      - name: Build Frontend
+        working-directory: web
+        run: npm run build
+        
+      # Add test step when tests are added to frontend
+      # - name: Run Frontend Tests
+      #   working-directory: web
+      #   run: npm test
+
+  backend:
+    name: Backend Build & Test
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+      
+      - name: Install Dependencies
+        working-directory: server
+        run: npm ci
+      
+      - name: Run Backend Tests
+        working-directory: server
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          JWT_SECRET: test_secret
+        run: npm test
+
+  blockchain:
+    name: Smart Contracts Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: blockchain/package-lock.json
+      
+      - name: Install Dependencies
+        working-directory: blockchain
+        run: npm ci
+      
+      - name: Compile Smart Contracts
+        working-directory: blockchain
+        run: npm run compile
+      
+      - name: Run Smart Contract Tests
+        working-directory: blockchain
+        run: npm test
+      
+      - name: Run Coverage
+        working-directory: blockchain
+        run: npm run coverage
+
+  # Add deployment job if needed
+  # deploy:
+  #   needs: [frontend, backend, blockchain]
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: Deploy to production
+  #       run: echo "Add deployment steps here"
