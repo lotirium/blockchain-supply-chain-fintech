@@ -1,26 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addItem } from '../store/slices/cartSlice';
+import { selectProductById, selectProducts } from '../store/slices/productsSlice';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
 
 function ProductDetails() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [productData, setProductData] = useState(null);
   
-  // Get product from store
-  const product = useSelector((state) =>
-    state.products.items.find((p) => p.id === parseInt(id))
-  );
+  // Get product from store using memoized selector
+  const storeProduct = useSelector(state => selectProductById(state, id));
+  const allProducts = useSelector(selectProducts);
   
-  // Get related products (same category, excluding current product)
-  const relatedProducts = useSelector((state) =>
-    state.products.items
-      .filter((p) => p.category === product?.category && p.id !== product?.id)
-      .slice(0, 4)
-  );
+  // Fetch product from API if not in store
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (storeProduct) {
+        setProductData(storeProduct);
+        setLoading(false);
+        return;
+      }
 
-  if (!product) {
+      try {
+        const response = await fetch(`${API_URL}/api/products/detail/${id}`);
+        if (!response.ok) {
+          throw new Error('Product not found');
+        }
+        const data = await response.json();
+        setProductData(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id, storeProduct]);
+
+  // Get related products (same category, excluding current product)
+  const relatedProducts = allProducts
+    .filter(p => p.category === productData?.category && p.id !== id)
+    .slice(0, 4);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error || !productData) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -38,16 +75,16 @@ function ProductDetails() {
 
   const handleQuantityChange = (e) => {
     const value = parseInt(e.target.value);
-    if (value > 0 && value <= product.stock) {
+    if (value > 0 && value <= productData.stock) {
       setQuantity(value);
     }
   };
 
   const handleAddToCart = () => {
     dispatch(addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
+      id: productData.id,
+      name: productData.name,
+      price: productData.price,
       quantity
     }));
   };
@@ -80,29 +117,29 @@ function ProductDetails() {
         {/* Product Image */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <img
-            src={product.image}
-            alt={product.name}
+            src={productData.images?.[0] ? `${API_URL}${productData.images[0]}` : productData.image}
+            alt={productData.name}
             className="w-full h-full object-cover"
           />
         </div>
 
         {/* Product Info */}
         <div className="space-y-6">
-          <h1 className="text-3xl font-bold">{product.name}</h1>
-          <p className="text-gray-600">{product.description}</p>
+          <h1 className="text-3xl font-bold">{productData.name}</h1>
+          <p className="text-gray-600">{productData.description}</p>
           
           <div className="flex items-center space-x-4">
-            <span className="text-3xl font-bold">${product.price}</span>
+            <span className="text-3xl font-bold">${productData.price}</span>
             <span className={`px-3 py-1 rounded-full text-sm ${
-              product.stock > 0
+              productData.stock > 0
                 ? 'bg-green-100 text-green-800'
                 : 'bg-red-100 text-red-800'
             }`}>
-              {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
+              {productData.stock > 0 ? 'In Stock' : 'Out of Stock'}
             </span>
           </div>
 
-          {product.stock > 0 && (
+          {productData.stock > 0 && (
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
                 <label htmlFor="quantity" className="text-gray-700">
@@ -112,7 +149,7 @@ function ProductDetails() {
                   type="number"
                   id="quantity"
                   min="1"
-                  max={product.stock}
+                  max={productData.stock}
                   value={quantity}
                   onChange={handleQuantityChange}
                   className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -126,9 +163,9 @@ function ProductDetails() {
                 Add to Cart
               </button>
               
-              {product.stock < 5 && (
+              {productData.stock < 5 && (
                 <p className="text-red-500 text-sm">
-                  Only {product.stock} left in stock - order soon!
+                  Only {productData.stock} left in stock - order soon!
                 </p>
               )}
             </div>
@@ -149,7 +186,7 @@ function ProductDetails() {
               >
                 <div className="aspect-w-1 aspect-h-1">
                   <img
-                    src={relatedProduct.image}
+                    src={relatedProduct.images?.[0] ? `${API_URL}${relatedProduct.images[0]}` : relatedProduct.image}
                     alt={relatedProduct.name}
                     className="w-full h-full object-cover"
                   />

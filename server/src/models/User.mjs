@@ -83,6 +83,14 @@ User.init({
       notEmpty: true
     }
   },
+  first_name: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  last_name: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -102,6 +110,14 @@ User.init({
   role: {
     type: DataTypes.ENUM('user', 'seller', 'admin'),
     defaultValue: 'user'
+  },
+  type: {
+    type: DataTypes.ENUM('buyer', 'seller', 'admin'),
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+      isIn: [['buyer', 'seller', 'admin']]
+    }
   },
   wallet_address: {
     type: DataTypes.STRING,
@@ -136,6 +152,33 @@ User.init({
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password, salt);
       }
+
+      // Set type based on role if not explicitly set
+      if (!user.type) {
+        if (user.role === 'admin') {
+          user.type = 'admin';
+        } else if (user.role === 'seller') {
+          user.type = 'seller';
+        } else {
+          user.type = 'buyer';
+        }
+      }
+
+      // Ensure role and type are in sync
+      if (user.changed('type')) {
+        if (user.type === 'admin') {
+          user.role = 'admin';
+        } else if (user.type === 'seller') {
+          user.role = 'seller';
+        } else {
+          user.role = 'user';
+        }
+      }
+    }
+  },
+  defaultScope: {
+    attributes: {
+      exclude: ['password', 'encrypted_private_key', 'iv']
     }
   }
 });

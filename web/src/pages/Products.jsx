@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import { fetchProducts, setCategory, sortProducts } from '../store/slices/productsSlice';
 import { addItem } from '../store/slices/cartSlice';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
 function Products() {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -101,7 +103,7 @@ function Products() {
                 <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                   <div className="aspect-w-1 aspect-h-1">
                     <img
-                      src={product.image}
+                      src={product.images?.[0] ? `${API_URL}${product.images[0]}` : product.image}
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />

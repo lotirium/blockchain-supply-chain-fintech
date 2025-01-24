@@ -1,5 +1,5 @@
-const { User, Store, sequelize } = require('../models');
-const { Op } = require('sequelize');
+import { User, Store, sequelize } from '../models/index.mjs';
+import { Op } from 'sequelize';
 
 const profileController = {
   // Get user profile
@@ -9,8 +9,8 @@ const profileController = {
         attributes: { exclude: ['password'] },
         include: [{
           model: Store,
-          as: 'store',
-          attributes: ['name', 'description', 'status']
+          as: 'ownedStore',
+          attributes: ['id', 'name', 'description', 'status', 'type', 'is_verified', 'business_email', 'business_phone', 'business_address', 'wallet_address']
         }]
       });
 
@@ -30,7 +30,7 @@ const profileController = {
     const transaction = await sequelize.transaction();
 
     try {
-      const { username, email, walletAddress, storeName } = req.body;
+      const { username, email, firstName, lastName, walletAddress, storeName } = req.body;
 
       // Validate wallet address if provided
       if (walletAddress && !/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
@@ -50,7 +50,7 @@ const profileController = {
       const user = await User.findByPk(req.user.id, {
         include: [{
           model: Store,
-          as: 'store'
+          as: 'ownedStore'
         }],
         transaction
       });
@@ -61,24 +61,16 @@ const profileController = {
       }
 
       // Update user fields
-      if (username) user.username = username;
+      if (username) user.user_name = username;
       if (email) user.email = email;
-      if (walletAddress) user.walletAddress = walletAddress;
+      if (firstName) user.first_name = firstName;
+      if (lastName) user.last_name = lastName;
+      if (walletAddress) user.wallet_address = walletAddress;
 
       // Handle store updates for sellers
-      if (user.role === 'seller' && storeName) {
-        if (!user.store) {
-          // Create new store if it doesn't exist
-          user.store = await Store.create({
-            userId: user.id,
-            name: storeName,
-            status: 'pending'
-          }, { transaction });
-        } else {
-          // Update existing store
-          user.store.name = storeName;
-          await user.store.save({ transaction });
-        }
+      if (user.role === 'seller' && storeName && user.ownedStore) {
+        user.ownedStore.name = storeName;
+        await user.ownedStore.save({ transaction });
       }
 
       await user.save({ transaction });
@@ -89,8 +81,8 @@ const profileController = {
         attributes: { exclude: ['password'] },
         include: [{
           model: Store,
-          as: 'store',
-          attributes: ['name', 'description', 'status']
+          as: 'ownedStore',
+          attributes: ['id', 'name', 'description', 'status', 'type', 'is_verified', 'business_email', 'business_phone', 'business_address', 'wallet_address']
         }]
       });
 
@@ -103,4 +95,4 @@ const profileController = {
   }
 };
 
-module.exports = profileController;
+export default profileController;

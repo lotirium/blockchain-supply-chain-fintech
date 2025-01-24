@@ -6,7 +6,7 @@ import { register } from '../store/slices/authSlice';
 const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error, user, isAuthenticated } = useSelector((state) => state.auth);
+  const { error, user, isAuthenticated } = useSelector((state) => state.auth);
 
   const [registrationStep, setRegistrationStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -26,19 +26,14 @@ const Register = () => {
   });
 
   const [validationErrors, setValidationErrors] = useState({});
-  const [registrationStatus, setRegistrationStatus] = useState('');
-  const [processingStatus, setProcessingStatus] = useState({
-    step: '', // current processing step
-    message: '', // status message
-    error: null // error message if any
-  });
+
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (user?.role === 'user') {
+      if (user?.role === 'seller') {
+        navigate('/verification-pending');
+      } else if (user?.role === 'buyer') {
         navigate('/');
-      } else if (user?.role === 'seller') {
-        navigate('/seller-dashboard');
       }
     }
   }, [user, isAuthenticated, navigate]);
@@ -49,7 +44,6 @@ const Register = () => {
     if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
     if (!formData.email.trim()) errors.email = 'Email is required';
     if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Invalid email format';
-    
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -61,7 +55,6 @@ const Register = () => {
     if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match';
     }
-    
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -71,9 +64,59 @@ const Register = () => {
     if (!formData.store.name.trim()) errors.storeName = 'Store name is required';
     if (!formData.store.phone.trim()) errors.storePhone = 'Phone number is required';
     if (!formData.store.address.trim()) errors.storeAddress = 'Address is required';
-    
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  const generateRandomData = (step) => {
+    const firstNames = ['John', 'Emma', 'Michael', 'Sarah', 'David', 'Lisa'];
+    const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia'];
+    const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'];
+    const storeTypes = ['Electronics', 'Fashion', 'Home', 'Books', 'Sports'];
+    const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'];
+
+    switch (step) {
+      case 2:
+        const randomFirst = firstNames[Math.floor(Math.random() * firstNames.length)];
+        const randomLast = lastNames[Math.floor(Math.random() * lastNames.length)];
+        const randomDomain = domains[Math.floor(Math.random() * domains.length)];
+        return {
+          firstName: randomFirst,
+          lastName: randomLast,
+          email: `${randomFirst.toLowerCase()}.${randomLast.toLowerCase()}@${randomDomain}`,
+          username: `${randomFirst.toLowerCase()}${randomLast.toLowerCase()}${Math.floor(Math.random() * 1000)}`,
+          password: 'Password123!',
+          confirmPassword: 'Password123!'
+        };
+      case 3:
+        const storeType = storeTypes[Math.floor(Math.random() * storeTypes.length)];
+        const city = cities[Math.floor(Math.random() * cities.length)];
+        const ownerName = lastNames[Math.floor(Math.random() * lastNames.length)];
+        return {
+          store: {
+            name: `${ownerName}'s ${storeType}`,
+            description: `Quality ${storeType.toLowerCase()} for everyone. We provide the best products at competitive prices.`,
+            phone: `+1${Math.floor(Math.random() * 1000000000).toString().padStart(10, '0')}`,
+            address: `${Math.floor(Math.random() * 1000) + 1} Main St, ${city}, US`
+          }
+        };
+      default:
+        return {};
+    }
+  };
+
+  const handleFillRandom = (step) => {
+    const randomData = generateRandomData(step);
+    setFormData(prev => ({
+      ...prev,
+      ...(step === 3 ? {
+        store: {
+          ...prev.store,
+          ...randomData.store
+        }
+      } : randomData)
+    }));
+    setValidationErrors({});
   };
 
   const handleInputChange = (e) => {
@@ -95,15 +138,36 @@ const Register = () => {
     }
   };
 
-  const handleNext = () => {
-    if (registrationStep === 1 && validateStep1()) {
-      setRegistrationStep(2);
-    } else if (registrationStep === 2 && validateStep2()) {
-      if (formData.userType === 'buyer') {
-        handleSubmit();
-      } else {
-        setRegistrationStep(3);
-      }
+  const handleNext = (e) => {
+    e?.preventDefault();
+    
+    let isValid = false;
+    
+    switch (registrationStep) {
+      case 1:
+        // Always valid for step 1 as it's just selecting account type
+        isValid = true;
+        break;
+      case 2:
+        isValid = validateStep2();
+        if (isValid && formData.userType === 'buyer') {
+          handleSubmit();
+          return;
+        }
+        break;
+      case 3:
+        isValid = validateStep3();
+        if (isValid) {
+          handleSubmit();
+          return;
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (isValid) {
+      setRegistrationStep(prev => prev + 1);
     }
   };
 
@@ -111,136 +175,154 @@ const Register = () => {
     setRegistrationStep(prev => prev - 1);
   };
 
-  const handleSubmit = async (e) => {
-    e?.preventDefault();
-    
-    if (formData.userType !== 'buyer' && !validateStep3()) {
-      return;
-    }
-
-    const registrationData = {
-      firstName: formData.firstName.trim(),
-      lastName: formData.lastName.trim(),
-      email: formData.email.trim(),
-      username: formData.username.trim(),
-      password: formData.password,
-      userType: formData.userType,
-      role: formData.userType, // Use the actual userType as the role
-      ...(formData.userType !== 'buyer' && {
-        store: {
-          name: formData.store.name.trim(),
-          description: formData.store.description.trim(),
-          phone: formData.store.phone.trim(),
-          address: formData.store.address.trim(),
-          type: formData.userType // Use userType directly as store type
-        }
-      })
-    };
-
-    try {
-      setProcessingStatus({
-        step: 'account',
-        message: 'Creating your account...',
-        error: null
-      });
+    const handleSubmit = async (e) => {
+      e?.preventDefault();
       
-      await dispatch(register(registrationData)).unwrap();
-      
-      // Navigate based on user type
-      if (formData.userType === 'buyer') {
-        navigate('/');
-      } else {
-        navigate('/seller-dashboard');
+      if (formData.userType !== 'buyer' && !validateStep3()) {
+        return;
       }
-    } catch (err) {
-      setProcessingStatus({
-        step: 'error',
-        message: '',
-        error: err.message || 'Registration failed'
-      });
-    }
+
+      // Validate all required fields before submission
+      if (!validateStep1() || !validateStep2() || (formData.userType === 'seller' && !validateStep3())) {
+        return;
+      }
+
+      const registrationData = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        username: formData.username.trim(),
+        password: formData.password,
+        userType: formData.userType,
+        ...(formData.userType === 'seller' && {
+          store: {
+            name: formData.store.name.trim(),
+            description: formData.store.description.trim(),
+            phone: formData.store.phone.trim(),
+            address: formData.store.address.trim(),
+            type: 'seller'
+          }
+        })
+      };
+
+      try {
+        console.log('Starting registration process...', { userType: formData.userType });
+        await dispatch(register(registrationData)).unwrap();
+        console.log('Registration successful');
+        // Let the useEffect handle navigation
+      } catch (err) {
+        console.error('Registration failed:', err);
+        alert(err.message || 'Registration failed');
+      }
   };
 
-  const renderStatusMessage = () => {
-    if (!processingStatus.step) return null;
+  const renderStepIndicator = () => {
+    const steps = [
+      { number: 1, title: 'Account Type', description: 'Choose your role' },
+      { number: 2, title: 'Your Details', description: 'Personal information' },
+      formData.userType === 'seller' && { number: 3, title: 'Store Setup', description: 'Business details' }
+    ].filter(Boolean);
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
-          {processingStatus.error ? (
-            // Error state
-            <div className="text-red-600 text-center">
-              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              <h3 className="text-xl font-semibold mt-4">Registration Failed</h3>
-              <p className="mt-2 text-gray-600">{processingStatus.error}</p>
-              <button
-                onClick={() => setProcessingStatus({ step: '', message: '', error: null })}
-                className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      <div className="relative mb-8">
+        <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-gray-200">
+          <div
+            className="h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
+            style={{ width: `${((registrationStep - 1) / (steps.length - 1)) * 100}%` }}
+          />
+        </div>
+        <div className="relative flex justify-between">
+          {steps.map(({ number, title, description }) => (
+            <div key={number} className="flex flex-col items-center">
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${
+                  number === registrationStep
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white scale-110 shadow-lg'
+                    : number < registrationStep
+                    ? 'bg-gradient-to-r from-green-400 to-teal-500 text-white'
+                    : 'bg-white border-2 border-gray-200 text-gray-400'
+                }`}
               >
-                Try Again
-              </button>
+                {number < registrationStep ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <span className="text-lg font-semibold">{number}</span>
+                )}
+              </div>
+              <div className="mt-2 text-center">
+                <p className={`text-sm font-medium ${
+                  number === registrationStep ? 'text-gray-900' : 'text-gray-500'
+                }`}>
+                  {title}
+                </p>
+                <p className="text-xs text-gray-500">{description}</p>
+              </div>
             </div>
-          ) : (
-            // Processing state
-            <>
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-center font-medium">{processingStatus.message}</p>
-              {processingStatus.step === 'verification' && (
-                <div className="mt-4 text-sm text-gray-500 text-center">
-                  <p>Your store is pending verification.</p>
-                  <p>We'll notify you once the verification is complete.</p>
-                </div>
-              )}
-            </>
-          )}
+          ))}
         </div>
       </div>
     );
   };
 
-  const renderStep1 = () => (
-    <>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Account Type</label>
-          <div className="mt-2 grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              className={`${
-                formData.userType === 'buyer'
-                  ? 'ring-2 ring-blue-600 bg-blue-50'
-                  : 'bg-white'
-              } border rounded-lg p-4 text-center hover:bg-gray-50`}
-              onClick={() => {
-                setFormData(prev => ({
-                  ...prev,
-                  userType: 'buyer'
-                }));
-              }}
-            >
-              <span className="block text-sm font-medium">Buyer</span>
-            </button>
-            <button
-              type="button"
-              className={`${
-                formData.userType === 'seller'
-                  ? 'ring-2 ring-blue-600 bg-blue-50'
-                  : 'bg-white'
-              } border rounded-lg p-4 text-center hover:bg-gray-50`}
-              onClick={() => {
-                setFormData(prev => ({
-                  ...prev,
-                  userType: 'seller'
-                }));
-              }}
-            >
-              <span className="block text-sm font-medium">Seller</span>
-            </button>
+  const renderAccountTypeStep = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <button
+          type="button"
+          onClick={() => setFormData(prev => ({ ...prev, userType: 'buyer' }))}
+          className={`relative p-6 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+            formData.userType === 'buyer'
+              ? 'bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-500 shadow-md'
+              : 'bg-white border-2 border-gray-200 hover:border-blue-300'
+          }`}
+        >
+          <div className="flex flex-col items-center text-center">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+              formData.userType === 'buyer'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                : 'bg-gray-100 text-gray-600'
+            }`}>
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold">Buyer</h3>
+            <p className="mt-2 text-sm text-gray-500">Shop from our marketplace</p>
           </div>
-        </div>
+        </button>
 
+        <button
+          type="button"
+          onClick={() => setFormData(prev => ({ ...prev, userType: 'seller' }))}
+          className={`relative p-6 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+            formData.userType === 'seller'
+              ? 'bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-500 shadow-md'
+              : 'bg-white border-2 border-gray-200 hover:border-blue-300'
+          }`}
+        >
+          <div className="flex flex-col items-center text-center">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+              formData.userType === 'seller'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                : 'bg-gray-100 text-gray-600'
+            }`}>
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold">Seller</h3>
+            <p className="mt-2 text-sm text-gray-500">Start your own store</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderPersonalInfoStep = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">First Name</label>
           <input
@@ -248,13 +330,12 @@ const Register = () => {
             name="firstName"
             value={formData.firstName}
             onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           />
           {validationErrors.firstName && (
             <p className="mt-1 text-sm text-red-600">{validationErrors.firstName}</p>
           )}
         </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-700">Last Name</label>
           <input
@@ -262,230 +343,241 @@ const Register = () => {
             name="lastName"
             value={formData.lastName}
             onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           />
           {validationErrors.lastName && (
             <p className="mt-1 text-sm text-red-600">{validationErrors.lastName}</p>
           )}
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Email</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-          {validationErrors.email && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
-          )}
-        </div>
       </div>
 
-      <div className="mt-6">
-        <button
-          type="button"
-          onClick={handleNext}
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Next
-        </button>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Email</label>
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+        />
+        {validationErrors.email && (
+          <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
+        )}
       </div>
-    </>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Username</label>
+        <input
+          type="text"
+          name="username"
+          value={formData.username}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+        />
+        {validationErrors.username && (
+          <p className="mt-1 text-sm text-red-600">{validationErrors.username}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Password</label>
+        <input
+          type="password"
+          name="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+        />
+        {validationErrors.password && (
+          <p className="mt-1 text-sm text-red-600">{validationErrors.password}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+        <input
+          type="password"
+          name="confirmPassword"
+          value={formData.confirmPassword}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+        />
+        {validationErrors.confirmPassword && (
+          <p className="mt-1 text-sm text-red-600">{validationErrors.confirmPassword}</p>
+        )}
+      </div>
+    </div>
   );
 
-  const renderStep2 = () => (
-    <>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Username</label>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-          {validationErrors.username && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.username}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Password</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-          {validationErrors.password && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.password}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
-          <input
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-          {validationErrors.confirmPassword && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.confirmPassword}</p>
-          )}
-        </div>
+  const renderStoreSetupStep = () => (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Store Name</label>
+        <input
+          type="text"
+          name="store.name"
+          value={formData.store.name}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+        />
+        {validationErrors.storeName && (
+          <p className="mt-1 text-sm text-red-600">{validationErrors.storeName}</p>
+        )}
       </div>
 
-      <div className="mt-6 flex justify-between gap-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Store Description</label>
+        <textarea
+          name="store.description"
+          value={formData.store.description}
+          onChange={handleInputChange}
+          rows="3"
+          className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Business Phone</label>
+        <input
+          type="tel"
+          name="store.phone"
+          value={formData.store.phone}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+        />
+        {validationErrors.storePhone && (
+          <p className="mt-1 text-sm text-red-600">{validationErrors.storePhone}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Business Address</label>
+        <input
+          type="text"
+          name="store.address"
+          value={formData.store.address}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+        />
+        {validationErrors.storeAddress && (
+          <p className="mt-1 text-sm text-red-600">{validationErrors.storeAddress}</p>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderNavigationButtons = () => (
+    <div className="flex justify-between space-x-4 mt-8">
+      {registrationStep > 1 && (
         <button
           type="button"
           onClick={handleBack}
-          className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          className="flex-1 py-3 px-4 bg-white border-2 border-gray-200 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300"
         >
           Back
         </button>
-        <button
-          type="button"
+      )}
+      <button
+        type="button"
           onClick={handleNext}
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          {formData.userType === 'buyer' ? 'Register' : 'Next'}
-        </button>
-      </div>
-    </>
-  );
-
-  const renderStep3 = () => (
-    <>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Store Name</label>
-          <input
-            type="text"
-            name="store.name"
-            value={formData.store.name}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-          {validationErrors.storeName && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.storeName}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Store Description</label>
-          <textarea
-            name="store.description"
-            value={formData.store.description}
-            onChange={handleInputChange}
-            rows="3"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Business Phone</label>
-          <input
-            type="tel"
-            name="store.phone"
-            value={formData.store.phone}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-          {validationErrors.storePhone && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.storePhone}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Business Address</label>
-          <input
-            type="text"
-            name="store.address"
-            value={formData.store.address}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-          {validationErrors.storeAddress && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.storeAddress}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-6 flex justify-between gap-4">
-        <button
-          type="button"
-          onClick={handleBack}
-          className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-        >
-          Back
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Register
-        </button>
-      </div>
-    </>
+          className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg text-white font-medium hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
+      >
+        {registrationStep === 2 && formData.userType === 'buyer'
+          ? 'Register'
+          : registrationStep === 3
+          ? 'Create Store'
+          : 'Continue'}
+      </button>
+    </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Create your account
-        </h2>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <div className="mb-6">
-            <div className="flex justify-between items-center">
-              {[1, 2, formData.userType === 'seller' ? 3 : null].filter(Boolean).map((step) => (
-                <div
-                  key={step}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    step === registrationStep
-                      ? 'bg-blue-600 text-white'
-                      : step < registrationStep
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {step < registrationStep ? '✓' : step}
+    <div className="min-h-screen flex">
+      {/* Left Panel - Decorative */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500">
+        <div className="w-full flex flex-col items-center justify-center px-12 text-white">
+          <h1 className="text-5xl font-bold mb-6">Welcome to Our Marketplace</h1>
+          <p className="text-xl text-blue-100 text-center mb-8">
+            Join our community and discover amazing products or start your own store.
+          </p>
+          <div className="w-full max-w-md">
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                  </svg>
                 </div>
-              ))}
-            </div>
-            <div className="mt-2">
-              <p className="text-sm text-center text-gray-600">
-                Step {registrationStep} of {formData.userType === 'buyer' ? '2' : '3'}
-              </p>
+                <div>
+                  <h3 className="text-lg font-semibold">Secure Platform</h3>
+                  <p className="text-blue-100">Your data is always protected</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Fast & Easy</h3>
+                  <p className="text-blue-100">Start selling in minutes</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Growing Community</h3>
+                  <p className="text-blue-100">Join thousands of users</p>
+                </div>
+              </div>
             </div>
           </div>
-
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-            {registrationStep === 1 && renderStep1()}
-            {registrationStep === 2 && renderStep2()}
-            {registrationStep === 3 && renderStep3()}
-          </form>
-
-          {validationErrors.submit && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-600">{validationErrors.submit}</p>
-            </div>
-          )}
         </div>
       </div>
 
-      {renderStatusMessage()}
+      {/* Right Panel - Form */}
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24 bg-gray-50">
+        <div className="mx-auto w-full max-w-xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">Create Your Account</h2>
+            <p className="mt-3 text-gray-500">
+              {registrationStep === 1
+                ? 'Choose how you want to use our platform'
+                : registrationStep === 2
+                ? 'Tell us about yourself'
+                : 'Set up your store'}
+            </p>
+          </div>
+
+          {renderStepIndicator()}
+
+          <div className="bg-white shadow-xl rounded-xl p-8 relative">
+            {registrationStep > 1 && (
+              <button
+                type="button"
+                onClick={() => handleFillRandom(registrationStep)}
+                className="absolute top-4 right-4 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors duration-200 flex items-center space-x-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                <span>Fill Sample Data</span>
+              </button>
+            )}
+            {registrationStep === 1 && renderAccountTypeStep()}
+            {registrationStep === 2 && renderPersonalInfoStep()}
+            {registrationStep === 3 && renderStoreSetupStep()}
+            {renderNavigationButtons()}
+          </div>
+        </div>
+      </div>
+
+
     </div>
   );
 };
