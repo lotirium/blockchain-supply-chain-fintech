@@ -207,6 +207,192 @@ cd server
 npm test
 ```
 
+## CI/CD and GitHub Workflow
+
+Clone and set up the repository:
+```bash
+# Clone using SSH
+git clone git@github.com:yourusername/shipment_project.git
+
+# Or clone using HTTPS
+git clone https://github.com/yourusername/shipment_project.git
+
+cd shipment_project
+
+# Set up remote (if not already set)
+git remote add origin git@github.com:yourusername/shipment_project.git
+```
+
+### Daily Development Workflow
+
+1. Start with the latest code:
+```bash
+# Switch to main branch
+git checkout main
+
+# Get latest changes
+git pull origin main
+
+# Create feature branch
+git checkout -b feature/your-feature-name
+```
+
+2. Make and test your changes locally
+
+3. Stage and commit changes:
+```bash
+# Check what files changed
+git status
+
+# Add specific files
+git add file1.js file2.js
+
+# Or add all changes
+git add .
+
+# Commit with a descriptive message
+git commit -m "feat: add new product listing feature"
+```
+
+4. Push changes to GitHub:
+```bash
+git push origin feature/your-feature-name
+```
+
+5. Create Pull Request on GitHub:
+- Go to repository on GitHub
+- Click "Compare & pull request"
+- Fill in description of changes
+- Request review from team members
+
+### Understanding CI/CD Pipeline
+
+Our CI/CD pipeline automatically:
+1. Runs when you push code or create/update pull requests
+2. Performs these checks:
+   - Linting
+   - Unit tests
+   - Contract compilation
+   - Security scanning
+   - Build verification
+
+#### Pipeline Stages
+
+1. **Build Stage**:
+   - Installs dependencies
+   - Compiles contracts
+   - Builds frontend and backend
+
+2. **Test Stage**:
+   - Runs unit tests
+   - Performs contract tests
+   - Checks code coverage
+
+3. **Deploy Stage** (on main branch only):
+   - Deploys contracts to test network
+   - Updates backend services
+   - Deploys frontend changes
+
+### Deployment Process
+
+1. **Automatic Deployments**:
+   - Merging to `main` triggers automatic deployment
+   - Pipeline deploys to staging environment first
+   - After staging verification, deploys to production
+
+2. **Manual Deployments**:
+```bash
+# Deploy contracts
+cd blockchain
+npx hardhat run scripts/deploy.js --network production
+
+# Deploy backend
+cd server
+npm run deploy:prod
+
+# Deploy frontend
+cd web
+npm run build
+npm run deploy
+```
+
+### Common Git Operations
+
+1. **Update feature branch with main**:
+```bash
+git checkout main
+git pull origin main
+git checkout your-feature-branch
+git merge main
+```
+
+2. **Undo local changes**:
+```bash
+# Undo specific file
+git checkout -- filename
+
+# Undo all changes
+git checkout -- .
+
+# Undo last commit (keep changes)
+git reset --soft HEAD^
+
+# Undo last commit (discard changes)
+git reset --hard HEAD^
+```
+
+3. **Handle merge conflicts**:
+```bash
+# When conflict occurs
+git status  # See conflicted files
+# Edit files to resolve conflicts
+git add .
+git commit -m "fix: resolve merge conflicts"
+```
+
+4. **View history**:
+```bash
+# View commit history
+git log --oneline
+
+# View changes in specific commit
+git show <commit-hash>
+
+# View file history
+git log -p filename
+```
+
+### Best Practices
+
+1. **Branch Naming**:
+   - `feature/` - New features
+   - `fix/` - Bug fixes
+   - `docs/` - Documentation
+   - `refactor/` - Code improvements
+
+2. **Commit Messages**:
+   - `feat:` - New feature
+   - `fix:` - Bug fix
+   - `docs:` - Documentation
+   - `style:` - Formatting
+   - `refactor:` - Code restructuring
+   - `test:` - Adding tests
+   - `chore:` - Maintenance
+
+3. **Pull Request Guidelines**:
+   - Keep changes focused and small
+   - Add descriptive title and description
+   - Reference related issues
+   - Include testing steps
+   - Request review from team members
+
+4. **Code Review Process**:
+   - Review all changes
+   - Run tests locally
+   - Check for security issues
+   - Verify documentation
+   - Approve or request changes
+
 ## Additional Information
 
 - The blockchain component uses Hardhat for development and testing
