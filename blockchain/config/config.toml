@@ -1,0 +1,50 @@
+# Network
+network = "dev"
+genesis-file = "genesis.json"
+
+# P2P Configuration
+p2p-host = "0.0.0.0"
+p2p-port = 30303
+max-peers = 25
+
+# RPC Configuration
+rpc-http-enabled = true
+rpc-http-host = "0.0.0.0"
+rpc-http-port = 8545
+rpc-http-cors-origins = ["*"]
+
+# API Configuration
+rpc-http-api = ["ETH", "NET", "WEB3", "ADMIN"]
+host-allowlist = ["*"]
+
+# WebSocket Configuration
+rpc-ws-enabled = true
+rpc-ws-host = "0.0.0.0"
+rpc-ws-port = 8546
+
+# Mining/Validation
+miner-enabled = true
+miner-coinbase = "0x0000000000000000000000000000000000000000"
+
+# Security
+permissions-nodes-config-file-enabled = false
+permissions-accounts-config-file-enabled = false
+
+# Metrics
+metrics-enabled = true
+metrics-host = "0.0.0.0"
+metrics-port = 9545
+
+# Privacy
+privacy-enabled = false
+
+# Transaction Pool
+tx-pool-retention-hours = 999
+tx-pool-max-size = 1000
+
+# Logging Configuration
+logging = "INFO"
+log-path = "besu.log"
+
+# Data Storage
+data-path = "data"

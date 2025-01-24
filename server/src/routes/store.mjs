@@ -1,0 +1,30 @@
+import express from 'express';
+import { Store } from '../models/index.mjs';
+import auth from '../middleware/auth.mjs';
+
+const router = express.Router();
+
+router.put('/setup', auth, async (req, res) => {
+  try {
+    const store = await Store.findOne({ where: { user_id: req.user.id } });
+    if (!store) return res.status(404).json({ error: 'Store not found' });
+    
+    const { business_email, business_address, business_phone } = req.body;
+    if (!business_email || !business_address || !business_phone) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    await store.update({
+      business_email,
+      business_address,
+      business_phone,
+      status: 'active'
+    });
+    
+    res.json(store);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+export default router;

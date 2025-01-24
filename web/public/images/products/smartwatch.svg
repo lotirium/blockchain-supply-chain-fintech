@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="800" fill="#f3f4f6"/>
+  <g transform="translate(400,400)">
+    <!-- Watch Band Top -->
+    <path d="M-60,-120 L60,-120 L80,-80 L-80,-80 Z" fill="#4b5563"/>
+    
+    <!-- Watch Face -->
+    <rect x="-100" y="-80" width="200" height="160" rx="20" fill="#4b5563"/>
+    <rect x="-90" y="-70" width="180" height="140" rx="15" fill="#9ca3af"/>
+    
+    <!-- Watch Screen -->
+    <rect x="-80" y="-60" width="160" height="120" rx="10" fill="#1f2937"/>
+    
+    <!-- Time Display -->
+    <text x="0" y="10" font-family="Arial" font-size="36" fill="#f3f4f6" text-anchor="middle">12:00</text>
+    
+    <!-- Watch Band Bottom -->
+    <path d="M-60,80 L60,80 L80,120 L-80,120 Z" fill="#4b5563"/>
+  </g>
+  <text x="400" y="650" font-family="Arial" font-size="24" fill="#4b5563" text-anchor="middle">Smart Watch</text>
+</svg>
