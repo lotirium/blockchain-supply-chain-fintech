@@ -4,8 +4,8 @@ export const isSeller = async (req, res, next) => {
   try {
     const user = req.user;
 
-    // Check if user exists and has a seller role
-    if (!user || (user.role !== 'manufacturer' && user.role !== 'retailer')) {
+    // Check if user exists and has seller role
+    if (!user || user.role !== 'seller') {
       return res.status(403).json({
         success: false,
         message: 'Access denied. Only sellers can access this resource.'
@@ -13,11 +13,25 @@ export const isSeller = async (req, res, next) => {
     }
 
     // Check if the seller has an associated store
-    const store = await Store.findOne({ owner: user._id });
+    const store = await Store.findOne({
+      where: { 
+        user_id: user.id,
+        status: 'active'
+      }
+    });
+
     if (!store) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied. Seller must have an associated store.'
+        message: 'Access denied. Seller must have an active store.'
+      });
+    }
+
+    // Check store verification status
+    if (!store.is_verified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Store must be verified.'
       });
     }
 
@@ -31,4 +45,17 @@ export const isSeller = async (req, res, next) => {
       message: 'Internal server error while checking seller status'
     });
   }
+};
+
+export const isAdmin = (req, res, next) => {
+  const user = req.user;
+
+  if (!user || user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Admin privileges required.'
+    });
+  }
+
+  next();
 };

@@ -167,6 +167,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.registrationSuccess = true;
         state.error = null;
+        state.lastProfileFetch = Date.now(); // Add this to prevent immediate profile fetch
         localStorage.setItem('token', action.payload.token);
         localStorage.setItem('userType', state.userType);
       })
@@ -178,6 +179,7 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         state.userType = null;
+        state.lastProfileFetch = null;
       })
 
     // Login

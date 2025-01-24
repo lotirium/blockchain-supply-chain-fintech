@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { User } from '../models/index.mjs';
+import { User, Store } from '../models/index.mjs';
 
 const auth = (roles = []) => {
   // Convert string to array if single role
@@ -20,9 +20,14 @@ const auth = (roles = []) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user
+      // Get user with store information
       const user = await User.findByPk(decoded.id, {
-        attributes: { exclude: ['password'] }
+        attributes: { exclude: ['password'] },
+        include: [{
+          model: Store,
+          as: 'ownedStore',
+          required: false
+        }]
       });
 
       if (!user) {

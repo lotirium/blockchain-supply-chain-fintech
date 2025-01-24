@@ -27,36 +27,48 @@ const registerValidation = [
 const loginValidation = [
   body('email').isEmail().withMessage('Invalid email address'),
   body('password').notEmpty().withMessage('Password is required'),
-  body('userType')
-    .notEmpty()
-    .withMessage('User type is required')
-    .isIn(['buyer', 'seller'])
-    .withMessage('Invalid user type. Must be one of: buyer, seller'),
   validateRequest,
 ];
 
 // Routes
 router.post('/register', registerValidation, async (req, res) => {
   try {
-    const { username: user_name, email, password, userType, walletAddress, store } = req.body;
+    const { username: user_name, email, password, userType, walletAddress, store, firstName, lastName } = req.body;
 
-    // Use userType directly as role, with 'user' for buyers
-    const mappedRole = userType === 'buyer' ? 'user' : userType;
+    // Validate and map user type to role
+    if (!userType || !['buyer', 'seller'].includes(userType)) {
+      return res.status(400).json({ message: 'Invalid user type. Must be either buyer or seller' });
+    }
 
-    // Check if user already exists
+    // Validate required name fields
+    if (!firstName?.trim()) {
+      return res.status(400).json({ message: 'First name is required' });
+    }
+    if (!lastName?.trim()) {
+      return res.status(400).json({ message: 'Last name is required' });
+    }
+
+    const mappedRole = userType === 'buyer' ? 'user' : 'seller';
+
+    // Check if user already exists with any role
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    // Create user
+    // Create user with strict role and type assignment
     let user;
     try {
       user = await User.create({
         user_name,
         email,
         password,
-        role: mappedRole
+        role: mappedRole,
+        type: userType, // Store original user type (buyer/seller)
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        is_email_verified: false,
+        last_login: new Date()
       });
     } catch (error) {
       console.error('Failed to create user account:', error);
@@ -77,9 +89,8 @@ router.post('/register', registerValidation, async (req, res) => {
           business_email: email,
           business_phone: store.phone,
           business_address: store.address,
-          status: 'active',
-          is_verified: true,
-          verification_date: new Date(),
+          status: 'pending_verification',
+          is_verified: false,
           created_at: new Date(),
           updated_at: new Date()
         });
@@ -113,6 +124,8 @@ router.post('/register', registerValidation, async (req, res) => {
         id: userData.id,
         email: userData.email,
         username: userData.user_name,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
         role: userData.role,
         walletAddress: userData.wallet_address,
         lastLogin: userData.lastLogin,
@@ -146,31 +159,24 @@ router.post('/register', registerValidation, async (req, res) => {
 
 router.post('/login', loginValidation, async (req, res) => {
   try {
-    const { email, password, userType } = req.body;
+    const { email, password } = req.body;
 
-    console.log('Login attempt:', { email, userType });
+    console.log('Login attempt:', { email });
 
-    // Use userType directly as role, with 'user' for buyers
-    const role = userType === 'buyer' ? 'user' : userType;
-
-    // Find user with role check
-    const user = await User.findOne({
-      where: { 
-        email,
-        role: role
-      },
+    // Simple user lookup by email
+    const user = await User.unscoped().findOne({
+      where: { email },
       include: [{
         model: Store,
-        as: 'ownedStore'
+        as: 'ownedStore',
+        required: false
       }]
     });
 
     if (!user) {
-      console.log('Login failed: No user found with email and type:', { email, userType });
+      console.log('Login failed: No user found with email:', email);
       return res.status(401).json({ 
-        message: userType === 'seller' 
-          ? 'No seller account found with this email' 
-          : 'No buyer account found with this email'
+        message: 'Invalid email or password'
       });
     }
 
@@ -202,10 +208,22 @@ router.post('/login', loginValidation, async (req, res) => {
         id: userData.id,
         email: userData.email,
         username: userData.user_name,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
         role: userData.role,
         walletAddress: userData.wallet_address,
         lastLogin: userData.lastLogin,
-        store: userData.ownedStore || null
+        store: userData.ownedStore ? {
+          id: userData.ownedStore.id,
+          name: userData.ownedStore.name,
+          status: userData.ownedStore.status,
+          type: userData.ownedStore.type,
+          is_verified: userData.ownedStore.is_verified,
+          business_email: userData.ownedStore.business_email,
+          business_phone: userData.ownedStore.business_phone,
+          business_address: userData.ownedStore.business_address,
+          wallet_address: userData.ownedStore.wallet_address
+        } : null
       }
     });
   } catch (error) {
@@ -238,7 +256,7 @@ router.get('/me', auth, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Get user data with store
+    // Get user data with stor
     const userData = user.toJSON();
     
     res.json({
@@ -246,10 +264,22 @@ router.get('/me', auth, async (req, res) => {
         id: userData.id,
         email: userData.email,
         username: userData.user_name,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
         role: userData.role,
         walletAddress: userData.wallet_address,
         lastLogin: userData.lastLogin,
-        store: userData.ownedStore || null
+        store: userData.ownedStore ? {
+          id: userData.ownedStore.id,
+          name: userData.ownedStore.name,
+          status: userData.ownedStore.status,
+          type: userData.ownedStore.type,
+          is_verified: userData.ownedStore.is_verified,
+          business_email: userData.ownedStore.business_email,
+          business_phone: userData.ownedStore.business_phone,
+          business_address: userData.ownedStore.business_address,
+          wallet_address: userData.ownedStore.wallet_address
+        } : null
       }
     });
   } catch (error) {

@@ -62,10 +62,10 @@ export const getDashboardData = async (req, res) => {
           status: 'active'
         }
       }),
-      Order.sum('total_amount', {
+      Order.sum('total_fiat_amount', {
         where: {
           store_id: store.id,
-          status: 'completed'
+          status: 'delivered'
         }
       }),
       Order.count({
@@ -83,7 +83,7 @@ export const getDashboardData = async (req, res) => {
       },
       include: [{
         model: User,
-        as: 'customer',
+        as: 'orderPlacer',
         attributes: ['id', 'user_name', 'email']
       }],
       order: [['created_at', 'DESC']],
@@ -107,8 +107,8 @@ export const getDashboardData = async (req, res) => {
       },
       recentOrders: recentOrders.map(order => ({
         id: order.id,
-        customer_name: order.customer.user_name,
-        total: order.total_amount,
+        customer_name: order.orderPlacer.user_name,
+        total: order.total_fiat_amount,
         status: order.status,
         created_at: order.created_at
       })),
@@ -312,12 +312,12 @@ export const getStoreStats = async (req, res) => {
       Order.findAll({
         where: {
           store_id: store.id,
-          status: 'completed',
+          status: 'delivered',
           ...dateFilter
         },
         attributes: [
           [Sequelize.fn('DATE', Sequelize.col('created_at')), 'date'],
-          [Sequelize.fn('SUM', Sequelize.col('total_amount')), 'total_sales'],
+          [Sequelize.fn('SUM', Sequelize.col('total_fiat_amount')), 'total_sales'],
           [Sequelize.fn('COUNT', Sequelize.col('id')), 'order_count']
         ],
         group: [Sequelize.fn('DATE', Sequelize.col('created_at'))],

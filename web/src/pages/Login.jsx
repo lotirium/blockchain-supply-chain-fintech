@@ -11,8 +11,7 @@ function Login() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false,
-    userType: location.state?.userType || 'buyer', // Default to buyer or use type from registration
+    rememberMe: false
   });
 
   // Get the redirect path from location state or default to home
@@ -31,12 +30,13 @@ function Login() {
     try {
       const response = await dispatch(login({
         email: formData.email,
-        password: formData.password,
-        userType: formData.userType
+        password: formData.password
       })).unwrap();
       
       // Navigate based on user role
-      if (response.user.role === 'seller') {
+      if (response.user.role === 'admin') {
+        navigate('/admin/verifications', { replace: true });
+      } else if (response.user.role === 'seller') {
         navigate('/seller-dashboard', { replace: true });
       } else {
         navigate(from, { replace: true });
@@ -51,38 +51,11 @@ function Login() {
     <div className="min-h-[80vh] flex items-center justify-center">
       <div className="max-w-md w-full mx-4">
         <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h1 className="text-3xl font-bold">Welcome Back</h1>
             <p className="text-gray-600 mt-2">
-              Sign in to your {formData.userType} account
+              Please sign in to your account
             </p>
-          </div>
-
-          <div className="mb-6">
-            <div className="flex justify-center space-x-6">
-              <label className="inline-flex items-center">
-                <input
-                  type="radio"
-                  name="userType"
-                  value="buyer"
-                  checked={formData.userType === 'buyer'}
-                  onChange={handleInputChange}
-                  className="form-radio h-4 w-4 text-blue-600"
-                />
-                <span className="ml-2">Buyer</span>
-              </label>
-              <label className="inline-flex items-center">
-                <input
-                  type="radio"
-                  name="userType"
-                  value="seller"
-                  checked={formData.userType === 'seller'}
-                  onChange={handleInputChange}
-                  className="form-radio h-4 w-4 text-blue-600"
-                />
-                <span className="ml-2">Seller</span>
-              </label>
-            </div>
           </div>
 
           {error && (
@@ -107,7 +80,7 @@ function Login() {
                 onChange={handleInputChange}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder={`${formData.userType}@example.com`}
+                placeholder="your@email.com"
               />
             </div>
 

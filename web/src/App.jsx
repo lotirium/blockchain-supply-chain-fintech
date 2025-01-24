@@ -7,6 +7,9 @@ import { initializeAuth } from './store/slices/authSlice';
 const Layout = React.lazy(() => import('./components/Layout'));
 const ProtectedRoute = React.lazy(() => import('./components/ProtectedRoute'));
 const SellerRoute = React.lazy(() => import('./components/SellerRoute'));
+const UnverifiedSellerRoute = React.lazy(() => import('./components/UnverifiedSellerRoute'));
+const AdminRoute = React.lazy(() => import('./components/AdminRoute'));
+const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
 
 // Page Components
 const Home = React.lazy(() => import('./pages/Home'));
@@ -19,7 +22,8 @@ const Register = React.lazy(() => import('./pages/Register'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const AddProduct = React.lazy(() => import('./pages/AddProduct'));
 const SellerDashboard = React.lazy(() => import('./pages/SellerDashboard'));
-
+const VerificationPending = React.lazy(() => import('./pages/VerificationPending'));
+const AdminVerification = React.lazy(() => import('./pages/AdminVerification'));
 
 function App() {
   const dispatch = useDispatch();
@@ -55,6 +59,11 @@ function App() {
           } />
           <Route path="register" element={<Register />} />
 
+          {/* Seller Verification Route */}
+          <Route element={<UnverifiedSellerRoute />}>
+            <Route path="verification-pending" element={<VerificationPending />} />
+          </Route>
+
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             {/* Product Routes */}
@@ -63,10 +72,17 @@ function App() {
             <Route path="cart" element={<Cart />} />
             <Route path="checkout" element={<Checkout />} />
             
-            {/* Seller Routes */}
+            {/* Verified Seller Routes */}
             <Route element={<SellerRoute />}>
               <Route path="seller-dashboard" element={<SellerDashboard />} />
               <Route path="add-product" element={<AddProduct />} />
+            </Route>
+
+            {/* Admin Routes */}
+            <Route path="admin" element={<AdminRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route path="verifications" element={<AdminVerification />} />
+              </Route>
             </Route>
             
             {/* User Routes */}

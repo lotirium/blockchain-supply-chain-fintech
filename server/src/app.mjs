@@ -14,6 +14,7 @@ import blockchainRoutes from './routes/blockchain.mjs';
 import storeRoutes from './routes/store.mjs';
 import productRoutes from './routes/products.mjs';
 import sellerDashboardRoutes from './routes/sellerDashboard.mjs';
+import verificationRoutes from './routes/verification.mjs';
 import { errorHandler } from './middleware/errorHandler.mjs';
 import blockchainController from './controllers/blockchain.mjs';
 import ipfsService from './services/ipfs.mjs';
@@ -126,6 +127,20 @@ const blockchainLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limiter for verification endpoints (both seller status checks and admin operations)
+const verificationLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: process.env.NODE_ENV === 'production' ? 200 : 2000, // Balance between status checks and admin operations
+  message: {
+    error: {
+      message: 'Too many verification requests, please try again later.',
+      code: 'ERR_RATE_LIMIT_EXCEEDED'
+    }
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const sellerDashboardLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === 'production' ? 600 : 6000,
@@ -163,12 +178,36 @@ app.use(cors({
   ],
 }));
 
-// Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Increase server timeout
+app.timeout = 120000; // 2 minutes
 
-// Static file serving
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Body parsing middleware with increased limits for file uploads
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Ensure uploads directory exists with proper permissions
+const uploadsDir = path.join(__dirname, '..', 'uploads');
+const productsDir = path.join(uploadsDir, 'products');
+
+try {
+  await fs.mkdir(uploadsDir, { recursive: true, mode: 0o755 });
+  await fs.mkdir(productsDir, { recursive: true, mode: 0o755 });
+  console.log('Upload directories created successfully');
+} catch (error) {
+  console.error('Error creating upload directories:', error);
+  throw error;
+}
+
+// Static file serving with proper headers for file uploads
+app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', (req, res, next) => {
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET',
+    'Cache-Control': 'public, max-age=31536000',
+  });
+  next();
+});
 
 // Rate limiting middleware
 app.use('/api/auth', authLimiter);
@@ -183,7 +222,8 @@ app.use('/api', queue);
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/blockchain', blockchainRoutes);
-app.use('/api/store', storeRoutes);
+app.use('/api/seller/store', storeRoutes);
+app.use('/api/verification', verificationLimiter, verificationRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/seller/dashboard', sellerDashboardLimiter, sellerDashboardRoutes);
 

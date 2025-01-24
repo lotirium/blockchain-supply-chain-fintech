@@ -1,43 +1,26 @@
 import express from 'express';
-import { body } from 'express-validator';
-import validateRequest from '../middleware/validateRequest.mjs';
-import auth, { requireSeller } from '../middleware/auth.mjs';
+import auth from '../middleware/auth.mjs';
 import { User, Store } from '../models/index.mjs';
-import { ethers } from 'ethers';
 
 const router = express.Router();
 
-// Validation middleware
-const updateProfileValidation = [
-  body('username').optional().trim().notEmpty().withMessage('Username cannot be empty'),
-  body('email')
-    .optional()
-    .isEmail()
-    .withMessage('Invalid email address'),
-  body('walletAddress')
-    .optional()
-    .custom((value) => {
-      if (value && !ethers.isAddress(value)) {
-        throw new Error('Invalid Ethereum address');
-      }
-      return true;
-    }),
-  body('storeName')
-    .optional()
-    .trim()
-    .notEmpty()
-    .withMessage('Store name cannot be empty'),
-  validateRequest,
-];
-
-// Routes
+// Get user profile
 router.get('/', auth(), async (req, res) => {
   try {
+    // Get fresh user data from database
     const user = await User.findByPk(req.user.id, {
-      attributes: { exclude: ['password'] },
+      attributes: { 
+        exclude: ['password'],
+        include: [
+          'id', 'email', 'user_name', 'first_name', 'last_name', 
+          'role', 'type', 'wallet_address', 'is_email_verified', 
+          'last_login', 'created_at', 'updated_at'
+        ]
+      },
       include: [{
         model: Store,
-        as: 'ownedStore'
+        as: 'ownedStore',
+        required: false
       }]
     });
 
@@ -45,152 +28,154 @@ router.get('/', auth(), async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(user);
+    const userData = user.toJSON();
+    res.json({
+      id: userData.id,
+      email: userData.email,
+      username: userData.user_name,
+      firstName: userData.first_name,
+      lastName: userData.last_name,
+      role: userData.role,
+      type: userData.type,
+      walletAddress: userData.wallet_address,
+      isEmailVerified: userData.is_email_verified,
+      lastLogin: userData.last_login,
+      createdAt: userData.created_at,
+      updatedAt: userData.updated_at,
+      store: userData.ownedStore ? {
+        id: userData.ownedStore.id,
+        name: userData.ownedStore.name,
+        description: userData.ownedStore.description,
+        status: userData.ownedStore.status,
+        type: userData.ownedStore.type,
+        is_verified: userData.ownedStore.is_verified,
+        verification_date: userData.ownedStore.verification_date,
+        business_email: userData.ownedStore.business_email,
+        business_phone: userData.ownedStore.business_phone,
+        business_address: userData.ownedStore.business_address,
+        wallet_address: userData.ownedStore.wallet_address,
+        rating: userData.ownedStore.rating,
+        total_sales: userData.ownedStore.total_sales,
+        total_products: userData.ownedStore.total_products,
+        total_orders: userData.ownedStore.total_orders,
+        created_at: userData.ownedStore.created_at,
+        updated_at: userData.ownedStore.updated_at
+      } : null
+    });
   } catch (error) {
-    console.error('Get profile error:', error);
-    res.status(500).json({ message: 'Error fetching profile', error: error.message });
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ message: 'Failed to fetch profile' });
   }
 });
 
-router.put('/', auth(), updateProfileValidation, async (req, res) => {
+// Update user profile
+router.put('/', auth(), async (req, res) => {
   try {
-    const { username, email, walletAddress, storeName } = req.body;
+    // Get fresh user data from database
+    const user = await User.findByPk(req.user.id, {
+      attributes: { 
+        exclude: ['password'],
+        include: [
+          'id', 'email', 'user_name', 'first_name', 'last_name', 
+          'role', 'type', 'wallet_address', 'is_email_verified', 
+          'last_login', 'created_at', 'updated_at'
+        ]
+      },
+      include: [{
+        model: Store,
+        as: 'ownedStore',
+        required: false
+      }]
+    });
 
-    // Check if email is already taken
-    if (email && email !== req.user.email) {
-      const existingUser = await User.findOne({
-        where: { email }
-      });
-      if (existingUser) {
-        return res.status(400).json({ message: 'Email is already in use' });
-      }
-    }
-
-    // Update user
-    const user = await User.findByPk(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update user fields
-    if (username) user.username = username;
-    if (email) user.email = email;
-    if (walletAddress) user.walletAddress = walletAddress;
+    const { firstName, lastName, email, username, store } = req.body;
 
-    // Handle store updates for sellers
-    if (user.role === 'seller' && storeName) {
-      let store = await Store.findOne({ where: { user_id: user.id } });
-      if (!store) {
-        // Create new store
-        store = await Store.create({
-          user_id: user.id,
-          name: storeName,
-          status: 'pending'
-        });
-      } else {
-        // Update existing store
-        store.name = storeName;
-        await store.save();
-      }
+    // Validate required fields
+    const errors = {};
+    if (!firstName?.trim()) errors.firstName = 'First name is required';
+    if (!lastName?.trim()) errors.lastName = 'Last name is required';
+    if (!username?.trim()) errors.username = 'Username is required';
+    if (email && !/\S+@\S+\.\S+/.test(email)) errors.email = 'Invalid email format';
+
+    // Validate store fields if provided
+    if (store && user.role === 'seller') {
+      if (!store.name?.trim()) errors.storeName = 'Store name is required';
+      if (!store.phone?.trim()) errors.storePhone = 'Business phone is required';
+      if (!store.address?.trim()) errors.storeAddress = 'Business address is required';
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ errors });
+    }
+
+    // Update user fields
+    if (firstName?.trim()) user.first_name = firstName.trim();
+    if (lastName?.trim()) user.last_name = lastName.trim();
+    if (email?.trim()) user.email = email.trim();
+    if (username?.trim()) user.user_name = username.trim();
+
+    // Update store if provided and user is a seller
+    if (store && user.role === 'seller' && user.ownedStore) {
+      if (store.name?.trim()) user.ownedStore.name = store.name.trim();
+      if (store.description?.trim()) user.ownedStore.description = store.description.trim();
+      if (store.phone?.trim()) user.ownedStore.business_phone = store.phone.trim();
+      if (store.address?.trim()) user.ownedStore.business_address = store.address.trim();
+      await user.ownedStore.save();
     }
 
     await user.save();
 
-    // Fetch updated user with store info
+    // Fetch updated user with store data
     const updatedUser = await User.findByPk(user.id, {
       attributes: { exclude: ['password'] },
       include: [{
         model: Store,
-        as: 'ownedStore'
+        as: 'ownedStore',
+        required: false
       }]
     });
 
-    res.json(updatedUser);
-  } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({ message: 'Error updating profile', error: error.message });
-  }
-});
-
-// Store management routes (seller only)
-router.get('/store', requireSeller, async (req, res) => {
-  try {
-    const store = await Store.findOne({
-      where: { user_id: req.user.id }
+    const updatedUserData = updatedUser.toJSON();
+    res.json({
+      id: updatedUserData.id,
+      email: updatedUserData.email,
+      username: updatedUserData.user_name,
+      firstName: updatedUserData.first_name,
+      lastName: updatedUserData.last_name,
+      role: updatedUserData.role,
+      type: updatedUserData.type,
+      walletAddress: updatedUserData.wallet_address,
+      isEmailVerified: updatedUserData.is_email_verified,
+      lastLogin: updatedUserData.last_login,
+      createdAt: updatedUserData.created_at,
+      updatedAt: updatedUserData.updated_at,
+      store: updatedUserData.ownedStore ? {
+        id: updatedUserData.ownedStore.id,
+        name: updatedUserData.ownedStore.name,
+        description: updatedUserData.ownedStore.description,
+        status: updatedUserData.ownedStore.status,
+        type: updatedUserData.ownedStore.type,
+        is_verified: updatedUserData.ownedStore.is_verified,
+        verification_date: updatedUserData.ownedStore.verification_date,
+        business_email: updatedUserData.ownedStore.business_email,
+        business_phone: updatedUserData.ownedStore.business_phone,
+        business_address: updatedUserData.ownedStore.business_address,
+        wallet_address: updatedUserData.ownedStore.wallet_address,
+        rating: updatedUserData.ownedStore.rating,
+        total_sales: updatedUserData.ownedStore.total_sales,
+        total_products: updatedUserData.ownedStore.total_products,
+        total_orders: updatedUserData.ownedStore.total_orders,
+        created_at: updatedUserData.ownedStore.created_at,
+        updated_at: updatedUserData.ownedStore.updated_at
+      } : null
     });
-
-    if (!store) {
-      return res.status(404).json({ message: 'Store not found' });
-    }
-
-    res.json(store);
   } catch (error) {
-    console.error('Get store error:', error);
-    res.status(500).json({ message: 'Error fetching store', error: error.message });
-  }
-});
-
-router.put('/store', requireSeller, async (req, res) => {
-  try {
-    const {
-      description,
-      businessEmail,
-      businessPhone,
-      businessAddress,
-      shippingPolicy,
-      returnPolicy
-    } = req.body;
-
-    let store = await Store.findOne({
-      where: { user_id: req.user.id }
-    });
-
-    if (!store) {
-      return res.status(404).json({ message: 'Store not found' });
-    }
-
-    // Update store fields
-    if (description) store.description = description;
-    if (businessEmail) store.businessEmail = businessEmail;
-    if (businessPhone) store.businessPhone = businessPhone;
-    if (businessAddress) store.businessAddress = businessAddress;
-    if (shippingPolicy) store.shippingPolicy = shippingPolicy;
-    if (returnPolicy) store.returnPolicy = returnPolicy;
-
-    await store.save();
-
-    res.json(store);
-  } catch (error) {
-    console.error('Update store error:', error);
-    res.status(500).json({ message: 'Error updating store', error: error.message });
-  }
-});
-
-// Store verification request (seller only)
-router.post('/store/verify', requireSeller, async (req, res) => {
-  try {
-    const store = await Store.findOne({
-      where: { user_id: req.user.id }
-    });
-
-    if (!store) {
-      return res.status(404).json({ message: 'Store not found' });
-    }
-
-    if (store.status !== 'pending') {
-      return res.status(400).json({ message: 'Store is not in pending status' });
-    }
-
-    // Update store status to pending verification
-    store.status = 'pending_verification';
-    await store.save();
-
-    // TODO: Notify admin about verification request
-
-    res.json({ message: 'Verification request submitted successfully' });
-  } catch (error) {
-    console.error('Store verification error:', error);
-    res.status(500).json({ message: 'Error submitting verification request', error: error.message });
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Failed to update profile' });
   }
 });
 

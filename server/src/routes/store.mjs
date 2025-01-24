@@ -1,8 +1,28 @@
 import express from 'express';
 import { Store } from '../models/index.mjs';
-import auth from '../middleware/auth.mjs';
+import auth, { requireSeller } from '../middleware/auth.mjs';
 
 const router = express.Router();
+
+// Get store information for the authenticated user
+router.get('/', requireSeller, async (req, res) => {
+  try {
+    const store = await Store.findOne({ 
+      where: { 
+        user_id: req.user.id
+      } 
+    });
+    
+    if (!store) {
+      return res.status(404).json({ error: 'Store not found' });
+    }
+    
+    res.json(store);
+  } catch (error) {
+    console.error('Get store error:', error);
+    res.status(500).json({ error: 'Failed to fetch store information' });
+  }
+});
 
 router.put('/setup', auth, async (req, res) => {
   try {

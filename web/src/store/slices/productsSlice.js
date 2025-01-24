@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 
 // Simulated product data - in a real app, this would come from an API
 const initialProducts = [
@@ -81,32 +81,82 @@ export const fetchProducts = createAsyncThunk(
 
 export const createProduct = createAsyncThunk(
   'products/createProduct',
-  async (productData) => {
+  async ({ formData }, { rejectWithValue, signal }) => {
+    console.log('Starting createProduct thunk...');
     try {
-      const product = {
-        ...productData,
-        id: Date.now(), // This would be replaced with proper ID from backend
-        stock: parseInt(productData.stock) || 0,
-        status: 'active'
-      };
-
-      // Save to the backend
-      const createResponse = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ product })
-      });
-
-      if (!createResponse.ok) {
-        throw new Error('Failed to create product');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
+      console.log('Using API URL:', API_URL);
+      
+      if (!API_URL) {
+        console.error('API URL not configured');
+        return rejectWithValue('API URL is not configured');
       }
 
-      return await createResponse.json();
+      const controller = new AbortController();
+      signal.addEventListener('abort', () => {
+        console.log('Request aborted');
+        controller.abort();
+      });
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      console.log('Sending request to create product...', {
+        url: `${API_URL}/api/products`,
+        formDataFields: [...formData.entries()].map(([key, value]) => key)
+      });
+      
+      const headers = new Headers();
+      headers.append('Authorization', `Bearer ${token}`);
+      // Don't set Content-Type header when sending FormData
+      
+      const response = await fetch(`${API_URL}/api/products`, {
+        method: 'POST',
+        body: formData,
+        headers: headers,
+        credentials: 'include',
+        signal: controller.signal
+      });
+      console.log('Received response:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server returned error:', response.status, errorText);
+        let errorMessage;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorData.message || 'Failed to create product';
+        } catch (e) {
+          errorMessage = errorText || `Server error: ${response.status}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Invalid response format: Expected JSON');
+      }
+
+      const data = await response.json();
+      console.log('Parsed response data:', data);
+
+      // Handle different response formats
+      const product = data.product || data;
+      if (!product || typeof product !== 'object') {
+        throw new Error('Invalid product data received from server');
+      }
+
+      console.log('Product created successfully:', product);
+      return { product };
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted');
+        throw error;
+      }
       console.error('Product creation failed:', error);
-      throw error;
+      return rejectWithValue(error.message || 'Failed to create product');
     }
   }
 );
@@ -190,14 +240,23 @@ const productsSlice = createSlice({
       })
       .addCase(createProduct.fulfilled, (state, action) => {
         state.loading = false;
-        state.items.push(action.payload.product);
-        state.filteredItems = state.currentCategory === 'all' 
-          ? state.items 
-          : state.items.filter(item => item.category === state.currentCategory);
+        const newProduct = action.payload.product;
+        
+        // Ensure we have a valid product object
+        if (newProduct && typeof newProduct === 'object') {
+          // Add to items array
+          state.items.push(newProduct);
+          
+          // Update filtered items based on current category
+          if (state.currentCategory === 'all' || 
+              state.currentCategory === newProduct.category) {
+            state.filteredItems.push(newProduct);
+          }
+        }
       })
       .addCase(createProduct.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload || action.error.message;
       });
   }
 });
@@ -211,8 +270,39 @@ export const {
   updateProductDetails
 } = productsSlice.actions;
 
-// Export selectors
-export const selectProductById = (state, productId) =>
-  state.products.items.find(item => item.id === productId);
+// Memoized Selectors
+export const selectProducts = state => state.products.items;
+export const selectFilteredProducts = state => state.products.filteredItems;
+export const selectCurrentCategory = state => state.products.currentCategory;
+export const selectSortBy = state => state.products.sortBy;
+export const selectLoading = state => state.products.loading;
+export const selectError = state => state.products.error;
+
+export const selectProductById = createSelector(
+  [selectProducts, (state, productId) => productId],
+  (products, productId) => products.find(item => item.id === productId)
+);
+
+export const selectFilteredAndSortedProducts = createSelector(
+  [selectProducts, selectCurrentCategory, selectSortBy],
+  (products, category, sortBy) => {
+    let filteredProducts = category === 'all' 
+      ? products 
+      : products.filter(item => item.category === category);
+
+    return [...filteredProducts].sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        default:
+          return 0;
+      }
+    });
+  }
+);
 
 export default productsSlice.reducer;

@@ -16,7 +16,7 @@ export const authService = {
     if (!lastName?.trim()) throw new Error('Last name is required');
     if (!userType) throw new Error('User type is required');
 
-    // Map frontend userType to database role
+    // Keep both userType and role for proper validation
     const role = userType === 'buyer' ? 'user' : 'seller';
 
     // Validate seller store information
@@ -27,10 +27,10 @@ export const authService = {
       if (!store.name?.trim()) {
         throw new Error('Store name is required');
       }
-      if (!store.phone?.trim()) {
+      if (!store.business_phone?.trim()) {
         throw new Error('Business phone is required');
       }
-      if (!store.address?.trim()) {
+      if (!store.business_address?.trim()) {
         throw new Error('Business address is required');
       }
     }
@@ -42,16 +42,17 @@ export const authService = {
       username: username.trim(),
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      role, // Mapped from userType
+      role, // For database role
+      userType, // Original user type for validation
       ...(userType === 'seller' && {
         store: {
           name: store.name.trim(),
           description: store.description?.trim() || '',
-          email: email.trim(), // Use registration email as store email
-          phone: store.phone.trim(),
-          address: store.address.trim(),
-          isVerified: true, // Default to verified since we're not using blockchain
-          status: 'active' // Default active status
+          business_email: email.trim(), // Use registration email as store email
+          business_phone: store.business_phone.trim(),
+          business_address: store.business_address.trim(),
+          isVerified: false, // New stores start unverified
+          status: 'pending_verification' // New stores start pending verification
         }
       })
     };
@@ -340,10 +341,10 @@ export const authService = {
       if (!storeData.name?.trim()) {
         throw new Error('Store name is required');
       }
-      if (!storeData.phone?.trim()) {
+      if (!storeData.business_phone?.trim()) {
         throw new Error('Business phone is required');
       }
-      if (!storeData.address?.trim()) {
+      if (!storeData.business_address?.trim()) {
         throw new Error('Business address is required');
       }
 
@@ -352,12 +353,12 @@ export const authService = {
         ...storeData,
         name: storeData.name.trim(),
         description: storeData.description?.trim() || '',
-        email: storeData.email?.trim() || '',
-        phone: storeData.phone.trim(),
-        address: storeData.address.trim()
+        business_email: storeData.business_email?.trim() || '',
+        business_phone: storeData.business_phone.trim(),
+        business_address: storeData.business_address.trim()
       };
 
-      const response = await fetch(`${API_URL}/api/store`, {
+      const response = await fetch(`${API_URL}/api/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -366,7 +367,7 @@ export const authService = {
         },
         mode: 'cors',
         credentials: 'include',
-        body: JSON.stringify(normalizedStoreData),
+        body: JSON.stringify({ store: normalizedStoreData }),
       });
 
       if (!response.ok) {
