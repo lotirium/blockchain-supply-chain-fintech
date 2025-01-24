@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import BlockchainProvider from './components/BlockchainProvider';
 import { initializeAuth } from './store/slices/authSlice';
 
 // Layout and Route Protection Components
@@ -58,37 +57,19 @@ function App() {
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
-            {/* Blockchain Required Routes */}
-            <Route path="products" element={
-              <BlockchainProvider>
-                <Products />
-              </BlockchainProvider>
-            } />
-            <Route path="products/:id" element={
-              <BlockchainProvider>
-                <ProductDetails />
-              </BlockchainProvider>
-            } />
-            <Route path="cart" element={
-              <BlockchainProvider>
-                <Cart />
-              </BlockchainProvider>
-            } />
-            <Route path="checkout" element={
-              <BlockchainProvider>
-                <Checkout />
-              </BlockchainProvider>
-            } />
+            {/* Product Routes */}
+            <Route path="products" element={<Products />} />
+            <Route path="products/:id" element={<ProductDetails />} />
+            <Route path="cart" element={<Cart />} />
+            <Route path="checkout" element={<Checkout />} />
+            
             {/* Seller Routes */}
             <Route element={<SellerRoute />}>
               <Route path="seller-dashboard" element={<SellerDashboard />} />
-              <Route path="add-product" element={
-                <BlockchainProvider>
-                  <AddProduct />
-                </BlockchainProvider>
-              } />
+              <Route path="add-product" element={<AddProduct />} />
             </Route>
-            {/* Non-Blockchain Routes */}
+            
+            {/* User Routes */}
             <Route path="profile" element={<Profile />} />
           </Route>
 

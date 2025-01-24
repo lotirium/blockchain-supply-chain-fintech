@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { createProductWithNFT } from '../store/slices/productsSlice';
+import { createProduct } from '../store/slices/productsSlice';
 import { getProfile } from '../store/slices/authSlice';
-import ipfsService from '../services/ipfs';
 
 function AddProduct() {
   const navigate = useNavigate();
@@ -125,49 +124,23 @@ function AddProduct() {
         throw new Error('At least one product image is required.');
       }
 
-      // 1. Upload images to IPFS with retries
+      // Upload images and create product
       setUploadProgress(10);
-      const maxRetries = 3;
-      const uploadWithRetry = async (image, index) => {
-        let lastError;
-        for (let attempt = 0; attempt < maxRetries; attempt++) {
-          try {
-            const result = await ipfsService.uploadFile(image);
-            setUploadProgress(prev => prev + ((80 / images.length) * (index + 1)));
-            return result;
-          } catch (error) {
-            lastError = error;
-            console.warn(`Upload attempt ${attempt + 1} failed for image ${index + 1}:`, error);
-            if (attempt < maxRetries - 1) {
-              await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // Exponential backoff
-            }
-          }
-        }
-        throw new Error(`Failed to upload image ${index + 1} after ${maxRetries} attempts: ${lastError.message}`);
-      };
+      const formDataToSend = new FormData();
+      images.forEach((image, index) => {
+        formDataToSend.append('images', image);
+      });
 
-      let ipfsResults;
-      try {
-        ipfsResults = await Promise.all(
-          images.map((image, index) => uploadWithRetry(image, index))
-        );
-      } catch (uploadError) {
-        throw new Error(`IPFS Upload Error: ${uploadError.message}`);
-      }
+      // Add product data
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('price', formData.price);
+      formDataToSend.append('stock', formData.stock);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('attributes', JSON.stringify(formData.attributes));
 
-      const imageUrls = ipfsResults.map(result => result.url);
-
-      // 2. Create product with NFT
-      setUploadProgress(90);
-      const result = await dispatch(createProductWithNFT({
-        ...formData,
-        images: imageUrls,
-        manufacturer: user.store?.name || '',
-        attributes: formData.attributes.map(attr => ({
-          trait_type: attr.name,
-          value: attr.value
-        }))
-      })).unwrap();
+      setUploadProgress(50);
+      const result = await dispatch(createProduct(formDataToSend)).unwrap();
 
       setUploadProgress(100);
 
@@ -177,12 +150,8 @@ function AddProduct() {
       console.error('Product creation failed:', err);
       let errorMessage = 'Failed to create product. Please try again.';
       
-      if (err.message.includes('IPFS Upload Error')) {
-        errorMessage = err.message;
-      } else if (err.message.includes('IPFS node not properly initialized')) {
-        errorMessage = 'IPFS service is not ready. Please try again in a few moments.';
-      } else if (err.message.includes('Failed to generate CID')) {
-        errorMessage = 'Failed to process image upload. Please try with a different image.';
+      if (err.message.includes('Upload Error')) {
+        errorMessage = 'Failed to upload images. Please try again.';
       }
       
       setError(errorMessage);
@@ -197,7 +166,7 @@ function AddProduct() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Add New Product</h1>
         <p className="text-gray-600 mt-2">
-          Create a new product listing with NFT authentication
+          Create a new product listing for your store
         </p>
       </div>
 
@@ -394,13 +363,7 @@ function AddProduct() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">Authentication</h2>
-          <p className="text-gray-600 mb-4">
-            An NFT will be automatically minted for this product upon creation, and a secure hologram
-            label will be generated for physical authentication.
-          </p>
-        </div>
+
 
         {uploadProgress > 0 && uploadProgress < 100 && (
           <div className="bg-white rounded-lg shadow-sm p-6">

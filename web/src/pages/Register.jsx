@@ -35,11 +35,9 @@ const Register = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (user?.role === 'buyer') {
+      if (user?.role === 'user') {
         navigate('/');
-      } else if (user?.store?.status === 'pending') {
-        navigate('/verification-pending');
-      } else if (user?.store?.status === 'approved') {
+      } else if (user?.role === 'seller') {
         navigate('/seller-dashboard');
       }
     }
@@ -140,38 +138,19 @@ const Register = () => {
     };
 
     try {
-      // Step 1: Create user account
       setProcessingStatus({
         step: 'account',
         message: 'Creating your account...',
         error: null
       });
       
-      const result = await dispatch(register(registrationData)).unwrap();
-
-      if (formData.userType !== 'buyer') {
-        // Step 2: Generate blockchain wallet
-        setProcessingStatus({
-          step: 'wallet',
-          message: 'Generating your blockchain wallet...',
-          error: null
-        });
-
-        // Wait for wallet creation (handled by backend)
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Step 3: Store verification pending
-        setProcessingStatus({
-          step: 'verification',
-          message: 'Store verification pending...',
-          error: null
-        });
-
-        // Redirect to verification pending page
-        navigate('/verification-pending');
-      } else {
-        // Buyer registration complete
+      await dispatch(register(registrationData)).unwrap();
+      
+      // Navigate based on user type
+      if (formData.userType === 'buyer') {
         navigate('/');
+      } else {
+        navigate('/seller-dashboard');
       }
     } catch (err) {
       setProcessingStatus({
@@ -226,7 +205,7 @@ const Register = () => {
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Account Type</label>
-          <div className="mt-2 grid grid-cols-3 gap-3">
+          <div className="mt-2 grid grid-cols-2 gap-3">
             <button
               type="button"
               className={`${
@@ -246,34 +225,18 @@ const Register = () => {
             <button
               type="button"
               className={`${
-                formData.userType === 'manufacturer'
+                formData.userType === 'seller'
                   ? 'ring-2 ring-blue-600 bg-blue-50'
                   : 'bg-white'
               } border rounded-lg p-4 text-center hover:bg-gray-50`}
               onClick={() => {
                 setFormData(prev => ({
                   ...prev,
-                  userType: 'manufacturer'
+                  userType: 'seller'
                 }));
               }}
             >
-              <span className="block text-sm font-medium">Manufacturer</span>
-            </button>
-            <button
-              type="button"
-              className={`${
-                formData.userType === 'retailer'
-                  ? 'ring-2 ring-blue-600 bg-blue-50'
-                  : 'bg-white'
-              } border rounded-lg p-4 text-center hover:bg-gray-50`}
-              onClick={() => {
-                setFormData(prev => ({
-                  ...prev,
-                  userType: 'retailer'
-                }));
-              }}
-            >
-              <span className="block text-sm font-medium">Retailer</span>
+              <span className="block text-sm font-medium">Seller</span>
             </button>
           </div>
         </div>
@@ -486,7 +449,7 @@ const Register = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="mb-6">
             <div className="flex justify-between items-center">
-              {[1, 2, 3].map((step) => (
+              {[1, 2, formData.userType === 'seller' ? 3 : null].filter(Boolean).map((step) => (
                 <div
                   key={step}
                   className={`w-8 h-8 rounded-full flex items-center justify-center ${
