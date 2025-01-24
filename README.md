@@ -156,6 +156,130 @@ cd server
 npm test
 ```
 
+## Database Access
+
+### PostgreSQL Setup
+1. Install PostgreSQL if not already installed
+2. Create database and user:
+```bash
+# Login to PostgreSQL as superuser
+sudo -u postgres psql
+
+# Create database and user
+CREATE DATABASE shipment_db;
+CREATE USER shipment_user WITH ENCRYPTED PASSWORD 'shipment_password_123';
+GRANT ALL PRIVILEGES ON DATABASE shipment_db TO shipment_user;
+```
+
+### PostgreSQL CLI Access
+```bash
+# Connect to database
+psql -h 127.0.0.1 -p 5432 -U shipment_user -d shipment_db
+
+# Common PostgreSQL commands:
+\l                    # List all databases
+\c shipment_db       # Connect to shipment_db
+\dt                  # List all tables
+\d table_name        # Describe table structure
+```
+
+### Database Management
+1. Install a database management tool (recommended: pgAdmin or DBeaver)
+2. Connect using these credentials:
+   - Host: 127.0.0.1
+   - Port: 5432
+   - Database: shipment_db
+   - Username: shipment_user
+   - Password: shipment_password_123
+
+### Database Operations
+```bash
+# Navigate to server directory
+cd server
+
+# Run database migrations
+npx sequelize-cli db:migrate
+
+# Undo last migration
+npx sequelize-cli db:migrate:undo
+
+# Create a new migration
+npx sequelize-cli migration:generate --name migration-name
+
+# Seed database with sample data (if available)
+npx sequelize-cli db:seed:all
+```
+
+## Git Workflow
+
+### Initial Setup
+```bash
+# Clone the repository
+git clone <repository-url>
+cd shipment_project
+
+# Set up remote (if not already set)
+git remote add origin <repository-url>
+```
+
+### Daily Development Workflow
+```bash
+# Get latest changes
+git pull origin main
+
+# Create feature branch
+git checkout -b feature/your-feature-name
+
+# Check status of your changes
+git status
+
+# Stage changes
+git add .                    # Stage all changes
+git add specific-file.js     # Stage specific file
+
+# Commit changes (follow conventional commits)
+git commit -m "feat: add new product listing feature"
+git commit -m "fix: resolve cart calculation issue"
+
+# Push your changes
+git push origin feature/your-feature-name
+
+# Create pull request on GitHub/GitLab
+# After review and approval, merge to main
+```
+
+### Common Git Operations
+```bash
+# Update feature branch with main
+git checkout main
+git pull origin main
+git checkout feature/your-branch
+git merge main
+
+# Discard local changes
+git checkout -- file-name    # Discard specific file
+git checkout -- .           # Discard all changes
+
+# Temporarily store changes
+git stash
+git stash pop              # Restore stashed changes
+
+# View commit history
+git log --oneline --graph
+```
+
+### Git Best Practices
+1. Pull latest changes before starting new work
+2. Create feature branches for new development
+3. Follow conventional commits:
+   - feat: new feature
+   - fix: bug fix
+   - docs: documentation changes
+   - style: formatting
+   - refactor: code restructuring
+   - test: adding tests
+   - chore: maintenance
+
 ## Additional Information
 
 - The blockchain component uses Hardhat for development and testing
