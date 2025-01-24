@@ -105,11 +105,41 @@ jobs:
         working-directory: blockchain
         run: npm run coverage
 
-  # Add deployment job if needed
-  # deploy:
-  #   needs: [frontend, backend, blockchain]
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/main'
-  #   steps:
-  #     - name: Deploy to production
-  #       run: echo "Add deployment steps here"
+  deploy:
+    needs: [frontend, backend, blockchain]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          
+      - name: Deploy to production server
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+            cd $DEPLOY_PATH
+            git pull origin main
+            
+            # Update and restart frontend
+            cd web
+            npm install
+            npm run build
+            pm2 restart frontend
+            
+            # Update and restart backend
+            cd ../server
+            npm install
+            pm2 restart backend
+            
+            # Update blockchain if needed
+            cd ../blockchain
+            npm install
+            npm run compile
+          EOF
