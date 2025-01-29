@@ -20,8 +20,8 @@ const Register = () => {
     store: {
       name: '',
       description: '',
-      phone: '',
-      address: '',
+      businessPhone: '',
+      businessAddress: '',
     }
   });
 
@@ -62,8 +62,8 @@ const Register = () => {
   const validateStep3 = () => {
     const errors = {};
     if (!formData.store.name.trim()) errors.storeName = 'Store name is required';
-    if (!formData.store.phone.trim()) errors.storePhone = 'Phone number is required';
-    if (!formData.store.address.trim()) errors.storeAddress = 'Address is required';
+    if (!formData.store.businessPhone.trim()) errors.businessPhone = 'Business phone is required';
+    if (!formData.store.businessAddress.trim()) errors.businessAddress = 'Business address is required';
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -96,8 +96,8 @@ const Register = () => {
           store: {
             name: `${ownerName}'s ${storeType}`,
             description: `Quality ${storeType.toLowerCase()} for everyone. We provide the best products at competitive prices.`,
-            phone: `+1${Math.floor(Math.random() * 1000000000).toString().padStart(10, '0')}`,
-            address: `${Math.floor(Math.random() * 1000) + 1} Main St, ${city}, US`
+            businessPhone: `+1${Math.floor(Math.random() * 1000000000).toString().padStart(10, '0')}`,
+            businessAddress: `${Math.floor(Math.random() * 1000) + 1} Main St, ${city}, US`
           }
         };
       default:
@@ -198,8 +198,8 @@ const Register = () => {
           store: {
             name: formData.store.name.trim(),
             description: formData.store.description.trim(),
-            phone: formData.store.phone.trim(),
-            address: formData.store.address.trim(),
+            businessPhone: formData.store.businessPhone.trim(),
+            businessAddress: formData.store.businessAddress.trim(),
             type: 'seller'
           }
         })
@@ -440,13 +440,13 @@ const Register = () => {
         <label className="block text-sm font-medium text-gray-700">Business Phone</label>
         <input
           type="tel"
-          name="store.phone"
-          value={formData.store.phone}
+          name="store.businessPhone"
+          value={formData.store.businessPhone}
           onChange={handleInputChange}
           className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
         />
-        {validationErrors.storePhone && (
-          <p className="mt-1 text-sm text-red-600">{validationErrors.storePhone}</p>
+        {validationErrors.businessPhone && (
+          <p className="mt-1 text-sm text-red-600">{validationErrors.businessPhone}</p>
         )}
       </div>
 
@@ -454,13 +454,13 @@ const Register = () => {
         <label className="block text-sm font-medium text-gray-700">Business Address</label>
         <input
           type="text"
-          name="store.address"
-          value={formData.store.address}
+          name="store.businessAddress"
+          value={formData.store.businessAddress}
           onChange={handleInputChange}
           className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
         />
-        {validationErrors.storeAddress && (
-          <p className="mt-1 text-sm text-red-600">{validationErrors.storeAddress}</p>
+        {validationErrors.businessAddress && (
+          <p className="mt-1 text-sm text-red-600">{validationErrors.businessAddress}</p>
         )}
       </div>
     </div>
