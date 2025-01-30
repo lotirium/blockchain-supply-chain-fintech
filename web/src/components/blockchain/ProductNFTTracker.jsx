@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { blockchainService } from '../../services/blockchain';
 
 const ProductNFTTracker = () => {
@@ -7,6 +7,26 @@ const ProductNFTTracker = () => {
   const [shipmentHistory, setShipmentHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    setLoadingProducts(true);
+    setError(null);
+    try {
+      const response = await blockchainService.getAllProducts();
+      setProducts(response);
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+      setError('Failed to load available products. ' + err.message);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
 
   const handleTrack = async () => {
     if (!tokenId) return;
@@ -73,6 +93,33 @@ const ProductNFTTracker = () => {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold mb-4">Product NFT Tracker</h2>
+
+      {/* Available Products List */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-3">Available Products</h3>
+        {loadingProducts ? (
+          <p className="text-gray-600">Loading available products...</p>
+        ) : products.length > 0 ? (
+          <div className="bg-gray-50 p-4 rounded-md">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className="border border-gray-200 rounded-md p-3 hover:bg-white cursor-pointer"
+                  onClick={() => setTokenId(product.id.toString())}
+                >
+                  <p className="font-medium text-blue-600">ID: {product.id}</p>
+                  <p className="font-medium">{product.name}</p>
+                  <p className="text-sm text-gray-600">{product.manufacturer}</p>
+                  <p className="text-sm text-gray-500">Status: {product.status}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-gray-600">No products available</p>
+        )}
+      </div>
       
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
@@ -86,8 +133,17 @@ const ProductNFTTracker = () => {
           type="number"
           value={tokenId}
           onChange={(e) => setTokenId(e.target.value)}
-          placeholder="Enter Token ID"
+          placeholder="Enter Token ID (number only)"
           className="flex-1 rounded-md border-gray-300 shadow-sm"
+          min="0"
+          step="1"
+          onKeyDown={(e) => {
+            // Allow only numbers, backspace, delete, arrow keys
+            if (!/[\d\b]/.test(e.key) &&
+                !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+              e.preventDefault();
+            }
+          }}
         />
         <button
           onClick={handleTrack}

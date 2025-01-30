@@ -132,6 +132,11 @@ class BlockchainService {
         return response.json();
     }
 
+    async getAllProducts() {
+        const response = await fetch('/api/blockchain/products');
+        return response.json();
+    }
+
     async updateProductStatus(tokenId, newStatus) {
         const response = await fetch(`/api/blockchain/products/${tokenId}/status`, {
             method: 'PUT',
