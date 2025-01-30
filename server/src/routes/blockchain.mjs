@@ -190,6 +190,19 @@ const updateShipmentStatusValidation = [
 ];
 
 // Product Management Routes
+router.get('/products', async (req, res) => {
+  try {
+    const products = await blockchainController.getAllProducts();
+    res.json(products);
+  } catch (error) {
+    console.error('Failed to get products:', error);
+    res.status(500).json({
+      error: 'Failed to get products',
+      details: error.message
+    });
+  }
+});
+
 router.post('/products', requireSeller, createProductValidation, async (req, res) => {
   try {
     const { name, manufacturer, price, description, attributes } = req.body;
@@ -289,6 +302,22 @@ router.get('/nft/:tokenId/status', async (req, res) => {
 });
 
 // Supply Chain Routes
+router.get('/products/:tokenId/shipments', async (req, res) => {
+  try {
+    const history = await blockchainController.getShipmentHistory(req.params.tokenId);
+    if (!history) {
+      return res.json([]);
+    }
+    res.json(history);
+  } catch (error) {
+    console.error('Failed to get shipment history:', error);
+    res.status(500).json({
+      error: 'Failed to get shipment history',
+      details: error.message
+    });
+  }
+});
+
 router.put('/products/:tokenId/shipment', requireSeller, updateShipmentStatusValidation, async (req, res) => {
   try {
     const txHash = await blockchainController.updateShipmentStatus(

@@ -201,6 +201,59 @@ class BlockchainController {
         return this._supplyChain;
     }
 
+    async getShipmentHistory(productId) {
+        try {
+            const supplyChain = await this.getSupplyChain();
+            const history = await supplyChain.getShipmentHistory(productId);
+            
+            // Convert BigInt timestamp to number for JSON serialization
+            return history.map(shipment => ({
+                sender: shipment.sender,
+                receiver: shipment.receiver,
+                stage: Number(shipment.stage),
+                location: shipment.location,
+                timestamp: Number(shipment.timestamp)
+            }));
+        } catch (error) {
+            console.error('Failed to get shipment history:', error);
+            throw new Error(`Failed to get shipment history: ${error.message}`);
+        }
+    }
+
+    async getAllProducts() {
+        try {
+            const productNFT = await this.getProductNFT();
+            
+            // Since there's no direct method to get all products, we'll try sequential IDs
+            // until we hit an error, indicating no more products exist
+            const products = [];
+            let id = 0;
+            
+            while (true) {
+                try {
+                    const product = await productNFT.getProduct(id);
+                    products.push({
+                        id: id,
+                        name: product.name,
+                        manufacturer: product.manufacturer,
+                        manufactureDate: Number(product.manufactureDate),
+                        status: product.status,
+                        currentOwner: product.currentOwner
+                    });
+                    id++;
+                } catch (error) {
+                    // If we hit an error, we've likely reached the end of valid product IDs
+                    break;
+                }
+            }
+            
+            return products;
+        } catch (error) {
+            console.error('Failed to get all products:', error);
+            throw new Error(`Failed to get all products: ${error.message}`);
+        }
+    }
+
     async validateConfig() {
         try {
             console.log('Starting blockchain configuration validation...');
