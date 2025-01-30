@@ -19,23 +19,26 @@ class BlockchainService {
                 throw new Error('Unauthorized. Please make sure you are logged in as an admin.');
             }
 
-            if (!response.ok) {
-                const text = await response.text();
-                console.error('API Error:', text);
-                throw new Error('Failed to get blockchain status');
+            const data = await response.json();
+            
+            if (!data.isConnected) {
+                throw new Error(data.error || 'Failed to connect to blockchain network');
             }
 
-            const data = await response.json();
             this.networkDetails = data;
             this.isInitialized = true;
-            this.setupEventSource();
             return this.networkDetails;
         } catch (error) {
             console.error('Failed to initialize blockchain service:', error);
-            if (error.message.includes('Unauthorized')) {
-                throw error;
-            }
-            throw new Error('Failed to connect to blockchain network. Please make sure the blockchain node is running.');
+            this.networkDetails = {
+                isConnected: false,
+                name: 'Not Connected',
+                chainId: 'N/A',
+                blockNumber: 'N/A',
+                gasPrice: 'N/A',
+                error: error.message
+            };
+            throw error;
         }
     }
 

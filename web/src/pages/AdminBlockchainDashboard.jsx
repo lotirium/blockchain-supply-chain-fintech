@@ -9,7 +9,10 @@ const NetworkStatus = ({ networkDetails }) => (
     <div className="grid grid-cols-2 gap-4">
       <div>
         <p className="text-gray-600">Network</p>
-        <p className="font-medium">{networkDetails?.name || 'Not Connected'}</p>
+        <div className="flex items-center">
+          <div className={`w-2 h-2 rounded-full mr-2 ${networkDetails?.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+          <p className="font-medium">{networkDetails?.name || 'Not Connected'}</p>
+        </div>
       </div>
       <div>
         <p className="text-gray-600">Chain ID</p>
@@ -21,9 +24,30 @@ const NetworkStatus = ({ networkDetails }) => (
       </div>
       <div>
         <p className="text-gray-600">Gas Price</p>
-        <p className="font-medium">{networkDetails?.gasPrice || 'N/A'} Gwei</p>
+        <p className="font-medium">{networkDetails?.gasPrice === 'N/A' ? 'N/A' : `${networkDetails?.gasPrice} Gwei`}</p>
       </div>
     </div>
+    {networkDetails?.contracts && (
+      <div className="mt-4 border-t pt-4">
+        <p className="text-gray-600 mb-2">Smart Contracts</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Product NFT</p>
+            <div className="flex items-center">
+              <div className={`w-2 h-2 rounded-full mr-2 ${networkDetails.contracts.productNFT === 'Connected' ? 'bg-green-500' : 'bg-red-500'}`} />
+              <p className="font-medium">{networkDetails.contracts.productNFT}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Supply Chain</p>
+            <div className="flex items-center">
+              <div className={`w-2 h-2 rounded-full mr-2 ${networkDetails.contracts.supplyChain === 'Connected' ? 'bg-green-500' : 'bg-red-500'}`} />
+              <p className="font-medium">{networkDetails.contracts.supplyChain}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
   </div>
 );
 
