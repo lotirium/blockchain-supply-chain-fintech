@@ -18,6 +18,7 @@ import Checkout from '../pages/Checkout';
 import CheckoutSuccess from '../pages/CheckoutSuccess';
 import VerificationPending from '../pages/VerificationPending';
 import AdminVerification from '../pages/AdminVerification';
+import AdminBlockchainDashboard from '../pages/AdminBlockchainDashboard';
 import SellerDashboard from '../pages/SellerDashboard';
 import AddProduct from '../pages/AddProduct';
 import StoreSettings from '../pages/StoreSettings';
@@ -99,15 +100,23 @@ const router = createBrowserRouter([
       },
       // Admin routes
       {
+        path: 'admin',
         element: <AdminRoute />,
         children: [
           {
-            path: 'admin',
             element: <AdminLayout />,
             children: [
               {
+                index: true,
+                element: <AdminVerification />  // Default admin page
+              },
+              {
                 path: 'verification',
                 element: <AdminVerification />
+              },
+              {
+                path: 'blockchain',
+                element: <AdminBlockchainDashboard />
               }
             ]
           }

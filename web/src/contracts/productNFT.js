@@ -1,5 +1,5 @@
-{
-  "abi": [
+export const ProductNFTContract = {
+  abi: [
     {
       "inputs": [],
       "stateMutability": "nonpayable",
@@ -96,5 +96,6 @@
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ]
-}
+  ],
+  address: import.meta.env.VITE_PRODUCT_NFT_ADDRESS
+};

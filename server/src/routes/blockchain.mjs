@@ -1,10 +1,127 @@
 import express from 'express';
 import { body, param } from 'express-validator';
 import validateRequest from '../middleware/validateRequest.mjs';
-import auth, { requireSeller } from '../middleware/auth.mjs';
+import auth, { requireSeller, requireAdmin } from '../middleware/auth.mjs';
 import blockchainController from '../controllers/blockchain.mjs';
 
 const router = express.Router();
+
+// Network Status
+router.get('/status', async (req, res) => {
+  try {
+    const status = await blockchainController.getNetworkStatus();
+    res.json(status);
+  } catch (error) {
+    console.error('Failed to get network status:', error);
+    res.status(500).json({
+      error: 'Failed to get network status',
+      details: error.message
+    });
+  }
+});
+
+// Role Management Routes
+router.post('/roles/manufacturer', requireAdmin, async (req, res) => {
+  try {
+    const result = await blockchainController.grantManufacturerRole(req.body.address);
+    res.json(result);
+  } catch (error) {
+    console.error('Failed to grant manufacturer role:', error);
+    res.status(500).json({
+      error: 'Failed to grant manufacturer role',
+      details: error.message
+    });
+  }
+});
+
+router.post('/roles/distributor', requireAdmin, async (req, res) => {
+  try {
+    const result = await blockchainController.grantDistributorRole(req.body.address);
+    res.json(result);
+  } catch (error) {
+    console.error('Failed to grant distributor role:', error);
+    res.status(500).json({
+      error: 'Failed to grant distributor role',
+      details: error.message
+    });
+  }
+});
+
+router.post('/roles/retailer', requireAdmin, async (req, res) => {
+  try {
+    const result = await blockchainController.grantRetailerRole(req.body.address);
+    res.json(result);
+  } catch (error) {
+    console.error('Failed to grant retailer role:', error);
+    res.status(500).json({
+      error: 'Failed to grant retailer role',
+      details: error.message
+    });
+  }
+});
+
+router.get('/roles/:address', async (req, res) => {
+  try {
+    const roles = await blockchainController.checkRoles(req.params.address);
+    res.json(roles);
+  } catch (error) {
+    console.error('Failed to check roles:', error);
+    res.status(500).json({
+      error: 'Failed to check roles',
+      details: error.message
+    });
+  }
+});
+
+// Contract Management Routes
+router.post('/contract/pause', requireAdmin, async (req, res) => {
+  try {
+    const result = await blockchainController.pauseContract();
+    res.json(result);
+  } catch (error) {
+    console.error('Failed to pause contract:', error);
+    res.status(500).json({
+      error: 'Failed to pause contract',
+      details: error.message
+    });
+  }
+});
+
+router.post('/contract/unpause', requireAdmin, async (req, res) => {
+  try {
+    const result = await blockchainController.unpauseContract();
+    res.json(result);
+  } catch (error) {
+    console.error('Failed to unpause contract:', error);
+    res.status(500).json({
+      error: 'Failed to unpause contract',
+      details: error.message
+    });
+  }
+});
+
+// Event Stream
+router.get('/events', async (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  const sendEvent = (event) => {
+    res.write(`data: ${JSON.stringify(event)}\n\n`);
+  };
+
+  try {
+    await blockchainController.subscribeToEvents(sendEvent);
+    
+    req.on('close', () => {
+      blockchainController.unsubscribeFromEvents(sendEvent);
+    });
+  } catch (error) {
+    console.error('Failed to setup event stream:', error);
+    res.status(500).end();
+  }
+});
+
 
 // Validation middleware
 const createProductValidation = [

@@ -10,15 +10,27 @@ const AdminLayout = () => {
 
   const navItems = [
     {
-      path: '/admin/verifications',
+      path: '/admin/verification',
       label: 'Seller Verifications',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       )
+    },
+    {
+      path: '/admin/blockchain',
+      label: 'Blockchain Management',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.25 16V12.25C19.25 8.5 16.5 5.75 12.75 5.75L11.25 5.75C7.5 5.75 4.75 8.5 4.75 12.25L4.75 16" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 14L12 18L8 14" />
+          <rect x="4" y="8" width="4" height="4" rx="1" />
+          <rect x="16" y="8" width="4" height="4" rx="1" />
+          <rect x="10" y="16" width="4" height="4" rx="1" />
+        </svg>
+      )
     }
-    // Add more admin navigation items here as needed
   ];
 
   return (

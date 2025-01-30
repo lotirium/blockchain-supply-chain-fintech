@@ -35,7 +35,7 @@ function Login() {
       
       // Navigate based on user role
       if (response.user.role === 'admin') {
-        navigate('/admin/verifications', { replace: true });
+        navigate('/admin/verification', { replace: true });
       } else if (response.user.role === 'seller') {
         navigate('/seller-dashboard', { replace: true });
       } else {

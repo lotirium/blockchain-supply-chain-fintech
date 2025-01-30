@@ -24,6 +24,7 @@ const AddProduct = React.lazy(() => import('./pages/AddProduct'));
 const SellerDashboard = React.lazy(() => import('./pages/SellerDashboard'));
 const VerificationPending = React.lazy(() => import('./pages/VerificationPending'));
 const AdminVerification = React.lazy(() => import('./pages/AdminVerification'));
+const AdminBlockchainDashboard = React.lazy(() => import('./pages/AdminBlockchainDashboard'));
 
 function App() {
   const dispatch = useDispatch();
@@ -81,7 +82,8 @@ function App() {
             {/* Admin Routes */}
             <Route path="admin" element={<AdminRoute />}>
               <Route element={<AdminLayout />}>
-                <Route path="verifications" element={<AdminVerification />} />
+                <Route path="verification" element={<AdminVerification />} />
+                <Route path="blockchain" element={<AdminBlockchainDashboard />} />
               </Route>
             </Route>
             
