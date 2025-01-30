@@ -9,13 +9,53 @@ const router = express.Router();
 // Network Status
 router.get('/status', async (req, res) => {
   try {
+    // Get basic network status first
     const status = await blockchainController.getNetworkStatus();
-    res.json(status);
+    
+    if (!status.isConnected) {
+      return res.json({
+        isConnected: false,
+        name: 'Not Connected',
+        chainId: 'N/A',
+        blockNumber: 'N/A',
+        gasPrice: 'N/A'
+      });
+    }
+
+    // If connected, try to get contracts status
+    try {
+      const [productNFT, supplyChain] = await Promise.all([
+        blockchainController.getProductNFT().catch(() => null),
+        blockchainController.getSupplyChain().catch(() => null)
+      ]);
+
+      return res.json({
+        ...status,
+        contracts: {
+          productNFT: productNFT ? 'Connected' : 'Not Connected',
+          supplyChain: supplyChain ? 'Connected' : 'Not Connected'
+        }
+      });
+    } catch (contractError) {
+      // Still return network status even if contracts fail
+      console.warn('Failed to get contracts status:', contractError);
+      return res.json({
+        ...status,
+        contracts: {
+          productNFT: 'Not Connected',
+          supplyChain: 'Not Connected'
+        }
+      });
+    }
   } catch (error) {
     console.error('Failed to get network status:', error);
-    res.status(500).json({
-      error: 'Failed to get network status',
-      details: error.message
+    return res.status(500).json({
+      isConnected: false,
+      name: 'Error',
+      chainId: 'N/A',
+      blockNumber: 'N/A',
+      gasPrice: 'N/A',
+      error: error.message
     });
   }
 });

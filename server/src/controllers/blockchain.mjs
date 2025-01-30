@@ -3,67 +3,57 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import User from '../models/User.mjs';
-import Store from '../models/Store.mjs';
-import Product from '../models/Product.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Contract artifacts will be loaded during initialization
 let ProductNFT;
 let SupplyChain;
 
 class BlockchainController {
     constructor() {
-        // Initialize provider with local network
         const nodeUrl = process.env.ETHEREUM_NODE_URL || 'http://127.0.0.1:8545';
         this.provider = new ethers.JsonRpcProvider(nodeUrl);
         
-        // Contract addresses
         this.addresses = {
             productNFT: process.env.PRODUCT_NFT_ADDRESS,
             supplyChain: process.env.SUPPLY_CHAIN_ADDRESS
         };
 
-        // Initialize contract instances
         this._productNFT = null;
         this._supplyChain = null;
-
-        // Event subscribers
-        this.eventSubscribers = new Set();
-
-        // Initialize state
         this.initialized = null;
     }
 
     async loadArtifacts() {
         console.log('Initializing contract artifacts...');
         
-        ProductNFT = {
-            abi: (await import('../contracts/ProductNFT.json', { assert: { type: 'json' } })).default.abi
-        };
-        
-        SupplyChain = {
-            abi: (await import('../contracts/SupplyChain.json', { assert: { type: 'json' } })).default.abi
-        };
+        try {
+            const productNFTPath = join(__dirname, '../contracts/ProductNFT.json');
+            const supplyChainPath = join(__dirname, '../contracts/SupplyChain.json');
 
-        if (!ProductNFT?.abi || !SupplyChain?.abi) {
-            throw new Error('Contract artifacts are missing ABI');
+            const [productNFTJson, supplyChainJson] = await Promise.all([
+                readFile(productNFTPath, 'utf8'),
+                readFile(supplyChainPath, 'utf8')
+            ]);
+
+            ProductNFT = JSON.parse(productNFTJson);
+            SupplyChain = JSON.parse(supplyChainJson);
+
+            if (!ProductNFT?.abi || !SupplyChain?.abi) {
+                throw new Error('Contract artifacts are missing ABI');
+            }
+
+            console.log('Contract artifacts loaded successfully');
+        } catch (error) {
+            console.error('Failed to load contract artifacts:', error);
+            throw new Error(`Contract artifacts loading failed: ${error.message}`);
         }
-
-        console.log('Contract artifacts loaded successfully');
     }
 
-    async testConnection(timeout = 2000) {
+    async testConnection() {
         console.log('Testing provider connection...');
-        const network = await Promise.race([
-            this.provider.getNetwork(),
-            new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Network connection timeout')), timeout)
-            )
-        ]);
-        
+        const network = await this.provider.getNetwork();
         console.log('Connected to network:', {
             name: network.name,
             chainId: network.chainId
@@ -72,424 +62,151 @@ class BlockchainController {
     }
 
     async checkContracts() {
-        if (!ProductNFT?.abi || !SupplyChain?.abi) {
-            throw new Error('Contract artifacts missing or invalid');
+        try {
+            if (!ProductNFT?.abi || !SupplyChain?.abi) {
+                await this.loadArtifacts();
+            }
+
+            const productNFT = new ethers.Contract(
+                this.addresses.productNFT,
+                ProductNFT.abi,
+                this.provider
+            );
+            const supplyChain = new ethers.Contract(
+                this.addresses.supplyChain,
+                SupplyChain.abi,
+                this.provider
+            );
+
+            // Try to access contract methods to verify they're working
+            await Promise.all([
+                productNFT.getProduct(0).catch(() => {}),  // Ignore errors from non-existent tokens
+                supplyChain.getCurrentShipment(0).catch(() => {})
+            ]);
+
+            console.log('Contract instances verified successfully');
+        } catch (error) {
+            console.error('Contract verification failed:', error);
+            throw new Error('Contract verification failed - please check contract addresses and ABIs');
         }
-
-        // Create temporary contract instances just to verify they're accessible
-        const productNFT = new ethers.Contract(
-            this.addresses.productNFT,
-            ProductNFT.abi,
-            this.provider
-        );
-        const supplyChain = new ethers.Contract(
-            this.addresses.supplyChain,
-            SupplyChain.abi,
-            this.provider
-        );
-
-        // Test basic contract access
-        await Promise.all([
-            productNFT.address,
-            supplyChain.address
-        ]);
-        console.log('Contract instances verified successfully');
     }
 
     async initialize() {
-        const TIMEOUT = 2000; // 30 seconds timeout
-        
-        // Prevent multiple initialization attempts
+        const TIMEOUT = 30000; // 30 seconds timeout
+
+        // Use a promise to handle initialization state
         if (this.initialized) {
-            await this.initialized;
-            return;
+            return this.initialized;
         }
 
-        try {
-            console.log('Starting blockchain controller initialization...');
-            
-            // Create initialization promise
-            const initPromise = async () => {
-                await this.loadArtifacts();
-                await this.testConnection(TIMEOUT);
-                await this.checkContracts();
+        // Create initialization promise
+        this.initialized = (async () => {
+            try {
+                console.log('Starting blockchain controller initialization...');
 
-                if (!this._skipEventListeners) {
-                    console.log('Starting blockchain event listeners...');
-                    try {
-                        await Promise.race([
-                            this.startEventListeners(),
-                            new Promise((_, reject) =>
-                                setTimeout(() => reject(new Error('Event listener setup timeout')), TIMEOUT)
-                            )
-                        ]);
-                        console.log('Event listeners initialized successfully');
-                    } catch (error) {
-                        console.warn('Failed to initialize event listeners:', error);
-                        // Don't fail initialization if event listeners fail
-                    }
-                } else {
-                    console.log('Skipping event listener setup (validation mode)');
+                // Run validation first
+                await this.validateConfig();
+
+                // Create contract instances
+                this._productNFT = new ethers.Contract(
+                    this.addresses.productNFT,
+                    ProductNFT.abi,
+                    this.provider
+                );
+
+                this._supplyChain = new ethers.Contract(
+                    this.addresses.supplyChain,
+                    SupplyChain.abi,
+                    this.provider
+                );
+
+                console.log('Blockchain initialization completed successfully');
+                return true;
+            } catch (error) {
+                console.error('Blockchain initialization failed:', error);
+                this.initialized = null; // Reset initialization state
+                
+                if (error.message.includes('Network connection timeout')) {
+                    throw new Error('Failed to connect to blockchain network - please check if the node is running');
                 }
-
-                console.log('Blockchain controller initialization completed successfully');
-            };
-
-            // Execute initialization with timeout
-            await Promise.race([
-                initPromise(),
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Initialization timeout')), TIMEOUT)
-                )
-            ]);
-        } catch (error) {
-            console.error('Blockchain controller initialization failed:', error);
-            
-            // Specific error handling for different scenarios
-            if (error.message.includes('Network connection timeout')) {
-                console.error('Network connection timed out. Please check if the Ethereum node is running at:', process.env.ETHEREUM_NODE_URL);
-                throw new Error(`Network connection failed: Unable to connect to Ethereum node at ${process.env.ETHEREUM_NODE_URL}`);
+                
+                if (error.message.includes('Contract artifacts')) {
+                    throw new Error('Failed to load contract artifacts - please check contract JSON files');
+                }
+                
+                throw error;
             }
-            
-            if (error.message.includes('Initialization timeout')) {
-                console.error('Initialization process timed out. This might indicate network issues or high latency.');
-                throw new Error('Blockchain initialization timed out - please check network connectivity');
-            }
+        })();
 
-            if (error.code === 'ECONNREFUSED') {
-                console.error('Connection refused. Please check if the Ethereum node is running and accessible.');
-                throw new Error(`Connection refused to Ethereum node at ${process.env.ETHEREUM_NODE_URL}`);
-            }
-
-            throw error;
-        }
+        // Add timeout to initialization
+        return Promise.race([
+            this.initialized,
+            new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Initialization timeout')), TIMEOUT)
+            )
+        ]);
     }
 
-    // Ensure initialization
-    async ensureInitialized() {
-        try {
-            console.log('Checking blockchain controller initialization...');
-            
-            if (this.initialized) {
-                console.log('Using existing initialization');
-                return await this.initialized;
-            }
-
-            // Start new initialization with lock to prevent race conditions
-            console.log('Starting new initialization');
-            
-            // Create a new initialization promise
-            const initPromise = (async () => {
-                try {
-                    await this.initialize();
-                    return true;
-                } catch (error) {
-                    this.initialized = null;
-                    throw error;
-                }
-            })();
-
-            // Set the promise before awaiting to prevent race conditions
-            this.initialized = initPromise;
-
-            // Wait for initialization
-            await initPromise;
-            
-            console.log('Initialization check completed successfully');
-        } catch (error) {
-            this.initialized = null;
-            console.error('Blockchain controller not properly initialized:', error);
-            throw new Error(`Blockchain controller not properly initialized: ${error.message}`);
-        }
-    }
-
-    // Network Status
     async getNetworkStatus() {
         try {
-            await this.ensureInitialized();
+            const network = await this.provider.getNetwork();
             
-            const [network, blockNumber, gasPrice] = await Promise.all([
-                this.provider.getNetwork(),
-                this.provider.getBlockNumber(),
-                this.provider.getGasPrice()
-            ]);
+            try {
+                const [blockNumber, feeData] = await Promise.all([
+                    this.provider.getBlockNumber(),
+                    this.provider.getFeeData()
+                ]);
 
-            return {
-                name: network.name,
-                chainId: network.chainId,
-                blockNumber: blockNumber.toString(),
-                gasPrice: ethers.formatUnits(gasPrice, 'gwei'),
-                isConnected: true
-            };
+                return {
+                    name: network.name,
+                    chainId: network.chainId.toString(),
+                    blockNumber: blockNumber.toString(),
+                    gasPrice: feeData.gasPrice ? ethers.formatUnits(feeData.gasPrice, 'gwei') : 'N/A',
+                    isConnected: true
+                };
+            } catch (innerError) {
+                console.warn('Connected to network but failed to get full details:', innerError);
+                return {
+                    name: network.name,
+                    chainId: network.chainId.toString(),
+                    isConnected: true,
+                    blockNumber: 'N/A',
+                    gasPrice: 'N/A'
+                };
+            }
         } catch (error) {
             console.error('Failed to get network status:', error);
             return {
+                name: 'Not Connected',
+                chainId: 'N/A',
+                blockNumber: 'N/A',
+                gasPrice: 'N/A',
                 isConnected: false,
                 error: error.message
             };
         }
     }
 
-    // Contract Management
     async getProductNFT() {
-        try {
-            await this.ensureInitialized();
-            if (!this._productNFT) {
-                if (!this.addresses.productNFT) {
-                    throw new Error('ProductNFT contract address not configured');
-                }
-                if (!ProductNFT?.abi) {
-                    throw new Error('ProductNFT contract artifact not loaded properly');
-                }
-                this._productNFT = new ethers.Contract(
-                    this.addresses.productNFT,
-                    ProductNFT.abi,
-                    this.provider
-                );
-                console.log('ProductNFT contract initialized:', this.addresses.productNFT);
-            }
-            return this._productNFT;
-        } catch (error) {
-            console.error('Failed to get ProductNFT contract:', error);
-            throw new Error(`Failed to get ProductNFT contract: ${error.message}`);
+        if (!this._productNFT) {
+            await this.initialize();
         }
+        return this._productNFT;
     }
 
     async getSupplyChain() {
-        try {
-            await this.ensureInitialized();
-            if (!this._supplyChain) {
-                if (!this.addresses.supplyChain) {
-                    throw new Error('SupplyChain contract address not configured');
-                }
-                if (!SupplyChain?.abi) {
-                    throw new Error('SupplyChain contract artifact not loaded properly');
-                }
-                this._supplyChain = new ethers.Contract(
-                    this.addresses.supplyChain,
-                    SupplyChain.abi,
-                    this.provider
-                );
-                console.log('SupplyChain contract initialized:', this.addresses.supplyChain);
-            }
-            return this._supplyChain;
-        } catch (error) {
-            console.error('Failed to get SupplyChain contract:', error);
-            throw new Error(`Failed to get SupplyChain contract: ${error.message}`);
+        if (!this._supplyChain) {
+            await this.initialize();
         }
+        return this._supplyChain;
     }
 
-    // Role Management
-    async grantManufacturerRole(address) {
-        const supplyChain = await this.getSupplyChain();
-        const MANUFACTURER_ROLE = await supplyChain.MANUFACTURER_ROLE();
-        const tx = await supplyChain.grantRole(MANUFACTURER_ROLE, address);
-        await tx.wait();
-        return { success: true, transaction: tx.hash };
-    }
-
-    async grantDistributorRole(address) {
-        const supplyChain = await this.getSupplyChain();
-        const DISTRIBUTOR_ROLE = await supplyChain.DISTRIBUTOR_ROLE();
-        const tx = await supplyChain.grantRole(DISTRIBUTOR_ROLE, address);
-        await tx.wait();
-        return { success: true, transaction: tx.hash };
-    }
-
-    async grantRetailerRole(address) {
-        const supplyChain = await this.getSupplyChain();
-        const RETAILER_ROLE = await supplyChain.RETAILER_ROLE();
-        const tx = await supplyChain.grantRole(RETAILER_ROLE, address);
-        await tx.wait();
-        return { success: true, transaction: tx.hash };
-    }
-
-    async checkRoles(address) {
-        const supplyChain = await this.getSupplyChain();
-        const [MANUFACTURER_ROLE, DISTRIBUTOR_ROLE, RETAILER_ROLE] = await Promise.all([
-            supplyChain.MANUFACTURER_ROLE(),
-            supplyChain.DISTRIBUTOR_ROLE(),
-            supplyChain.RETAILER_ROLE()
-        ]);
-
-        const [isManufacturer, isDistributor, isRetailer] = await Promise.all([
-            supplyChain.hasRole(MANUFACTURER_ROLE, address),
-            supplyChain.hasRole(DISTRIBUTOR_ROLE, address),
-            supplyChain.hasRole(RETAILER_ROLE, address)
-        ]);
-
-        return {
-            isManufacturer,
-            isDistributor,
-            isRetailer
-        };
-    }
-
-    // Product Management
-    async createProduct(name, manufacturer, price, tokenURI) {
-        const supplyChain = await this.getSupplyChain();
-        const tx = await supplyChain.createProduct(name, manufacturer, price, tokenURI);
-        const receipt = await tx.wait();
-        
-        const event = receipt.events.find(e => e.event === 'ProductCreated');
-        return {
-            success: true,
-            productId: event.args.productId.toString(),
-            transaction: tx.hash
-        };
-    }
-
-    async getProduct(tokenId) {
-        const [productNFT, supplyChain] = await Promise.all([
-            this.getProductNFT(),
-            this.getSupplyChain()
-        ]);
-
-        const [product, shipment] = await Promise.all([
-            productNFT.getProduct(tokenId),
-            supplyChain.getCurrentShipment(tokenId)
-        ]);
-
-        return {
-            name: product.name,
-            manufacturer: product.manufacturer,
-            manufactureDate: product.manufactureDate.toString(),
-            status: product.status,
-            currentOwner: product.currentOwner,
-            currentShipment: {
-                sender: shipment.sender,
-                receiver: shipment.receiver,
-                stage: shipment.stage,
-                location: shipment.location,
-                timestamp: shipment.timestamp.toString()
-            }
-        };
-    }
-
-    // Supply Chain Management
-    async createShipment(productId, receiver, location) {
-        const supplyChain = await this.getSupplyChain();
-        const tx = await supplyChain.createShipment(productId, receiver, location);
-        const receipt = await tx.wait();
-        return {
-            success: true,
-            transaction: tx.hash
-        };
-    }
-
-    async getShipmentHistory(productId) {
-        const supplyChain = await this.getSupplyChain();
-        return supplyChain.getShipmentHistory(productId);
-    }
-
-    // Contract Controls
-    async pauseContract() {
-        const supplyChain = await this.getSupplyChain();
-        const tx = await supplyChain.pause();
-        await tx.wait();
-        return { success: true, transaction: tx.hash };
-    }
-
-    async unpauseContract() {
-        const supplyChain = await this.getSupplyChain();
-        const tx = await supplyChain.unpause();
-        await tx.wait();
-        return { success: true, transaction: tx.hash };
-    }
-
-    // Event Management
-    subscribeToEvents(callback) {
-        this.eventSubscribers.add(callback);
-        return () => this.eventSubscribers.delete(callback);
-    }
-
-    unsubscribeFromEvents(callback) {
-        this.eventSubscribers.delete(callback);
-    }
-
-    // Start listening to blockchain events
-    async startEventListeners() {
-        // Don't set up listeners in validation mode
-        if (this._skipEventListeners) {
-            console.log('Skipping event listener setup (validation mode)');
-            return;
-        }
-
-        try {
-            console.log('Setting up blockchain event listeners...');
-            
-            // Get contract instances
-            const [productNFT, supplyChain] = await Promise.all([
-                this.getProductNFT(),
-                this.getSupplyChain()
-            ]);
-
-            // Create bound event handlers
-            const handleProductCreated = (tokenId, manufacturer, name) => {
-                this.broadcastEvent({
-                    type: 'ProductCreated',
-                    data: { tokenId, manufacturer, name }
-                });
-            };
-
-            const handleShipmentCreated = (productId, sender, receiver) => {
-                this.broadcastEvent({
-                    type: 'ShipmentCreated',
-                    data: { productId, sender, receiver }
-                });
-            };
-
-            const handleStageUpdated = (productId, newStage) => {
-                this.broadcastEvent({
-                    type: 'StageUpdated',
-                    data: { productId, newStage }
-                });
-            };
-
-            // Set up event listeners with error handling
-            productNFT.on('ProductCreated', handleProductCreated);
-            productNFT.on('error', (error) => {
-                console.error('ProductNFT event error:', error);
-            });
-
-            supplyChain.on('ShipmentCreated', handleShipmentCreated);
-            supplyChain.on('StageUpdated', handleStageUpdated);
-            supplyChain.on('error', (error) => {
-                console.error('SupplyChain event error:', error);
-            });
-
-            console.log('Event listeners set up successfully');
-        } catch (error) {
-            console.error('Failed to set up event listeners:', error);
-            throw new Error('Failed to initialize event listeners: ' + error.message);
-        }
-    }
-
-    broadcastEvent(event) {
-        for (const callback of this.eventSubscribers) {
-            callback(event);
-        }
-    }
-
-    // Configuration Validation
     async validateConfig() {
-        const prevInitialized = this.initialized;
-        const prevSkipEventListeners = this._skipEventListeners;
-        
         try {
-            // Reset initialization state for validation
-            this.initialized = null;
-            this._skipEventListeners = true;
-            
             console.log('Starting blockchain configuration validation...');
-            console.log('Current blockchain configuration:', {
-                nodeUrl: process.env.ETHEREUM_NODE_URL || 'not set',
-                productNFTAddress: this.addresses.productNFT || 'not set',
-                supplyChainAddress: this.addresses.supplyChain || 'not set'
-            });
-
-            const missingConfig = [];
             
+            // Check environment variables first
+            const missingConfig = [];
             if (!process.env.ETHEREUM_NODE_URL) {
                 missingConfig.push('ETHEREUM_NODE_URL');
             }
@@ -504,32 +221,34 @@ class BlockchainController {
                 throw new Error(`Missing required configuration: ${missingConfig.join(', ')}`);
             }
 
-            console.log('Configuration values present, testing network connection...');
-            await this.testConnection(15000);
-
-            console.log('Network connection successful, proceeding with basic initialization...');
-            
-            // Load and verify contracts
-            await this.loadArtifacts();
-            await this.checkContracts();
-
-            console.log('Blockchain configuration validated successfully:', {
+            console.log('Current blockchain configuration:', {
                 nodeUrl: process.env.ETHEREUM_NODE_URL,
                 productNFTAddress: this.addresses.productNFT,
                 supplyChainAddress: this.addresses.supplyChain
             });
+
+            // Load artifacts first
+            await this.loadArtifacts();
+            console.log('Contract artifacts loaded successfully');
+
+            // Test network connection
+            const network = await this.testConnection();
+            console.log('Network connection successful:', network);
+
+            // Verify contract accessibility
+            await this.checkContracts();
+            console.log('Contract verification successful');
+
             return true;
         } catch (error) {
             console.error('Configuration validation failed:', error);
+            if (error.message.includes('ENOENT')) {
+                throw new Error('Contract artifacts not found - please check if JSON files exist in src/contracts/');
+            }
             throw new Error(`Configuration validation failed: ${error.message}`);
-        } finally {
-            // Restore previous state
-            this.initialized = prevInitialized;
-            this._skipEventListeners = prevSkipEventListeners;
         }
     }
 }
 
-// Create singleton instance
 const blockchainController = new BlockchainController();
 export default blockchainController;
