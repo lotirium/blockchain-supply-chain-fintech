@@ -11,6 +11,13 @@ export default defineConfig({
     strictPort: true,
     open: true,
     cors: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false
+      }
+    },
     hmr: {
       host: '127.0.0.1',
       port: 3000,
@@ -43,9 +50,5 @@ export default defineConfig({
     include: ['ethers'],
     exclude: ['@/contracts']
   },
-  publicDir: 'public',
-  assetsInclude: ['**/*.json'],
-  json: {
-    stringify: true
-  }
+  publicDir: 'public'
 });

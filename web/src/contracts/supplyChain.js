@@ -1,5 +1,11 @@
-{
-  "abi": [
+export const SupplyChainContract = {
+  address: import.meta.env.VITE_SUPPLY_CHAIN_ADDRESS,
+  abi: [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
     {
       "inputs": [
         {
@@ -49,14 +55,14 @@
           "type": "uint8"
         },
         {
-          "internalType": "uint256",
-          "name": "timestamp",
-          "type": "uint256"
-        },
-        {
           "internalType": "string",
           "name": "location",
           "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -75,11 +81,6 @@
         {
           "components": [
             {
-              "internalType": "uint256",
-              "name": "productId",
-              "type": "uint256"
-            },
-            {
               "internalType": "address",
               "name": "sender",
               "type": "address"
@@ -91,18 +92,18 @@
             },
             {
               "internalType": "uint8",
-              "name": "currentStage",
+              "name": "stage",
               "type": "uint8"
-            },
-            {
-              "internalType": "uint256",
-              "name": "timestamp",
-              "type": "uint256"
             },
             {
               "internalType": "string",
               "name": "location",
               "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "timestamp",
+              "type": "uint256"
             }
           ],
           "internalType": "struct SupplyChain.Shipment[]",
@@ -150,4 +151,4 @@
       "type": "function"
     }
   ]
-}
+};
