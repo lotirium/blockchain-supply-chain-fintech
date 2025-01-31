@@ -7,6 +7,7 @@ import { Store, Product } from '../models/index.mjs';
 import { requireSeller } from '../middleware/auth.mjs';
 
 const router = express.Router();
+import blockchainController from '../controllers/blockchain.mjs';
 
 // Get current directory
 const __filename = fileURLToPath(import.meta.url);
@@ -210,6 +211,42 @@ router.post('/', requireSeller, validateStore, handleUpload, async (req, res) =>
       store_id: req.store.id
     });
 
+    console.log('Creating NFT for product...');
+    try {
+      // Create NFT for the product
+      const tokenURI = JSON.stringify({
+        name: product.name,
+        description: product.description,
+        image: product.images[0], // Use first image as NFT image
+        attributes: product.attributes
+      });
+
+      const result = await blockchainController.createProduct(
+        req.store.wallet_address, // Use store's wallet address
+        product.name,
+        req.store.name, // Use store name as manufacturer
+        tokenURI
+      );
+
+      // Update product with blockchain token ID
+      await product.update({
+        token_id: result.tokenId,
+        blockchain_status: 'minted'
+      });
+
+      console.log('Product and NFT created successfully:', {
+        productId: product.id,
+        tokenId: result.tokenId
+      });
+    } catch (blockchainError) {
+      console.error('Failed to create NFT:', blockchainError);
+      // Don't fail the whole request if blockchain creation fails
+      // Just mark it for retry
+      await product.update({
+        blockchain_status: 'pending'
+      });
+    }
+
     clearTimeout(timeout);
     console.log('Product created successfully:', product.id);
     res.status(201).json({ product });
@@ -241,6 +278,26 @@ router.post('/', requireSeller, validateStore, handleUpload, async (req, res) =>
     res.status(error.status || 500).json({ 
       error: error.message || 'Failed to create product'
     });
+  }
+});
+
+// Get all products
+router.get('/', async (req, res) => {
+  try {
+    const products = await Product.findAll({
+      where: {
+        status: 'active'
+      },
+      include: [{
+        model: Store,
+        as: 'store',
+        attributes: ['id', 'name', 'is_verified']
+      }]
+    });
+    res.json(products);
+  } catch (error) {
+    console.error('Get all products error:', error);
+    res.status(500).json({ error: 'Failed to fetch products' });
   }
 });
 

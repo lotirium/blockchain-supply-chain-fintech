@@ -14,9 +14,8 @@ function Products() {
   );
 
   useEffect(() => {
-    const category = searchParams.get('category') || 'all';
-    dispatch(setCategory(category));
-  }, [searchParams, dispatch]);
+    dispatch(fetchProducts());
+  }, [dispatch]);
 
   // Filter products based on search term
   const filteredProducts = filteredItems.filter((product) =>

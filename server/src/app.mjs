@@ -18,6 +18,7 @@ import verificationRoutes from './routes/verification.mjs';
 import { errorHandler } from './middleware/errorHandler.mjs';
 import blockchainController from './controllers/blockchain.mjs';
 import ipfsService from './services/ipfs.mjs';
+import mintPendingNFTs from './jobs/mintPendingNFTs.mjs';
 
 // Load environment variables
 import dotenv from 'dotenv';
@@ -276,6 +277,20 @@ const initializeApp = async () => {
       console.log(`Environment: ${process.env.NODE_ENV}`);
       console.log(`API Server: http://127.0.0.1:${PORT}`);
       console.log(`File Server: http://127.0.0.1:${PORT}/uploads`);
+      
+      // Start NFT minting job
+      console.log('Starting periodic NFT minting job...');
+      // Run immediately on startup
+      mintPendingNFTs().catch(error => {
+        console.error('Error in initial NFT minting job:', error);
+      });
+      
+      // Then run every 5 minutes
+      setInterval(() => {
+        mintPendingNFTs().catch(error => {
+          console.error('Error in periodic NFT minting job:', error);
+        });
+      }, 5 * 60 * 1000); // 5 minutes
     });
   } catch (error) {
     console.error('Failed to initialize application:', error);

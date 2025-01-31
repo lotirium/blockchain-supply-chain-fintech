@@ -77,6 +77,13 @@ contract ProductNFT is ERC721URIStorage, Ownable {
      * @dev Gets product information
      * @param tokenId The ID of the product token
      */
+    /**
+     * @dev Gets the current token count
+     */
+    function getCurrentTokenId() public view returns (uint256) {
+        return _tokenIds.current();
+    }
+
     function getProduct(uint256 tokenId) public view returns (
         string memory name,
         string memory manufacturer,
