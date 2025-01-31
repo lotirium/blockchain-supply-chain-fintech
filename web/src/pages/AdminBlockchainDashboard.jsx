@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { blockchainService } from '../services/blockchain';
 import ProductNFTTracker from '../components/blockchain/ProductNFTTracker';
+import NFTMintingControls from '../components/blockchain/NFTMintingControls';
+import ProductStatusControls from '../components/blockchain/ProductStatusControls';
+import TransactionMonitor from '../components/blockchain/TransactionMonitor';
 
 // Network Status Component
 const NetworkStatus = ({ networkDetails }) => (
@@ -121,29 +124,13 @@ const ContractControls = ({ isPaused, onPauseContract, onUnpauseContract }) => (
   </div>
 );
 
-// Event Monitor Component
-const EventMonitor = ({ events }) => (
-  <div className="bg-white rounded-lg shadow p-4 mb-6">
-    <h2 className="text-xl font-semibold mb-4">Recent Events</h2>
-    <div className="space-y-4">
-      {events.map((event, index) => (
-        <div key={index} className="border-l-4 border-blue-500 pl-4">
-          <p className="font-medium">{event.type}</p>
-          <p className="text-sm text-gray-600">{event.description}</p>
-          <p className="text-xs text-gray-500">{event.timestamp}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
 // Main Dashboard Component 
 const AdminBlockchainDashboard = () => {
   const [networkDetails, setNetworkDetails] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [events, setEvents] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     const initializeBlockchain = async () => {
@@ -152,19 +139,6 @@ const AdminBlockchainDashboard = () => {
         const details = await blockchainService.getNetworkDetails();
         setNetworkDetails(details);
         setIsInitialized(true);
-
-        // Set up event listeners
-        blockchainService.addProductEventListener((event) => {
-          addEvent('Product Created', `Product ${event.productId} created by ${event.manufacturer}`);
-        });
-
-        blockchainService.addShipmentEventListener((event) => {
-          addEvent('Shipment Created', `Shipment created for product ${event.productId}`);
-        });
-
-        blockchainService.addStageUpdateEventListener((event) => {
-          addEvent('Stage Updated', `Product ${event.productId} moved to ${event.newStage}`);
-        });
       } catch (error) {
         console.error('Failed to initialize blockchain:', error);
         let errorMessage = 'Failed to initialize blockchain connection. ';
@@ -186,17 +160,6 @@ const AdminBlockchainDashboard = () => {
     initializeBlockchain();
   }, []);
 
-  const addEvent = (type, description) => {
-    setEvents((prev) => [
-      {
-        type,
-        description,
-        timestamp: new Date().toLocaleString(),
-      },
-      ...prev,
-    ].slice(0, 10)); // Keep only last 10 events
-  };
-
   const handleGrantRole = async (address, role) => {
     try {
       switch (role) {
@@ -212,7 +175,6 @@ const AdminBlockchainDashboard = () => {
         default:
           throw new Error('Invalid role');
       }
-      addEvent('Role Granted', `${role} role granted to ${address}`);
     } catch (error) {
       console.error('Failed to grant role:', error);
     }
@@ -222,7 +184,6 @@ const AdminBlockchainDashboard = () => {
     try {
       await blockchainService.pauseContract();
       setIsPaused(true);
-      addEvent('Contract Paused', 'Supply chain contract has been paused');
     } catch (error) {
       console.error('Failed to pause contract:', error);
     }
@@ -232,9 +193,22 @@ const AdminBlockchainDashboard = () => {
     try {
       await blockchainService.unpauseContract();
       setIsPaused(false);
-      addEvent('Contract Unpaused', 'Supply chain contract has been unpaused');
     } catch (error) {
       console.error('Failed to unpause contract:', error);
+    }
+  };
+
+  const handleMintSuccess = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleStatusUpdate = async (status) => {
+    if (selectedProduct) {
+      try {
+        await blockchainService.updateProductStatus(selectedProduct.id, status);
+      } catch (error) {
+        console.error('Failed to update status:', error);
+      }
     }
   };
 
@@ -273,6 +247,7 @@ const AdminBlockchainDashboard = () => {
           <div>
             <NetworkStatus networkDetails={networkDetails} />
             <RoleManagement onGrantRole={handleGrantRole} />
+            <NFTMintingControls onMintSuccess={handleMintSuccess} />
           </div>
           <div>
             <ContractControls
@@ -280,13 +255,19 @@ const AdminBlockchainDashboard = () => {
               onPauseContract={handlePauseContract}
               onUnpauseContract={handleUnpauseContract}
             />
-            <EventMonitor events={events} />
+            <TransactionMonitor />
           </div>
         </div>
 
-        {/* Product NFT Tracking Section */}
-        <div className="mb-8">
-          <ProductNFTTracker />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <ProductNFTTracker onProductSelect={setSelectedProduct} />
+          {selectedProduct && (
+            <ProductStatusControls
+              productId={selectedProduct.id}
+              currentStatus={selectedProduct.status}
+              onStatusUpdate={handleStatusUpdate}
+            />
+          )}
         </div>
       </div>
     </div>
