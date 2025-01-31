@@ -23,6 +23,78 @@ class BlockchainController {
         this._productNFT = null;
         this._supplyChain = null;
         this.initialized = null;
+        this._signer = null;
+    }
+
+    async getSigner() {
+        if (!this._signer) {
+            // Use first account as admin signer
+            // Use Contract deployer's private key
+            const deployerPrivateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+            this._signer = new ethers.Wallet(deployerPrivateKey, this.provider);
+        }
+        return this._signer;
+    }
+
+    async createProduct(recipientAddress, name, manufacturer, tokenURI) {
+        try {
+            await this.initialize(); // Ensure initialized
+            const signer = await this.getSigner();
+            
+            // Get contract instances
+            if (!SupplyChain?.abi) {
+                await this.loadArtifacts();
+            }
+
+            const supplyChainContract = new ethers.Contract(
+                this.addresses.supplyChain,
+                SupplyChain.abi,
+                signer
+            );
+
+            console.log('SupplyChain address:', this.addresses.supplyChain);
+            console.log('Signer address:', await signer.getAddress());
+            console.log('Creating product with params:', {
+                name,
+                manufacturer,
+                price: 0,
+                tokenURI
+            });
+
+            // Create product through SupplyChain contract
+            // The createProduct function signature is:
+            // function createProduct(string name, string manufacturer, uint256 price, string tokenURI)
+            const createTx = await supplyChainContract.createProduct(
+                name,
+                manufacturer,
+                ethers.parseEther('0'), // Price as wei (0 ETH)
+                tokenURI
+            );
+            const createReceipt = await createTx.wait();
+
+            // Get token ID from event
+            // The SupplyChain contract emits its own ProductCreated event
+            // We need to parse the transaction receipt logs to find the event
+            const iface = new ethers.Interface(SupplyChain.abi);
+            for (const log of createReceipt.logs) {
+                try {
+                    const parsedLog = iface.parseLog(log);
+                    if (parsedLog && parsedLog.name === 'ProductCreated') {
+                        return {
+                            tokenId: parsedLog.args.productId.toString(),
+                            transaction: createReceipt.hash
+                        };
+                    }
+                } catch (e) {
+                    // Skip logs that can't be parsed
+                    continue;
+                }
+            }
+            throw new Error('ProductCreated event not found in transaction');
+        } catch (error) {
+            console.error('Failed to create product NFT:', error);
+            throw error;
+        }
     }
 
     async loadArtifacts() {
@@ -222,28 +294,35 @@ class BlockchainController {
 
     async getAllProducts() {
         try {
-            const productNFT = await this.getProductNFT();
+            const [productNFT, supplyChain] = await Promise.all([
+                this.getProductNFT(),
+                this.getSupplyChain()
+            ]);
             
-            // Since there's no direct method to get all products, we'll try sequential IDs
-            // until we hit an error, indicating no more products exist
+            const maxTokenId = Number(await productNFT.getCurrentTokenId());
             const products = [];
-            let id = 0;
-            
-            while (true) {
+    
+            // Get all products up to the current token ID
+            for (let id = 1; id <= maxTokenId; id++) {
                 try {
                     const product = await productNFT.getProduct(id);
+                    const shipment = await supplyChain.getShipmentHistory(id);
+                    
                     products.push({
                         id: id,
                         name: product.name,
                         manufacturer: product.manufacturer,
                         manufactureDate: Number(product.manufactureDate),
                         status: product.status,
-                        currentOwner: product.currentOwner
+                        currentOwner: product.currentOwner,
+                        shipmentHistory: shipment
                     });
-                    id++;
                 } catch (error) {
-                    // If we hit an error, we've likely reached the end of valid product IDs
-                    break;
+                    // Skip if product doesn't exist (might have been burned)
+                    if (!error.message.includes("Product does not exist")) {
+                        console.error(`Error fetching product ${id}:`, error);
+                    }
+                    continue;
                 }
             }
             

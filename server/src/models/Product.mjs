@@ -82,6 +82,10 @@ Product.init({
   token_uri: {
     type: DataTypes.STRING
   },
+  blockchain_status: {
+    type: DataTypes.ENUM('pending', 'minted', 'failed'),
+    defaultValue: 'pending'
+  },
   hologram_data: {
     type: DataTypes.JSONB
   },
