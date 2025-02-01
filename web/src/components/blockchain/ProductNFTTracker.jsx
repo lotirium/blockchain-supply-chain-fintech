@@ -106,12 +106,52 @@ const ProductNFTTracker = () => {
                 <div
                   key={product.id}
                   className="border border-gray-200 rounded-md p-3 hover:bg-white cursor-pointer"
-                  onClick={() => setTokenId(product.id.toString())}
+                  onClick={() => {
+                    if (!product.token_id) {
+                      setError('This product has not been minted as an NFT yet.');
+                      setProduct(null);
+                      setShipmentHistory([]);
+                      return;
+                    }
+                    setTokenId(product.token_id);
+                    // Immediately fetch product details when clicked
+                    blockchainService.getProduct(product.token_id)
+                      .then(productData => {
+                        setProduct({
+                          name: productData.name,
+                          manufacturer: productData.manufacturer,
+                          manufactureDate: new Date(productData.manufactureDate * 1000).toLocaleString(),
+                          status: productData.status,
+                          currentOwner: productData.currentOwner
+                        });
+                        return blockchainService.getShipmentHistory(product.token_id);
+                      })
+                      .then(history => {
+                        setShipmentHistory(history.map(shipment => ({
+                          sender: shipment.sender,
+                          receiver: shipment.receiver,
+                          stage: getStageText(shipment.currentStage),
+                          timestamp: new Date(shipment.timestamp * 1000).toLocaleString(),
+                          location: shipment.location
+                        })));
+                        setError(null);
+                      })
+                      .catch(error => {
+                        console.error('Failed to fetch product data:', error);
+                        setError('No product found with this Token ID');
+                        setProduct(null);
+                        setShipmentHistory([]);
+                      });
+                  }}
                 >
-                  <p className="font-medium text-blue-600">ID: {product.id}</p>
                   <p className="font-medium">{product.name}</p>
                   <p className="text-sm text-gray-600">{product.manufacturer}</p>
                   <p className="text-sm text-gray-500">Status: {product.status}</p>
+                  {product.token_id ? (
+                    <p className="text-sm text-blue-600">NFT Token ID: {product.token_id}</p>
+                  ) : (
+                    <p className="text-sm text-orange-500">Not minted as NFT yet</p>
+                  )}
                 </div>
               ))}
             </div>

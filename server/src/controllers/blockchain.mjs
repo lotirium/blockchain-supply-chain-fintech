@@ -295,6 +295,42 @@ class BlockchainController {
         }
     }
 
+    async getProduct(tokenId) {
+        try {
+            // Convert tokenId to a number and validate
+            const numericTokenId = Number(tokenId);
+            if (isNaN(numericTokenId)) {
+                throw new Error('Invalid token ID format - must be a number');
+            }
+
+            const productNFT = await this.getProductNFT();
+            const supplyChain = await this.getSupplyChain();
+
+            const product = await productNFT.getProduct(numericTokenId);
+            if (!product || !product.name) {
+                throw new Error('No product found with this Token ID');
+            }
+
+            const shipment = await supplyChain.getShipmentHistory(numericTokenId);
+
+            return {
+                id: numericTokenId,
+                name: product.name,
+                manufacturer: product.manufacturer,
+                manufactureDate: Number(product.manufactureDate),
+                status: product.status,
+                currentOwner: product.currentOwner,
+                shipmentHistory: shipment
+            };
+        } catch (error) {
+            console.error(`Failed to get product ${tokenId}:`, error);
+            if (error.message.includes('Invalid token ID format')) {
+                throw new Error(error.message);
+            }
+            throw new Error('No product found with this Token ID');
+        }
+    }
+
     async getAllProducts() {
         try {
             const [productNFT, supplyChain] = await Promise.all([
