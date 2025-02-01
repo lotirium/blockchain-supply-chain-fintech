@@ -229,8 +229,10 @@ class BlockchainController {
                     this.provider.getFeeData()
                 ]);
 
+                // Set network name to "Hardhat" if chainId is 31337
+                const networkName = network.chainId === 31337n ? "Hardhat" : network.name;
                 return {
-                    name: network.name,
+                    name: networkName,
                     chainId: network.chainId.toString(),
                     blockNumber: blockNumber.toString(),
                     gasPrice: feeData.gasPrice ? ethers.formatUnits(feeData.gasPrice, 'gwei') : 'N/A',
@@ -238,8 +240,9 @@ class BlockchainController {
                 };
             } catch (innerError) {
                 console.warn('Connected to network but failed to get full details:', innerError);
+                const networkName = network.chainId === 31337n ? "Hardhat" : network.name;
                 return {
-                    name: network.name,
+                    name: networkName,
                     chainId: network.chainId.toString(),
                     isConnected: true,
                     blockNumber: 'N/A',
