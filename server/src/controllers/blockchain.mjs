@@ -333,6 +333,56 @@ class BlockchainController {
         }
     }
 
+    async pauseContract() {
+        try {
+            const supplyChain = await this.getSupplyChain();
+            const signer = await this.getSigner();
+            const contract = supplyChain.connect(signer);
+
+            // Check if contract is already paused
+            const isPaused = await contract.paused();
+            if (isPaused) {
+                return { success: false, message: 'Contract is already paused' };
+            }
+
+            const tx = await contract.pause();
+            await tx.wait();
+            
+            return { success: true, transaction: tx.hash };
+        } catch (error) {
+            console.error('Failed to pause contract:', error);
+            if (error.message.includes('Pausable: paused')) {
+                return { success: false, message: 'Contract is already paused' };
+            }
+            throw new Error(`Failed to pause contract: ${error.message}`);
+        }
+    }
+
+    async unpauseContract() {
+        try {
+            const supplyChain = await this.getSupplyChain();
+            const signer = await this.getSigner();
+            const contract = supplyChain.connect(signer);
+
+            // Check if contract is already unpaused
+            const isPaused = await contract.paused();
+            if (!isPaused) {
+                return { success: false, message: 'Contract is not paused' };
+            }
+
+            const tx = await contract.unpause();
+            await tx.wait();
+            
+            return { success: true, transaction: tx.hash };
+        } catch (error) {
+            console.error('Failed to unpause contract:', error);
+            if (error.message.includes('Pausable: not paused')) {
+                return { success: false, message: 'Contract is not paused' };
+            }
+            throw new Error(`Failed to unpause contract: ${error.message}`);
+        }
+    }
+
     async validateConfig() {
         try {
             console.log('Starting blockchain configuration validation...');
