@@ -36,6 +36,7 @@ function StoreSettings() {
       [name]: value,
     }));
   };
+
   const handleGenerateWallet = () => {
     try {
       const wallet = Wallet.createRandom();
@@ -48,27 +49,27 @@ function StoreSettings() {
       setError('Failed to generate Ethereum wallet. Please try again.');
     }
   };
-const handleSave = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError(null);
-  setSuccess(false);
 
-  try {
-    await dispatch(updateStore(formData)).unwrap();
-    setSuccess(true);
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setLoading(true);
     setError(null);
-    // Wait 500ms then navigate to seller dashboard
-    setTimeout(() => {
-      navigate('/seller-dashboard');
-    }, 500);
-  } catch (err) {
-    console.error('Store setup failed:', err);
-    setError(err.message || 'Failed to update store settings. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+    setSuccess(false);
+
+    try {
+      await dispatch(updateStore(formData)).unwrap();
+      setSuccess(true);
+      setError(null);
+      // Wait 500ms then navigate to seller dashboard
+      setTimeout(() => {
+        navigate('/seller-dashboard');
+      }, 500);
+    } catch (err) {
+      console.error('Store setup failed:', err);
+      setError(err.message || 'Failed to update store settings. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleContinue = () => {
