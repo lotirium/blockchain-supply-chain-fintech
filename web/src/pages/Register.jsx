@@ -28,15 +28,7 @@ const Register = () => {
   const [validationErrors, setValidationErrors] = useState({});
 
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      if (user?.role === 'seller') {
-        navigate('/verification-pending');
-      } else if (user?.role === 'buyer') {
-        navigate('/');
-      }
-    }
-  }, [user, isAuthenticated, navigate]);
+  // Removed useEffect navigation since we'll handle it in handleSubmit
 
   const validateStep1 = () => {
     const errors = {};
@@ -138,8 +130,31 @@ const Register = () => {
     }
   };
 
-  const handleNext = (e) => {
-    e?.preventDefault();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Success toast component
+  const SuccessToast = () => (
+    <div className="fixed top-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg transition-all duration-500 transform translate-x-0 z-50">
+      <div className="flex items-center">
+        <div className="py-1">
+          <svg className="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <p className="font-bold">Registration Successful!</p>
+          <p className="text-sm">Welcome to our marketplace. Redirecting...</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const handleNext = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     
     let isValid = false;
     
@@ -151,14 +166,18 @@ const Register = () => {
       case 2:
         isValid = validateStep2();
         if (isValid && formData.userType === 'buyer') {
-          handleSubmit();
+          if (!isSubmitting) {
+            await handleSubmit();
+          }
           return;
         }
         break;
       case 3:
         isValid = validateStep3();
         if (isValid) {
-          handleSubmit();
+          if (!isSubmitting) {
+            await handleSubmit();
+          }
           return;
         }
         break;
@@ -176,8 +195,15 @@ const Register = () => {
   };
 
     const handleSubmit = async (e) => {
-      e?.preventDefault();
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       
+      if (isSubmitting) {
+        return;
+      }
+
       if (formData.userType !== 'buyer' && !validateStep3()) {
         return;
       }
@@ -206,13 +232,25 @@ const Register = () => {
       };
 
       try {
+        setIsSubmitting(true);
         console.log('Starting registration process...', { userType: formData.userType });
-        await dispatch(register(registrationData)).unwrap();
+        const result = await dispatch(register(registrationData)).unwrap();
         console.log('Registration successful');
-        // Let the useEffect handle navigation
+        setShowSuccess(true);
+        
+        // Wait 1.5 seconds then navigate
+        setTimeout(() => {
+          if (formData.userType === 'seller') {
+            navigate('/verification-pending');
+          } else {
+            navigate('/profile');
+          }
+        }, 500);
       } catch (err) {
         console.error('Registration failed:', err);
         alert(err.message || 'Registration failed');
+      } finally {
+        setIsSubmitting(false);
       }
   };
 
@@ -479,14 +517,26 @@ const Register = () => {
       )}
       <button
         type="button"
-          onClick={handleNext}
-          className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg text-white font-medium hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
+        onClick={handleNext}
+        disabled={isSubmitting}
+        className={`flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg text-white font-medium
+          ${!isSubmitting ? 'hover:from-blue-600 hover:to-purple-600' : 'opacity-75 cursor-not-allowed'}
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300
+          flex items-center justify-center space-x-2`}
       >
-        {registrationStep === 2 && formData.userType === 'buyer'
-          ? 'Register'
-          : registrationStep === 3
-          ? 'Create Store'
-          : 'Continue'}
+        {isSubmitting && (
+          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        )}
+        <span>
+          {registrationStep === 2 && formData.userType === 'buyer'
+            ? isSubmitting ? 'Registering...' : 'Register'
+            : registrationStep === 3
+            ? isSubmitting ? 'Creating Store...' : 'Create Store'
+            : 'Continue'}
+        </span>
       </button>
     </div>
   );
@@ -575,9 +625,11 @@ const Register = () => {
             {renderNavigationButtons()}
           </div>
         </div>
+  
+        {/* Success Toast */}
+        {showSuccess && <SuccessToast />}
+  
       </div>
-
-
     </div>
   );
 };
