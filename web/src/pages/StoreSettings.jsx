@@ -68,6 +68,20 @@ function StoreSettings() {
     navigate('/add-product');
   };
 
+  const handleFillSample = () => {
+    const wallet = Wallet.createRandom();
+    setFormData({
+      name: 'Sample Store',
+      description: 'A premium store offering high-quality products with excellent customer service.',
+      business_email: user?.email || 'store@example.com',
+      business_phone: '+1 (555) 123-4567',
+      business_address: '123 Business Street\nSuite 100\nNew York, NY 10001',
+      wallet_address: wallet.address,
+      shipping_policy: 'Standard shipping (5-7 business days): Free\nExpress shipping (2-3 business days): $15\nOvernight shipping: $25\n\nInternational shipping available at additional cost.',
+      return_policy: 'We accept returns within 30 days of delivery for unused items in original packaging.\n\nRefunds will be processed within 5 business days of receiving the returned item.\n\nCustomer is responsible for return shipping costs unless item is defective.'
+    });
+  };
+
   if (authLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -91,7 +105,7 @@ function StoreSettings() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSave} className="space-y-6">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
           
@@ -240,15 +254,24 @@ function StoreSettings() {
           <p className="text-sm text-gray-600 mb-4">
             * Store setup is required before you can start adding products. This information helps build trust with your customers.
           </p>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full px-6 py-3 bg-blue-600 text-white rounded-md ${
-              loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
-            }`}
-          >
-            {loading ? 'Saving...' : 'Continue to Add Product'}
-          </button>
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className={`flex-1 px-6 py-3 bg-blue-600 text-white rounded-md ${
+                loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+              }`}
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              type="button"
+              onClick={handleContinue}
+              className="flex-1 px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              Continue to Add Product
+            </button>
+          </div>
         </div>
       </form>
     </div>
