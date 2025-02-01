@@ -10,6 +10,7 @@ function StoreSettings() {
   const { user, loading: authLoading } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.store?.name || '',
     description: user?.store?.description || '',
@@ -47,39 +48,79 @@ function StoreSettings() {
       setError('Failed to generate Ethereum wallet. Please try again.');
     }
   };
+const handleSave = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError(null);
+  setSuccess(false);
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  try {
+    await dispatch(updateStore(formData)).unwrap();
+    setSuccess(true);
     setError(null);
-
-    try {
-      await dispatch(updateStore(formData)).unwrap();
-      setError(null);
-    } catch (err) {
-      console.error('Store setup failed:', err);
-      setError(err.message || 'Failed to update store settings. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    // Wait 500ms then navigate to seller dashboard
+    setTimeout(() => {
+      navigate('/seller-dashboard');
+    }, 500);
+  } catch (err) {
+    console.error('Store setup failed:', err);
+    setError(err.message || 'Failed to update store settings. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
   };
 
   const handleContinue = () => {
     navigate('/add-product');
   };
 
+  const sampleData = {
+    fashionStore: {
+      name: 'Urban Chic Boutique',
+      description: 'Curated fashion collections featuring trendy and timeless pieces for the modern wardrobe. We blend contemporary style with quality craftsmanship.',
+      business_phone: '+1 (555) 234-5678',
+      business_address: '789 Fashion Avenue\nFloor 3\nLos Angeles, CA 90015',
+      shipping_policy: 'Free Standard Shipping on orders over $50\nStandard (5-7 days): $5.99\nExpress (2-3 days): $12.99\nNext Day: $24.99\n\nFree returns within the US.',
+      return_policy: '45-day return window for unworn items with original tags\nFree returns via prepaid shipping label\nStore credit or full refund available\nExpress refunds within 3 business days'
+    },
+    electronicsStore: {
+      name: 'Tech Haven',
+      description: 'Premier destination for cutting-edge electronics and gadgets. We offer expert advice, competitive prices, and guaranteed authentic products.',
+      business_phone: '+1 (555) 876-5432',
+      business_address: '456 Innovation Park\nSuite 200\nSan Jose, CA 95110',
+      shipping_policy: 'Free Standard Shipping on orders over $100\nStandard (3-5 days): $8.99\nExpress (2 days): $19.99\nSame Day Available in Select Areas\n\nInsured shipping on all orders',
+      return_policy: '30-day worry-free returns\nFree returns for defective items\nTechnical support available for setup\n14-day price protection guarantee\nRestocking fee may apply for opened items'
+    },
+    artisanStore: {
+      name: 'Handcrafted Treasures',
+      description: 'Unique handmade crafts and artisanal products created with passion and care. Supporting local artisans and sustainable practices.',
+      business_phone: '+1 (555) 345-6789',
+      business_address: '321 Artisan Way\nMarket Square\nPortland, OR 97201',
+      shipping_policy: 'Carefully packaged by hand\nStandard (5-7 days): $7.99\nExpress (3-4 days): $15.99\nCustom shipping for fragile items\n\nInternational shipping available',
+      return_policy: 'Each item is unique and handmade with care\n21-day return window\nPlease contact us before returning\nCustom orders are non-returnable\nDamaged items will be replaced or refunded'
+    }
+  };
+
   const handleFillSample = () => {
-    const wallet = Wallet.createRandom();
-    setFormData({
-      name: 'Sample Store',
-      description: 'A premium store offering high-quality products with excellent customer service.',
-      business_email: user?.email || 'store@example.com',
-      business_phone: '+1 (555) 123-4567',
-      business_address: '123 Business Street\nSuite 100\nNew York, NY 10001',
-      wallet_address: wallet.address,
-      shipping_policy: 'Standard shipping (5-7 business days): Free\nExpress shipping (2-3 business days): $15\nOvernight shipping: $25\n\nInternational shipping available at additional cost.',
-      return_policy: 'We accept returns within 30 days of delivery for unused items in original packaging.\n\nRefunds will be processed within 5 business days of receiving the returned item.\n\nCustomer is responsible for return shipping costs unless item is defective.'
-    });
+    const storeTypes = Object.keys(sampleData);
+    const randomType = storeTypes[Math.floor(Math.random() * storeTypes.length)];
+    const sample = sampleData[randomType];
+    
+    // Only generate new wallet address if one doesn't exist
+    const wallet_address = formData.wallet_address || Wallet.createRandom().address;
+    
+    // Merge existing data with sample data, keeping existing values
+    setFormData(prev => ({
+      name: prev.name || sample.name,
+      description: prev.description || sample.description,
+      business_email: prev.business_email || user?.email || `info@${sample.name.toLowerCase().replace(/\s+/g, '')}.com`,
+      business_phone: prev.business_phone || sample.business_phone,
+      business_address: prev.business_address || sample.business_address,
+      wallet_address: prev.wallet_address || wallet_address,
+      shipping_policy: prev.shipping_policy || sample.shipping_policy,
+      return_policy: prev.return_policy || sample.return_policy
+    }));
   };
 
   if (authLoading || !user) {
@@ -104,6 +145,25 @@ function StoreSettings() {
           {error}
         </div>
       )}
+
+      {success && (
+        <div className="bg-green-50 text-green-600 p-4 rounded-md mb-6">
+          Store settings saved successfully!
+        </div>
+      )}
+
+      <div className="mb-6 relative">
+        <button
+          type="button"
+          onClick={handleFillSample}
+          className="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+        >
+          Fill Missing Fields with Sample Data
+        </button>
+        <div className="mt-2 text-center text-sm text-gray-500">
+          Available templates: Fashion Store, Electronics Store, Artisan Store
+        </div>
+      </div>
 
       <form onSubmit={handleSave} className="space-y-6">
         <div className="bg-white rounded-lg shadow-sm p-6">
