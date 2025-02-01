@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateStore } from '../store/slices/authSlice';
+import { Wallet } from 'ethers';
 
 function StoreSettings() {
   const navigate = useNavigate();
@@ -12,9 +13,10 @@ function StoreSettings() {
   const [formData, setFormData] = useState({
     name: user?.store?.name || '',
     description: user?.store?.description || '',
-    email: user?.store?.email || user?.email || '',
-    phone: user?.store?.phone || '',
-    address: user?.store?.address || '',
+    business_email: user?.store?.business_email || user?.email || '',
+    business_phone: user?.store?.business_phone || '',
+    business_address: user?.store?.business_address || '',
+    wallet_address: user?.store?.wallet_address || '',
     shipping_policy: user?.store?.shipping_policy || '',
     return_policy: user?.store?.return_policy || ''
   });
@@ -33,21 +35,37 @@ function StoreSettings() {
       [name]: value,
     }));
   };
+  const handleGenerateWallet = () => {
+    try {
+      const wallet = Wallet.createRandom();
+      setFormData(prev => ({
+        ...prev,
+        wallet_address: wallet.address
+      }));
+    } catch (err) {
+      console.error('Failed to generate wallet:', err);
+      setError('Failed to generate Ethereum wallet. Please try again.');
+    }
+  };
 
-  const handleSubmit = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
       await dispatch(updateStore(formData)).unwrap();
-      navigate('/add-product');
+      setError(null);
     } catch (err) {
       console.error('Store setup failed:', err);
       setError(err.message || 'Failed to update store settings. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleContinue = () => {
+    navigate('/add-product');
   };
 
   if (authLoading || !user) {
@@ -115,9 +133,9 @@ function StoreSettings() {
                 </label>
                 <input
                   type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
+                  id="business_email"
+                  name="business_email"
+                  value={formData.business_email}
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -130,9 +148,9 @@ function StoreSettings() {
                 </label>
                 <input
                   type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
+                  id="business_phone"
+                  name="business_phone"
+                  value={formData.business_phone}
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -141,13 +159,38 @@ function StoreSettings() {
             </div>
 
             <div>
+              <label htmlFor="wallet_address" className="block text-sm font-medium text-gray-700 mb-1">
+                Ethereum Wallet Address
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  id="wallet_address"
+                  name="wallet_address"
+                  value={formData.wallet_address}
+                  onChange={handleInputChange}
+                  required
+                  pattern="^0x[a-fA-F0-9]{40}$"
+                  title="Enter a valid Ethereum wallet address starting with 0x followed by 40 hexadecimal characters"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleGenerateWallet}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                >
+                  Generate
+                </button>
+              </div>
+            </div>
+            <div>
               <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
                 Business Address
               </label>
               <textarea
-                id="address"
-                name="address"
-                value={formData.address}
+                id="business_address"
+                name="business_address"
+                value={formData.business_address}
                 onChange={handleInputChange}
                 rows={3}
                 required

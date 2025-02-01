@@ -12,6 +12,7 @@ const AdminRoute = React.lazy(() => import('./components/AdminRoute'));
 const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
 
 // Page Components
+const StoreSettings = React.lazy(() => import('./pages/StoreSettings'));
 const Home = React.lazy(() => import('./pages/Home'));
 const Products = React.lazy(() => import('./pages/Products'));
 const ProductDetails = React.lazy(() => import('./pages/ProductDetails'));
@@ -77,6 +78,7 @@ function App() {
             <Route element={<SellerRoute />}>
               <Route path="seller-dashboard" element={<SellerDashboard />} />
               <Route path="add-product" element={<AddProduct />} />
+              <Route path="store-settings" element={<StoreSettings />} />
             </Route>
 
             {/* Admin Routes */}
