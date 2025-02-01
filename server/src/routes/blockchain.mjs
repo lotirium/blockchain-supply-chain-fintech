@@ -1,8 +1,10 @@
 import express from 'express';
 import { body, param } from 'express-validator';
+import { Op } from 'sequelize';
 import validateRequest from '../middleware/validateRequest.mjs';
 import auth, { requireSeller, requireAdmin } from '../middleware/auth.mjs';
 import blockchainController from '../controllers/blockchain.mjs';
+import { Product, Store } from '../models/index.mjs';
 
 const router = express.Router();
 
@@ -186,18 +188,33 @@ const updateShipmentStatusValidation = [
   param('tokenId').notEmpty().withMessage('Token ID is required'),
   body('stage').notEmpty().withMessage('Stage is required'),
   body('location').optional().isString().withMessage('Location must be a string'),
-  validateRequest,
+  validateRequest
 ];
 
 // Product Management Routes
 router.get('/products', async (req, res) => {
   try {
-    const products = await blockchainController.getAllProducts();
+    // Only get products that have been minted as NFTs
+    const products = await Product.findAll({
+      where: {
+        token_id: {
+          [Op.not]: null  // Only get products where token_id is not null
+        },
+        blockchain_status: 'minted'  // Only get successfully minted products
+      },
+      include: [{
+        model: Store,
+        as: 'store',  // Add the alias that's defined in the association
+        attributes: ['name', 'wallet_address']
+      }],
+      attributes: ['id', 'name', 'description', 'manufacturer', 'token_id', 'status', 'blockchain_status', 'images', 'attributes']
+    });
+
     res.json(products);
   } catch (error) {
-    console.error('Failed to get products:', error);
+    console.error('Failed to get NFT products:', error);
     res.status(500).json({
-      error: 'Failed to get products',
+      error: 'Failed to get NFT products',
       details: error.message
     });
   }
