@@ -4,9 +4,11 @@ import { authService } from '../../services/auth';
 // Async thunks
 export const updateStore = createAsyncThunk(
   'auth/updateStore',
-  async (storeData, { rejectWithValue }) => {
+  async (storeData, { dispatch, rejectWithValue }) => {
     try {
       const response = await authService.updateStore(storeData);
+      // Refresh the profile to get the latest data
+      await dispatch(getProfile());
       return response;
     } catch (error) {
       return rejectWithValue(error.message);

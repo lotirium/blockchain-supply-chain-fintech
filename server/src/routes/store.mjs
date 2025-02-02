@@ -24,6 +24,52 @@ router.get('/', requireSeller, async (req, res) => {
   }
 });
 
+// Update store information
+router.put('/', requireSeller, async (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      business_email,
+      business_phone,
+      business_address,
+      wallet_address,
+      shipping_policy,
+      return_policy
+    } = req.body.store || {};
+
+    // Validate required fields
+    if (!name || !business_email || !business_phone || !business_address || !wallet_address) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const [store] = await Store.findOrCreate({
+      where: { user_id: req.user.id },
+      defaults: {
+        user_id: req.user.id,
+        status: 'active'
+      }
+    });
+
+    await store.update({
+      name,
+      description,
+      business_email,
+      business_phone,
+      business_address,
+      wallet_address,
+      shipping_policy,
+      return_policy,
+      status: 'active'
+    });
+
+    res.json(store);
+  } catch (error) {
+    console.error('Update store error:', error);
+    res.status(500).json({ error: 'Failed to update store information' });
+  }
+});
+
 router.put('/setup', auth, async (req, res) => {
   try {
     const store = await Store.findOne({ where: { user_id: req.user.id } });

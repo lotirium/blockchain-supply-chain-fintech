@@ -358,7 +358,7 @@ export const authService = {
         business_address: storeData.business_address.trim()
       };
 
-      const response = await fetch(`${API_URL}/api/profile`, {
+      const response = await fetch(`${API_URL}/api/seller/store`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
