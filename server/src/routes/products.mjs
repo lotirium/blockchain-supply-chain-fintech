@@ -222,17 +222,35 @@ router.post('/', requireSeller, validateStore, handleUpload, async (req, res) =>
       });
 
       const result = await blockchainController.createProduct(
-        req.store.wallet_address, // Use store's wallet address
-        product.name,
-        req.store.name, // Use store name as manufacturer
-        tokenURI
+          req.store.wallet_address,
+          product.name,
+          req.store.name,
+          tokenURI
       );
 
-      // Update product with blockchain token ID
-      await product.update({
-        token_id: result.tokenId,
-        blockchain_status: 'minted'
-      });
+      // Try to update with retry/increment logic for token_id conflicts
+      let retryCount = 0;
+      const maxRetries = 5;
+      let currentTokenId = result.tokenId;
+      
+      while (retryCount < maxRetries) {
+          try {
+              await product.update({
+                  token_id: currentTokenId.toString(),
+                  blockchain_status: 'minted'
+              });
+              break; // Success - exit loop
+          } catch (updateError) {
+              if (updateError.name === 'SequelizeUniqueConstraintError' && retryCount < maxRetries - 1) {
+                  // Increment token ID and try again
+                  currentTokenId = (parseInt(currentTokenId) + 1).toString();
+                  console.log(`Token ID conflict, trying with ID ${currentTokenId}...`);
+                  retryCount++;
+                  continue;
+              }
+              throw updateError;
+          }
+      }
 
       console.log('Product and NFT created successfully:', {
         productId: product.id,
