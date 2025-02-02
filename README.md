@@ -20,14 +20,19 @@ sudo -u postgres psql -c "DROP USER IF EXISTS shipment_user;"
 sudo -u postgres psql -f setup-db.sql
 ```
 
-## 3. Normal Run (On 3 Terminals)
-
-### Terminal 1: Install Dependencies + Start Blockchain
+## 3. Install Dependencies
 
 ```bash
 cd blockchain && npm install
 cd ../server && npm install
 cd ../web && npm install
+```
+
+## 4. Normal Run (On 3 Terminals)
+
+### Terminal 1: Start Blockchain
+
+```bash
 cd blockchain
 npx hardhat node
 ```
