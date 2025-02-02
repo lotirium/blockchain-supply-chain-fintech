@@ -313,14 +313,23 @@ class BlockchainController {
 
             const shipment = await supplyChain.getShipmentHistory(numericTokenId);
 
+            // Convert shipment history BigInt values
+            const formattedShipment = shipment.map(s => ({
+                sender: s.sender,
+                receiver: s.receiver,
+                stage: Number(s.stage),
+                location: s.location,
+                timestamp: Number(s.timestamp)
+            }));
+
             return {
                 id: numericTokenId,
                 name: product.name,
                 manufacturer: product.manufacturer,
                 manufactureDate: Number(product.manufactureDate),
-                status: product.status,
+                status: Number(product.status),
                 currentOwner: product.currentOwner,
-                shipmentHistory: shipment
+                shipmentHistory: formattedShipment
             };
         } catch (error) {
             console.error(`Failed to get product ${tokenId}:`, error);
@@ -347,14 +356,23 @@ class BlockchainController {
                     const product = await productNFT.getProduct(id);
                     const shipment = await supplyChain.getShipmentHistory(id);
                     
+                    // Convert shipment history BigInt values
+                    const formattedShipment = shipment.map(s => ({
+                        sender: s.sender,
+                        receiver: s.receiver,
+                        stage: Number(s.stage),
+                        location: s.location,
+                        timestamp: Number(s.timestamp)
+                    }));
+
                     products.push({
                         id: id,
                         name: product.name,
                         manufacturer: product.manufacturer,
                         manufactureDate: Number(product.manufactureDate),
-                        status: product.status,
+                        status: Number(product.status),
                         currentOwner: product.currentOwner,
-                        shipmentHistory: shipment
+                        shipmentHistory: formattedShipment
                     });
                 } catch (error) {
                     // Skip if product doesn't exist (might have been burned)
