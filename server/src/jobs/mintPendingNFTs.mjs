@@ -45,11 +45,28 @@ async function mintPendingNFTs() {
           throw new Error('No token ID returned from blockchain');
         }
 
-        // Update product with NFT details
-        await product.update({
-          token_id: result.tokenId,
-          blockchain_status: 'minted'
-        });
+        // Try to update with retry/increment logic for token_id conflicts
+        let retryCount = 0;
+        const maxRetries = 5;
+        let currentTokenId = result.tokenId;
+        
+        while (retryCount < maxRetries) {
+          try {
+            await product.update({
+              token_id: currentTokenId.toString(),
+              blockchain_status: 'minted'
+            });
+            break; // Success - exit loop
+          } catch (updateError) {
+            if (updateError.name === 'SequelizeUniqueConstraintError' && retryCount < maxRetries - 1) {
+              // Increment token ID and try again
+              currentTokenId = (parseInt(currentTokenId) + 1).toString();
+              retryCount++;
+              continue;
+            }
+            throw updateError;
+          }
+        }
 
         console.log(`Successfully minted NFT for product ${product.id}, token ID: ${result.tokenId}`);
       } catch (error) {
