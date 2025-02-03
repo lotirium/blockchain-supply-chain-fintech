@@ -27,10 +27,10 @@ export const authService = {
       if (!store.name?.trim()) {
         throw new Error('Store name is required');
       }
-      if (!store.businessPhone?.trim()) {
+      if (!store.business_phone?.trim()) {
         throw new Error('Business phone is required');
       }
-      if (!store.businessAddress?.trim()) {
+      if (!store.business_address?.trim()) {
         throw new Error('Business address is required');
       }
     }
@@ -49,8 +49,8 @@ export const authService = {
           name: store.name.trim(),
           description: store.description?.trim() || '',
           business_email: email.trim(), // Use registration email as store email
-          business_phone: store.businessPhone.trim(),
-          business_address: store.businessAddress.trim(),
+          business_phone: store.business_phone.trim(),
+          business_address: store.business_address.trim(),
           isVerified: false, // New stores start unverified
           status: 'pending_verification' // New stores start pending verification
         }
