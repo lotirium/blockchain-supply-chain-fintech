@@ -3,6 +3,14 @@ import sequelize from '../config/database.mjs';
 import User from './User.mjs';
 
 class Store extends Model {
+  static associate(models) {
+    // Define association with User
+    Store.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      as: 'storeOwner'
+    });
+  }
+
   toJSON() {
     const values = { ...this.get() };
     // Remove sensitive data if any
@@ -87,13 +95,24 @@ Store.init({
   },
   wallet_address: {
     type: DataTypes.STRING,
-    allowNull: true, // Allow null for non-blockchain stores
+    allowNull: false, // Required for all stores
     validate: {
       is: /^0x[a-fA-F0-9]{40}$/,
       validateWalletAddress(value) {
-        // Only validate if value is present
-        if (value && !value.match(/^0x[a-fA-F0-9]{40}$/)) {
+        if (!value || !value.match(/^0x[a-fA-F0-9]{40}$/)) {
           throw new Error('Invalid Ethereum wallet address format');
+        }
+      }
+    }
+  },
+  private_key: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      is: /^[a-fA-F0-9]{64}$/,
+      validatePrivateKey(value) {
+        if (!value || !value.match(/^[a-fA-F0-9]{64}$/)) {
+          throw new Error('Invalid Ethereum private key format');
         }
       }
     }

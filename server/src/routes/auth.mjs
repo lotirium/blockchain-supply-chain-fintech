@@ -3,8 +3,20 @@ import { body } from 'express-validator';
 import validateRequest from '../middleware/validateRequest.mjs';
 import auth from '../middleware/auth.mjs';
 import { User, Store } from '../models/index.mjs';
+import { ethers } from 'ethers';
+import { promises as fs } from 'fs';
+import supplyChainArtifact from '../contracts/SupplyChain.json' assert { type: "json" };
 
 const router = express.Router();
+
+// Initialize blockchain connection
+const provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_NODE_URL || 'http://127.0.0.1:8545');
+const deployerWallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
+const supplyChain = new ethers.Contract(
+  process.env.SUPPLY_CHAIN_ADDRESS || '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+  supplyChainArtifact.abi,
+  deployerWallet
+);
 
 // Validation middleware
 const registerValidation = [
@@ -82,18 +94,53 @@ router.post('/register', registerValidation, async (req, res) => {
     // Create store for sellers
     if (mappedRole === 'seller' && store) {
       try {
-        await Store.create({
-          user_id: user.id,
-          name: store.name,
-          description: store.description || '',
-          business_email: email,
-          business_phone: store.business_phone,
-          business_address: store.business_address,
-          status: 'pending_verification',
-          is_verified: false,
-          created_at: new Date(),
-          updated_at: new Date()
-        });
+        try {
+          // Generate a new wallet for the store
+          const newWallet = ethers.Wallet.createRandom();
+          
+          // Save store with wallet address and private key
+          await Store.create({
+            user_id: user.id,
+            name: store.name,
+            description: store.description || '',
+            business_email: email,
+            business_phone: store.business_phone,
+            business_address: store.business_address,
+            status: 'pending_verification',
+            is_verified: false,
+            created_at: new Date(),
+            updated_at: new Date(),
+            wallet_address: newWallet.address,
+            private_key: newWallet.privateKey.slice(2) // Remove '0x' prefix
+          });
+
+          // Get current nonce
+          const nonce = await provider.getTransactionCount(deployerWallet.address);
+
+          // Fund the wallet first
+          const fundingTx = await deployerWallet.sendTransaction({
+            to: newWallet.address,
+            value: ethers.parseEther('100.0'),
+            nonce: nonce
+          });
+          await fundingTx.wait();
+
+          // Then grant retailer role
+          const grantTx = await supplyChain.grantRetailerRole(newWallet.address, {
+            nonce: nonce + 1
+          });
+          await grantTx.wait();
+
+          // Add to environment variables
+          const envVarName = `STORE_${newWallet.address.slice(2).toUpperCase()}_KEY`;
+          process.env[envVarName] = newWallet.privateKey;
+
+          console.log(`Store wallet ${newWallet.address} created, granted retailer role and funded with 100 ETH`);
+
+        } catch (walletError) {
+          console.error('Failed to setup store wallet:', walletError);
+          throw new Error('Failed to setup store wallet: ' + walletError.message);
+        }
       } catch (error) {
         console.error('Failed to create store:', error);
         // Cleanup: Delete user if store creation fails

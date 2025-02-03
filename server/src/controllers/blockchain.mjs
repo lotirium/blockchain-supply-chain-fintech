@@ -26,20 +26,63 @@ class BlockchainController {
         this._signer = null;
     }
 
-    async getSigner() {
-        if (!this._signer) {
-            // Use first account as admin signer
-            // Use Contract deployer's private key
-            const deployerPrivateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
-            this._signer = new ethers.Wallet(deployerPrivateKey, this.provider);
+    async getSigner(storeWalletAddress = null) {
+        if (storeWalletAddress) {
+            // Look up store's private key from environment variables, case-insensitive
+            const normalizedAddress = storeWalletAddress.slice(2).toLowerCase();
+            const storeKeys = Object.keys(process.env)
+                .filter(key => key.startsWith('STORE_') && key.endsWith('_KEY'));
+            
+            let privateKey = null;
+            for (const key of storeKeys) {
+                const keyAddress = key.replace('STORE_', '').replace('_KEY', '').toLowerCase();
+                if (keyAddress === normalizedAddress) {
+                    privateKey = process.env[key];
+                    break;
+                }
+            }
+
+            console.log('Looking up store wallet:', {
+                address: storeWalletAddress,
+                normalizedAddress: normalizedAddress,
+                hasPrivateKey: !!privateKey,
+                availableKeys: storeKeys
+            });
+
+            if (!privateKey) {
+                throw new Error(`Private key not found for store wallet ${storeWalletAddress}`);
+            }
+
+            const wallet = new ethers.Wallet(privateKey, this.provider);
+            const walletAddress = await wallet.getAddress();
+            console.log('Created wallet with address:', walletAddress);
+            
+            if (walletAddress.toLowerCase() !== storeWalletAddress.toLowerCase()) {
+                console.error('Wallet address mismatch:', {
+                    expected: storeWalletAddress,
+                    actual: walletAddress
+                });
+                throw new Error('Wallet address mismatch');
+            }
+
+            return wallet;
+        } else {
+            // Use deployer wallet for admin operations
+            if (!this._signer) {
+                const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY;
+                if (!deployerPrivateKey) {
+                    throw new Error('Deployer private key not found in environment variables');
+                }
+                this._signer = new ethers.Wallet(deployerPrivateKey, this.provider);
+            }
+            return this._signer;
         }
-        return this._signer;
     }
 
-    async createProduct(recipientAddress, name, manufacturer, tokenURI) {
+    async createProduct(storeWalletAddress, name, manufacturer, tokenURI) {
         try {
             await this.initialize(); // Ensure initialized
-            const signer = await this.getSigner();
+            const signer = await this.getSigner(storeWalletAddress);
             
             // Get contract instances
             if (!SupplyChain?.abi) {
