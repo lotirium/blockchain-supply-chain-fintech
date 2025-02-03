@@ -153,17 +153,18 @@ function StoreSettings() {
         </div>
       )}
 
-      <div className="mb-6 relative">
+      <div className="mb-6 text-right">
         <button
           type="button"
           onClick={handleFillSample}
-          className="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors duration-200 flex items-center space-x-1"
         >
-          Fill Missing Fields with Sample Data
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+          <span>Fill Sample Data</span>
+          <span className="text-xs text-gray-400 ml-1">(Fashion, Electronics, Artisan)</span>
         </button>
-        <div className="mt-2 text-center text-sm text-gray-500">
-          Available templates: Fashion Store, Electronics Store, Artisan Store
-        </div>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
