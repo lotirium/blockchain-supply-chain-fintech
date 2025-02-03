@@ -8,7 +8,15 @@ const router = express.Router();
 // Register route
 router.post('/register', async (req, res) => {
   try {
-    console.log('Registration request body:', { ...req.body, password: '***' });
+    console.log('Registration request body:', {
+      ...req.body,
+      password: '***',
+      store: req.body.store ? {
+        ...req.body.store,
+        business_phone: req.body.store.business_phone,
+        business_address: req.body.store.business_address
+      } : null
+    });
 
     // Check if request body exists
     if (!req.body) {
@@ -93,13 +101,40 @@ router.post('/register', async (req, res) => {
     }
 
     // Extract store data for sellers
-    const storeData = role === 'seller' ? {
-      name: req.body.storeName,
-      description: req.body.storeDescription,
-      businessEmail: req.body.businessEmail,
-      business_phone: req.body.business_phone,
-      business_address: req.body.business_address
-    } : null;
+    let storeData = null;
+    if (role === 'seller') {
+        if (!req.body.store) {
+            return res.status(400).json({
+                message: 'Store data is required for seller registration'
+            });
+        }
+
+        const { name, description, business_email, business_phone, business_address } = req.body.store;
+        
+        // Validate required store fields
+        if (!business_phone || !business_phone.trim()) {
+            return res.status(400).json({
+                message: 'Business phone is required'
+            });
+        }
+        
+        if (!business_address || !business_address.trim()) {
+            return res.status(400).json({
+                message: 'Business address is required'
+            });
+        }
+
+        // Ensure all fields are properly formatted as strings
+        storeData = {
+            name: String(name || '').trim(),
+            description: String(description || '').trim(),
+            business_email: String(business_email || '').trim(),
+            business_phone: String(business_phone || '').trim(),
+            business_address: String(business_address || '').trim()
+        };
+        
+        console.log('Store data extracted:', storeData);
+    }
 
     // Validate store data for sellers
     if (role === 'seller') {
@@ -130,11 +165,42 @@ router.post('/register', async (req, res) => {
       const user = await User.create(userData, { transaction: t });
 
       if (role === 'seller' && storeData) {
-        await Store.create({
-          ...storeData,
-          userId: user.id,
-          status: 'pending'
-        }, { transaction: t });
+        // Create store with careful logging
+        console.log('Store data before formatting:', storeData);
+        
+        // Ensure business_phone and business_address are strings
+        const storeToCreate = {
+          user_id: user.id,
+          status: 'pending',
+          name: storeData.name,
+          description: storeData.description || '',
+          business_email: storeData.business_email,
+          business_phone: String(storeData.business_phone || '').trim(),
+          business_address: String(storeData.business_address || '').trim()
+        };
+        
+        console.log('Attempting to create store with data:', JSON.stringify(storeToCreate, null, 2));
+        
+        try {
+          const createdStore = await Store.create(storeToCreate, { transaction: t });
+          console.log('Created store raw:', createdStore);
+          console.log('Created store JSON:', JSON.stringify(createdStore.toJSON(), null, 2));
+          
+          // Verify the fields were saved
+          const verifyStore = await Store.findOne({
+            where: { id: createdStore.id },
+            transaction: t
+          });
+          
+          console.log('Verified store data:', {
+            id: verifyStore.id,
+            business_phone: verifyStore.business_phone,
+            business_address: verifyStore.business_address
+          });
+        } catch (err) {
+          console.error('Failed to create store:', err);
+          throw err;
+        }
       }
 
       return user;
@@ -159,7 +225,7 @@ router.post('/register', async (req, res) => {
     // Load store data for sellers
     let store = null;
     if (role === 'seller') {
-      store = await Store.findOne({ where: { userId: user.id } });
+      store = await Store.findOne({ where: { user_id: user.id } });
     }
 
     // Return user data, store data, and token
