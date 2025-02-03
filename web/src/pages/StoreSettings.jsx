@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateStore } from '../store/slices/authSlice';
-import { Wallet } from 'ethers';
 
 function StoreSettings() {
   const navigate = useNavigate();
@@ -35,19 +34,6 @@ function StoreSettings() {
       ...prev,
       [name]: value,
     }));
-  };
-
-  const handleGenerateWallet = () => {
-    try {
-      const wallet = Wallet.createRandom();
-      setFormData(prev => ({
-        ...prev,
-        wallet_address: wallet.address
-      }));
-    } catch (err) {
-      console.error('Failed to generate wallet:', err);
-      setError('Failed to generate Ethereum wallet. Please try again.');
-    }
   };
 
   const handleSave = async (e) => {
@@ -107,9 +93,6 @@ function StoreSettings() {
     const storeTypes = Object.keys(sampleData);
     const randomType = storeTypes[Math.floor(Math.random() * storeTypes.length)];
     const sample = sampleData[randomType];
-    
-    // Only generate new wallet address if one doesn't exist
-    const wallet_address = formData.wallet_address || Wallet.createRandom().address;
     
     // Merge existing data with sample data, keeping existing values
     setFormData(prev => ({
@@ -238,25 +221,19 @@ function StoreSettings() {
               <label htmlFor="wallet_address" className="block text-sm font-medium text-gray-700 mb-1">
                 Ethereum Wallet Address
               </label>
-              <div className="flex gap-2">
+              <div>
                 <input
                   type="text"
                   id="wallet_address"
                   name="wallet_address"
                   value={formData.wallet_address}
-                  onChange={handleInputChange}
+                  readOnly
+                  disabled
                   required
                   pattern="^0x[a-fA-F0-9]{40}$"
                   title="Enter a valid Ethereum wallet address starting with 0x followed by 40 hexadecimal characters"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
                 />
-                <button
-                  type="button"
-                  onClick={handleGenerateWallet}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                >
-                  Generate
-                </button>
               </div>
             </div>
             <div>
