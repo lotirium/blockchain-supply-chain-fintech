@@ -97,8 +97,8 @@ router.post('/register', async (req, res) => {
       name: req.body.storeName,
       description: req.body.storeDescription,
       businessEmail: req.body.businessEmail,
-      businessPhone: req.body.businessPhone,
-      businessAddress: req.body.businessAddress
+      business_phone: req.body.business_phone,
+      business_address: req.body.business_address
     } : null;
 
     // Validate store data for sellers
