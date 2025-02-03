@@ -221,7 +221,6 @@ function AddProduct() {
               </svg>
               <span>Fill Sample Data</span>
             </button>
-            <p className="text-xs text-gray-400 mt-1">Upload product images to server/uploads/products/</p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4 bg-white rounded-lg shadow-sm p-6">
             <div>
