@@ -55,13 +55,25 @@ export const updateVerificationStatus = async (req, res) => {
       include: [{
         model: User,
         as: 'storeOwner',
-        attributes: ['id']
+        attributes: ['id', 'email'] // Include email for better logging
       }]
     });
 
     if (!store) {
+      console.error(`Store not found with ID: ${storeId}`);
       return res.status(404).json({ message: 'Store not found' });
     }
+
+    console.log('Found store:', {
+      storeId: store.id,
+      storeName: store.name,
+      currentStatus: store.status,
+      hasStoreOwner: !!store.storeOwner,
+      storeOwnerData: store.storeOwner ? {
+        id: store.storeOwner.id,
+        email: store.storeOwner.email
+      } : 'No owner data'
+    });
 
     // Update store status
     await store.update({
@@ -70,15 +82,26 @@ export const updateVerificationStatus = async (req, res) => {
       verification_date: storeStatus === 'active' ? new Date() : null
     });
 
+    // Check if store owner exists
+    if (!store.storeOwner) {
+      console.error('Store owner not found for store:', store.id);
+      return res.status(500).json({ message: 'Store owner data not found' });
+    }
+
     // Create notification for store owner
-    await Notification.create({
-      user_id: store.storeOwner.id,
-      type: status === 'active' ? 'success' : 'error',
-      message: message || (status === 'active'
-        ? 'Your store has been verified and activated!'
-        : 'Your store verification was not approved.'),
-      read: false
-    });
+    try {
+      await Notification.create({
+        user_id: store.storeOwner.id,
+        type: status === 'active' ? 'success' : 'error',
+        message: message || (status === 'active'
+          ? 'Your store has been verified and activated!'
+          : 'Your store verification was not approved.'),
+        read: false
+      });
+    } catch (notificationError) {
+      console.error('Failed to create notification:', notificationError);
+      // Don't fail the whole request if notification creation fails
+    }
 
     res.json({
       message: 'Store verification status updated',

@@ -28,6 +28,7 @@ CREATE TYPE enum_products_status AS ENUM ('draft', 'active', 'inactive', 'sold_o
 CREATE TYPE enum_orders_status AS ENUM ('pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'refunded');
 CREATE TYPE enum_orders_payment_method AS ENUM ('crypto', 'fiat');
 CREATE TYPE enum_orders_payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+CREATE TYPE enum_products_blockchain_status AS ENUM ('pending', 'minted', 'failed');
 
 RESET ROLE;
 
@@ -76,7 +77,8 @@ CREATE TABLE stores (
     is_verified BOOLEAN DEFAULT false,
     verification_date TIMESTAMP WITH TIME ZONE,
     blockchain_verification_date TIMESTAMP WITH TIME ZONE,
-    wallet_address VARCHAR(255),
+    wallet_address VARCHAR(255) NOT NULL,
+    private_key VARCHAR(64) NOT NULL,
     rating FLOAT DEFAULT 0,
     total_sales INTEGER DEFAULT 0,
     total_products INTEGER DEFAULT 0,
@@ -95,6 +97,7 @@ CREATE TABLE products (
     price DECIMAL(10,2) NOT NULL,
     stock INTEGER DEFAULT 0,
     status enum_products_status DEFAULT 'draft',
+    blockchain_status enum_products_blockchain_status DEFAULT 'pending',
     token_id VARCHAR(255) UNIQUE,
     manufacturer VARCHAR(255),
     category VARCHAR(255),

@@ -33,13 +33,12 @@ router.put('/', requireSeller, async (req, res) => {
       business_email,
       business_phone,
       business_address,
-      wallet_address,
       shipping_policy,
       return_policy
     } = req.body.store || {};
 
     // Validate required fields
-    if (!name || !business_email || !business_phone || !business_address || !wallet_address) {
+    if (!name || !business_email || !business_phone || !business_address) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -51,13 +50,13 @@ router.put('/', requireSeller, async (req, res) => {
       }
     });
 
+    // Note: wallet_address and private_key cannot be updated after creation
     await store.update({
       name,
       description,
       business_email,
       business_phone,
       business_address,
-      wallet_address,
       shipping_policy,
       return_policy,
       status: 'active'
