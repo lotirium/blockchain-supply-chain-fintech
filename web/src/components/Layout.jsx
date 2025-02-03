@@ -52,6 +52,11 @@ function Layout() {
               {/* Auth Links */}
               {isAuthenticated ? (
                 <div className="flex items-center space-x-4">
+                  {user?.role === 'seller' && (
+                    <Link to="/seller-dashboard" className="text-gray-600 hover:text-blue-600">
+                      Dashboard
+                    </Link>
+                  )}
                   <Link to="/profile" className="text-gray-600 hover:text-blue-600">
                     {user?.name || 'Profile'}
                   </Link>
