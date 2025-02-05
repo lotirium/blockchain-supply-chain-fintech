@@ -126,6 +126,8 @@ Order.init({
   sequelize,
   modelName: 'Order',
   tableName: 'orders',
+  timestamps: true,
+  underscored: true,
   indexes: [
     {
       name: 'idx_orders_user',
@@ -209,6 +211,8 @@ OrderItem.init({
   sequelize,
   modelName: 'OrderItem',
   tableName: 'order_items',
+  timestamps: true,
+  underscored: true,
   indexes: [
     {
       name: 'idx_order_items_order',
