@@ -11,6 +11,9 @@ CREATE DATABASE shipment_db;
 -- Connect to the database
 \connect shipment_db;
 
+-- Create UUID extension (as superuser)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Grant all privileges on database and schema
 GRANT ALL PRIVILEGES ON DATABASE shipment_db TO shipment_user;
 GRANT ALL PRIVILEGES ON SCHEMA public TO shipment_user;
@@ -35,7 +38,7 @@ RESET ROLE;
 
 -- Create tables
 CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -54,14 +57,14 @@ CREATE TABLE users (
 );
 
 CREATE TABLE categories (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE stores (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
@@ -90,7 +93,7 @@ CREATE TABLE stores (
 );
 
 CREATE TABLE products (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -118,7 +121,7 @@ CREATE TABLE products (
 );
 
 CREATE TABLE orders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
     status enum_orders_status DEFAULT 'pending',
@@ -149,7 +152,7 @@ CREATE TABLE orders (
 );
 
 CREATE TABLE notifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
