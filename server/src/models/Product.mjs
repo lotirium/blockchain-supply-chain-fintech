@@ -89,6 +89,16 @@ Product.init({
   hologram_data: {
     type: DataTypes.JSONB
   },
+  // QR code fields
+  qr_data: {
+    type: DataTypes.JSONB,
+    defaultValue: null
+  },
+  qr_status: {
+    type: DataTypes.ENUM('not_generated', 'active', 'revoked'),
+    defaultValue: 'not_generated',
+    allowNull: false
+  },
   // Supply chain fields
   shipment_stage: {
     type: DataTypes.STRING
