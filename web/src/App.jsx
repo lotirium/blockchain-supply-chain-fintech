@@ -15,6 +15,7 @@ const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
 const StoreSettings = React.lazy(() => import('./pages/StoreSettings'));
 const Home = React.lazy(() => import('./pages/Home'));
 const Products = React.lazy(() => import('./pages/Products'));
+const ProductVerification = React.lazy(() => import('./pages/ProductVerification'));
 const ProductDetails = React.lazy(() => import('./pages/ProductDetails'));
 const Cart = React.lazy(() => import('./pages/Cart'));
 const Checkout = React.lazy(() => import('./pages/Checkout'));
@@ -61,6 +62,7 @@ function App() {
             isAuthenticated ? <Navigate to="/" replace /> : <Login />
           } />
           <Route path="register" element={<Register />} />
+          <Route path="verify" element={<ProductVerification />} />
 
           {/* Seller Verification Route */}
           <Route element={<UnverifiedSellerRoute />}>

@@ -16,6 +16,7 @@ import productRoutes from './routes/products.mjs';
 import sellerDashboardRoutes from './routes/sellerDashboard.mjs';
 import verificationRoutes from './routes/verification.mjs';
 import orderRoutes from './routes/orders.mjs';
+import qrcodeRoutes from './routes/qrcode.mjs';
 import { errorHandler } from './middleware/errorHandler.mjs';
 import blockchainController from './controllers/blockchain.mjs';
 import ipfsService from './services/ipfs.mjs';
@@ -129,10 +130,10 @@ const blockchainLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiter for verification endpoints (both seller status checks and admin operations)
+// Rate limiter for verification endpoints
 const verificationLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: process.env.NODE_ENV === 'production' ? 200 : 2000, // Balance between status checks and admin operations
+  max: process.env.NODE_ENV === 'production' ? 200 : 2000,
   message: {
     error: {
       message: 'Too many verification requests, please try again later.',
@@ -156,10 +157,21 @@ const sellerDashboardLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const qrcodeLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: process.env.NODE_ENV === 'production' ? 300 : 3000,
+  message: {
+    error: {
+      message: 'Too many QR code operations, please try again later.',
+      code: 'ERR_RATE_LIMIT_EXCEEDED'
+    }
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Configure request queue
 const queue = Queue({ activeLimit: 20, queuedLimit: -1 });
-
-// Middleware Configuration
 
 // CORS configuration
 app.use(cors({
@@ -183,11 +195,11 @@ app.use(cors({
 // Increase server timeout
 app.timeout = 120000; // 2 minutes
 
-// Body parsing middleware with increased limits for file uploads
+// Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Ensure uploads directory exists with proper permissions
+// Set up static file serving
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 const productsDir = path.join(uploadsDir, 'products');
 
@@ -200,7 +212,7 @@ try {
   throw error;
 }
 
-// Static file serving with proper headers for file uploads
+// Static file serving with proper headers
 app.use('/uploads', express.static(uploadsDir));
 app.use('/uploads', (req, res, next) => {
   res.set({
@@ -229,6 +241,7 @@ app.use('/api/verification', verificationLimiter, verificationRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/seller/dashboard', sellerDashboardLimiter, sellerDashboardRoutes);
+app.use('/api/qrcode', qrcodeLimiter, qrcodeRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
