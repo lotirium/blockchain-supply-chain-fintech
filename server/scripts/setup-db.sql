@@ -29,6 +29,7 @@ CREATE TYPE enum_orders_status AS ENUM ('pending', 'confirmed', 'packed', 'shipp
 CREATE TYPE enum_orders_payment_method AS ENUM ('crypto', 'fiat');
 CREATE TYPE enum_orders_payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
 CREATE TYPE enum_products_blockchain_status AS ENUM ('pending', 'minted', 'failed');
+CREATE TYPE enum_orders_qr_status AS ENUM ('not_generated', 'active', 'revoked');
 
 RESET ROLE;
 
@@ -130,6 +131,10 @@ CREATE TABLE orders (
     shipping_method VARCHAR(255),
     shipping_cost DECIMAL(10,2) DEFAULT 0,
     tracking_number VARCHAR(255),
+    qr_data JSONB,
+    qr_status enum_orders_qr_status DEFAULT 'not_generated',
+    qr_verification_count INTEGER DEFAULT 0,
+    qr_last_verified_at TIMESTAMP WITH TIME ZONE,
     transaction_hash VARCHAR(255),
     block_number INTEGER,
     current_location VARCHAR(255),
@@ -181,3 +186,4 @@ CREATE INDEX idx_orders_store_id ON orders(store_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_stores_user_id ON stores(user_id);
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_orders_qr_status ON orders(qr_status);

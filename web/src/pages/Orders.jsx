@@ -1,8 +1,100 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import { generateOrderQR, getOrderQRStatus } from '../services/qrcode';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
+
+// QR Code component for orders
+const OrderQRCode = ({ order, onQRGenerated }) => {
+  const [qrCode, setQrCode] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (order.qr_status === 'active') {
+      getOrderQRStatus(order.id)
+        .then(response => {
+          if (response.success && response.data.qrCode) {
+            setQrCode(response.data.qrCode);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [order.id, order.qr_status]);
+
+  const handleGenerateQR = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await generateOrderQR(order.id);
+      if (response.success) {
+        setQrCode(response.data.qrCode);
+        onQRGenerated?.();
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadQR = () => {
+    if (qrCode) {
+      const link = document.createElement('a');
+      link.href = qrCode;
+      link.download = `order-${order.id.slice(0, 8)}-qr.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  if (!['confirmed', 'packed'].includes(order.status)) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 border-t pt-4">
+      <h4 className="font-medium text-gray-700 mb-2">QR Code:</h4>
+      {error && (
+        <div className="text-red-600 text-sm mb-2">{error}</div>
+      )}
+      {qrCode ? (
+        <div className="space-y-4">
+          <div className="flex justify-center">
+            <img
+              src={qrCode}
+              alt="Order QR Code"
+              className="w-48 h-48 border p-2"
+            />
+          </div>
+          <button
+            onClick={handleDownloadQR}
+            className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+          >
+            Download QR Code
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={handleGenerateQR}
+          disabled={loading}
+          className={`w-full px-4 py-2 rounded text-white transition-colors ${
+            loading
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+        >
+          {loading ? 'Generating...' : 'Generate QR Code'}
+        </button>
+      )}
+      <p className="mt-2 text-sm text-gray-600">
+        Generate and attach this QR code to the product package before shipping.
+      </p>
+    </div>
+  );
+};
 
 const OrderStatusBadge = ({ status }) => {
   const getStatusColor = (status) => {
@@ -29,7 +121,6 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedOrder, setSelectedOrder] = useState(null);
   const user = useSelector(state => state.auth.user);
   const role = user?.role;
 
@@ -178,20 +269,38 @@ const Orders = () => {
               </div>
 
               {(role === 'admin' || role === 'seller') && (
-                <div className="mt-4 border-t pt-4">
-                  <label className="block text-sm font-medium text-gray-700">Update Status:</label>
-                  <select
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    value={order.status}
-                    onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                  >
-                    {statusOptions.map(status => (
-                      <option key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <>
+                  <div className="mt-4 border-t pt-4">
+                    <label className="block text-sm font-medium text-gray-700">Update Status:</label>
+                    <select
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      value={order.status}
+                      onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                    >
+                      {statusOptions.map(status => (
+                        <option key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* QR Code Section for Sellers */}
+                  {role === 'seller' && (
+                    <OrderQRCode 
+                      order={order} 
+                      onQRGenerated={() => {
+                        // Refresh the orders list to get updated QR status
+                        const updatedOrders = [...orders];
+                        const index = updatedOrders.findIndex(o => o.id === order.id);
+                        if (index !== -1) {
+                          updatedOrders[index] = { ...order, qr_status: 'active' };
+                          setOrders(updatedOrders);
+                        }
+                      }}
+                    />
+                  )}
+                </>
               )}
             </div>
           ))}

@@ -1,1 +1,13 @@
+<<<<<<< HEAD
 blockchain/besu-23.10.0.tar.gz
+=======
+server/package-lock.json
+server/package.json
+web/package-lock.json
+web/package.json
+blockchain/package-lock.json
+blockchain/package.json
+server/node_modules/*
+web/node_modules/*
+blockchain/node_modules/*
+>>>>>>> blockchain_branch
