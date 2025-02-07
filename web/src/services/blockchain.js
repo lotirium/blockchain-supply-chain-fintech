@@ -47,45 +47,9 @@ class BlockchainService {
     }
 
     // Role Management
-    async grantManufacturerRole(address) {
+    async grantSellerRole(address) {
         const token = localStorage.getItem('token');
-        const response = await fetch('/api/blockchain/roles/manufacturer', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ address })
-        });
-        
-        if (response.status === 401) {
-            throw new Error('Unauthorized. Please make sure you are logged in as an admin.');
-        }
-        
-        return response.json();
-    }
-
-    async grantDistributorRole(address) {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/blockchain/roles/distributor', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ address })
-        });
-        
-        if (response.status === 401) {
-            throw new Error('Unauthorized. Please make sure you are logged in as an admin.');
-        }
-        
-        return response.json();
-    }
-
-    async grantRetailerRole(address) {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/blockchain/roles/retailer', {
+        const response = await fetch('/api/blockchain/roles/seller', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -118,11 +82,11 @@ class BlockchainService {
     }
 
     // Product Management
-    async createProduct(name, manufacturer, price, tokenURI) {
+    async createProduct(name, seller, price, tokenURI) {
         const response = await fetch('/api/blockchain/products', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, manufacturer, price, tokenURI })
+            body: JSON.stringify({ name, seller, price, tokenURI })
         });
         return response.json();
     }

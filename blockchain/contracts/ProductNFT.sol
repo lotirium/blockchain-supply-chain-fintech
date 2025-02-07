@@ -13,8 +13,8 @@ contract ProductNFT is ERC721URIStorage, Ownable {
     // Product struct to store product information
     struct Product {
         string name;
-        string manufacturer;
-        uint256 manufactureDate;
+        string seller;
+        uint256 creationDate;
         string status;
         address currentOwner;
     }
@@ -23,7 +23,7 @@ contract ProductNFT is ERC721URIStorage, Ownable {
     mapping(uint256 => Product) private _products;
 
     // Events
-    event ProductCreated(uint256 indexed tokenId, string name, address manufacturer);
+    event ProductCreated(uint256 indexed tokenId, string name, address seller);
     event ProductTransferred(uint256 indexed tokenId, address from, address to);
     event ProductStatusUpdated(uint256 indexed tokenId, string newStatus);
 
@@ -33,13 +33,13 @@ contract ProductNFT is ERC721URIStorage, Ownable {
      * @dev Creates a new product NFT
      * @param recipient Address that will own the NFT
      * @param name Product name
-     * @param manufacturer Manufacturer name
+     * @param seller Seller name
      * @param tokenURI URI containing product metadata
      */
     function createProduct(
         address recipient,
         string memory name,
-        string memory manufacturer,
+        string memory seller,
         string memory tokenURI
     ) public onlyOwner returns (uint256) {
         _tokenIds.increment();
@@ -50,8 +50,8 @@ contract ProductNFT is ERC721URIStorage, Ownable {
 
         _products[newTokenId] = Product({
             name: name,
-            manufacturer: manufacturer,
-            manufactureDate: block.timestamp,
+            seller: seller,
+            creationDate: block.timestamp,
             status: "Created",
             currentOwner: recipient
         });
@@ -74,20 +74,20 @@ contract ProductNFT is ERC721URIStorage, Ownable {
     }
 
     /**
-     * @dev Gets product information
-     * @param tokenId The ID of the product token
-     */
-    /**
      * @dev Gets the current token count
      */
     function getCurrentTokenId() public view returns (uint256) {
         return _tokenIds.current();
     }
 
+    /**
+     * @dev Gets product information
+     * @param tokenId The ID of the product token
+     */
     function getProduct(uint256 tokenId) public view returns (
         string memory name,
-        string memory manufacturer,
-        uint256 manufactureDate,
+        string memory seller,
+        uint256 creationDate,
         string memory status,
         address currentOwner
     ) {
@@ -95,8 +95,8 @@ contract ProductNFT is ERC721URIStorage, Ownable {
         Product memory product = _products[tokenId];
         return (
             product.name,
-            product.manufacturer,
-            product.manufactureDate,
+            product.seller,
+            product.creationDate,
             product.status,
             product.currentOwner
         );

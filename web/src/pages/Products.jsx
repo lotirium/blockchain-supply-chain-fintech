@@ -31,12 +31,29 @@ function Products() {
   };
 
   const handleAddToCart = (product) => {
+    // Validate store information exists
+    if (!product.store_id || !product.store) {
+      console.error('Product missing store information:', product);
+      alert('Unable to add item to cart: Missing store information');
+      return;
+    }
+
     dispatch(addItem({
       id: product.id,
       name: product.name,
       price: product.price,
-      quantity: 1
+      quantity: 1,
+      store_id: product.store_id,
+      store: product.store
     }));
+
+    // Log successful cart addition
+    console.log('Added item to cart with store info:', {
+      productId: product.id,
+      productName: product.name,
+      storeId: product.store_id,
+      storeName: product.store.name
+    });
   };
 
   return (
@@ -110,18 +127,40 @@ function Products() {
                   <div className="p-4">
                     <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
                     <p className="text-gray-600 mb-4">{product.description}</p>
+                    
+                    {/* Display store information */}
+                    {product.store && (
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-500">
+                          Sold by: {product.store.name}
+                          {product.store.is_verified && (
+                            <span className="ml-1 text-blue-500">✓</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+                    
                     <div className="flex items-center justify-between mt-4">
                       <span className="text-xl font-bold">${product.price}</span>
                       <button
                         onClick={() => handleAddToCart(product)}
                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                        disabled={!product.store_id || !product.store}
+                        title={!product.store_id ? "Store information unavailable" : ""}
                       >
                         Add to Cart
                       </button>
                     </div>
+                    
                     {product.stock < 5 && (
                       <p className="text-red-500 text-sm mt-2">
                         Only {product.stock} left in stock!
+                      </p>
+                    )}
+                    
+                    {(!product.store_id || !product.store) && (
+                      <p className="text-red-500 text-sm mt-2">
+                        Store information unavailable
                       </p>
                     )}
                   </div>

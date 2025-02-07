@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import websocketService from '../services/websocket';
 import {
   LineChart,
   Line,
@@ -41,6 +42,56 @@ const SellerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Create memoized notification sound handler
+  const playNotificationSound = useCallback(() => {
+    try {
+      const audio = new Audio('/notification.mp3');
+      audio.play().catch(error => {
+        // Ignore audio playback errors - they're non-critical
+        console.debug('Notification sound playback failed:', error);
+      });
+    } catch (error) {
+      // Ignore audio creation errors - they're non-critical
+      console.debug('Notification sound creation failed:', error);
+    }
+  }, []);
+
+  // Handle new order notification
+  const handleNewOrder = useCallback((orderData) => {
+    // Attempt to play notification sound
+    playNotificationSound();
+
+    // Update dashboard data
+    setDashboardData(prev => ({
+      ...prev,
+      stats: {
+        ...prev.stats,
+        pendingOrders: prev.stats.pendingOrders + 1,
+        totalSales: prev.stats.totalSales + orderData.total,
+        unreadNotifications: prev.stats.unreadNotifications + 1
+      },
+      recentOrders: [
+        {
+          id: orderData.orderId,
+          status: orderData.status,
+          total: orderData.total,
+          created_at: new Date().toISOString(),
+          customer_name: 'New Order'
+        },
+        ...prev.recentOrders.slice(0, 9) // Keep only last 10 orders
+      ],
+      notifications: [
+        {
+          id: `order-${orderData.orderId}`,
+          message: `New order received (#${orderData.orderId}) - $${orderData.total}`,
+          created_at: new Date().toISOString(),
+          read: false
+        },
+        ...prev.notifications
+      ]
+    }));
+  }, [playNotificationSound]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -60,6 +111,21 @@ const SellerDashboard = () => {
 
     fetchData();
   }, [dateRange]);
+
+  // Connect to WebSocket and listen for new orders
+  useEffect(() => {
+    // Connect to WebSocket server
+    websocketService.connect();
+
+    // Subscribe to new order notifications
+    const unsubscribe = websocketService.subscribe('new_order', handleNewOrder);
+
+    // Cleanup on unmount
+    return () => {
+      unsubscribe();
+      websocketService.disconnect();
+    };
+  }, [handleNewOrder]);
 
   const getDateRange = (range) => {
     const end = new Date();
