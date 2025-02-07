@@ -125,8 +125,8 @@ router.post('/register', registerValidation, async (req, res) => {
           });
           await fundingTx.wait();
 
-          // Then grant retailer role
-          const grantTx = await supplyChain.grantRetailerRole(newWallet.address, {
+          // Then grant seller role
+          const grantTx = await supplyChain.grantSellerRole(newWallet.address, {
             nonce: nonce + 1
           });
           await grantTx.wait();
@@ -135,7 +135,7 @@ router.post('/register', registerValidation, async (req, res) => {
           const envVarName = `STORE_${newWallet.address.slice(2).toUpperCase()}_KEY`;
           process.env[envVarName] = newWallet.privateKey;
 
-          console.log(`Store wallet ${newWallet.address} created, granted retailer role and funded with 100 ETH`);
+          console.log(`Store wallet ${newWallet.address} created, granted seller role and funded with 100 ETH`);
 
         } catch (walletError) {
           console.error('Failed to setup store wallet:', walletError);

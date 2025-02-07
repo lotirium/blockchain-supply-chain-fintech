@@ -15,7 +15,7 @@ import storeRoutes from './routes/store.mjs';
 import productRoutes from './routes/products.mjs';
 import sellerDashboardRoutes from './routes/sellerDashboard.mjs';
 import verificationRoutes from './routes/verification.mjs';
-import orderRoutes from './routes/orders.mjs';
+import orderRoutes, { wsServer } from './routes/orders.mjs';
 import qrcodeRoutes from './routes/qrcode.mjs';
 import { errorHandler } from './middleware/errorHandler.mjs';
 import blockchainController from './controllers/blockchain.mjs';
@@ -43,8 +43,13 @@ const validateBlockchainConfig = () => {
 
   const missing = requiredEnvVars.filter(varName => !process.env[varName]);
   if (missing.length > 0) {
-    console.error('Missing required environment variables:', missing);
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Missing required environment variables:', missing);
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    } else {
+      console.warn('Warning: Missing blockchain environment variables:', missing);
+      console.warn('Blockchain features will be disabled in development mode');
+    }
   }
 };
 
@@ -55,8 +60,13 @@ const validateIPFSConfig = () => {
 
   const missing = requiredEnvVars.filter(varName => !process.env[varName]);
   if (missing.length > 0) {
-    console.error('Missing IPFS configuration:', missing);
-    throw new Error(`Missing IPFS configuration: ${missing.join(', ')}`);
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Missing IPFS configuration:', missing);
+      throw new Error(`Missing IPFS configuration: ${missing.join(', ')}`);
+    } else {
+      console.warn('Warning: Missing IPFS configuration:', missing);
+      console.warn('IPFS features will be disabled in development mode');
+    }
   }
 };
 
@@ -170,12 +180,18 @@ const qrcodeLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Configure request queue
-const queue = Queue({ activeLimit: 20, queuedLimit: -1 });
+// Configure request queue with optimized limits for order processing
+const queue = Queue({ 
+  activeLimit: 100,  // Increase concurrent request limit
+  queuedLimit: -1,   // No limit on queued requests
+  timeout: 60000     // 60 second timeout
+});
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.NODE_ENV === 'development' ? true : process.env.CORS_ORIGIN || 'http://127.0.0.1:3000',
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL 
+    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'], // Allow Vite dev server
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
@@ -183,17 +199,21 @@ app.use(cors({
     'Authorization',
     'Accept',
     'X-Requested-With',
-    'Content-Disposition'
+    'Content-Disposition',
+    'Origin'
   ],
   exposedHeaders: [
     'Content-Length',
     'X-Requested-With',
     'Content-Disposition'
   ],
+  maxAge: 86400, // Cache preflight requests for 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
-// Increase server timeout
-app.timeout = 120000; // 2 minutes
+// Adjust server timeout for order processing
+app.timeout = 60000; // 60 seconds
 
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
@@ -216,8 +236,11 @@ try {
 app.use('/uploads', express.static(uploadsDir));
 app.use('/uploads', (req, res, next) => {
   res.set({
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production' 
+      ? process.env.FRONTEND_URL 
+      : 'http://localhost:3000',
     'Access-Control-Allow-Methods': 'GET',
+    'Access-Control-Allow-Credentials': 'true',
     'Cache-Control': 'public, max-age=31536000',
   });
   next();
@@ -228,6 +251,19 @@ app.use('/api/auth', authLimiter);
 app.use('/api/profile', profileLimiter);
 app.use('/api/blockchain', blockchainLimiter);
 app.use('/api', apiLimiter);
+
+// Request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  console.log(`🔍 ${req.method} ${req.url} - Started`);
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`✨ ${req.method} ${req.url} - ${res.statusCode} - ${duration}ms`);
+  });
+  
+  next();
+});
 
 // Queue middleware
 app.use('/api', queue);
@@ -267,8 +303,12 @@ const initializeApp = async () => {
   try {
     // Validate all configurations
     validateBlockchainConfig();
-    validateIPFSConfig();
-    validateHologramConfig();
+    if (process.env.NODE_ENV === 'production') {
+      validateIPFSConfig();
+      validateHologramConfig();
+    } else {
+      console.warn('Skipping IPFS and Hologram validation in development mode');
+    }
 
     // Test database connection
     await testConnection();
@@ -279,20 +319,23 @@ const initializeApp = async () => {
     // Initialize database with default data
     await initializeDatabase();
 
-    // Validate blockchain contracts
-    await blockchainController.validateConfig();
+    // Validate blockchain contracts only in production
+    if (process.env.NODE_ENV === 'production') {
+      await blockchainController.validateConfig();
+      await ipfsService.validateConfig();
+    } else {
+      console.warn('Skipping blockchain and IPFS validation in development mode');
+    }
 
-    // Initialize IPFS service
-    await ipfsService.validateConfig();
-
-    // Start server
+    // Start server with WebSocket support
     const PORT = process.env.PORT || 3001;
-    app.listen(PORT, '0.0.0.0', () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server is running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV}`);
       console.log(`API Server: http://127.0.0.1:${PORT}`);
       console.log(`File Server: http://127.0.0.1:${PORT}/uploads`);
-      
+      console.log(`WebSocket Server: ws://127.0.0.1:${PORT}/ws`);
+
       // Start NFT minting job
       console.log('Starting periodic NFT minting job...');
       // Run immediately on startup
@@ -307,6 +350,20 @@ const initializeApp = async () => {
         });
       }, 5 * 60 * 1000); // 5 minutes
     });
+
+    // Set up WebSocket server
+    server.on('upgrade', (request, socket, head) => {
+      const pathname = new URL(request.url, 'ws://localhost').pathname;
+      
+      if (pathname === '/ws') {
+        wsServer.handleUpgrade(request, socket, head, (ws) => {
+          wsServer.emit('connection', ws, request);
+        });
+      } else {
+        socket.destroy();
+      }
+    });
+
   } catch (error) {
     console.error('Failed to initialize application:', error);
     process.exit(1);

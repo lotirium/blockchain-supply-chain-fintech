@@ -48,11 +48,11 @@ Store.init({
     defaultValue: 'pending'
   },
   type: {
-    type: DataTypes.ENUM('manufacturer', 'retailer'),
-    allowNull: true, // Allow null for existing records
-    defaultValue: 'manufacturer', // Default for existing records
+    type: DataTypes.ENUM('seller'),
+    allowNull: false,
+    defaultValue: 'seller',
     validate: {
-      isIn: [['manufacturer', 'retailer']]
+      isIn: [['seller']]
     }
   },
   business_email: {

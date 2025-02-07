@@ -108,6 +108,26 @@ Order.init({
   actual_delivery_date: {
     type: DataTypes.DATE
   },
+  // QR Code tracking
+  qr_data: {
+    type: DataTypes.JSONB,
+    allowNull: true,
+    comment: 'Stores QR code verification data including codes and timestamps'
+  },
+  qr_status: {
+    type: DataTypes.ENUM('not_generated', 'active', 'revoked'),
+    defaultValue: 'not_generated',
+    allowNull: false
+  },
+  qr_verification_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false
+  },
+  qr_last_verified_at: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
   // Customer feedback
   rating: {
     type: DataTypes.INTEGER,

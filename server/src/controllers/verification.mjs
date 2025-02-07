@@ -1,5 +1,6 @@
 import Store from '../models/Store.mjs';
 import { User, Notification } from '../models/index.mjs';
+import blockchainController from './blockchain.mjs';
 
 // Admin endpoints
 export const getPendingVerifications = async (req, res) => {
@@ -75,12 +76,25 @@ export const updateVerificationStatus = async (req, res) => {
       } : 'No owner data'
     });
 
-    // Update store status
+    // Update store status and grant blockchain role if activated
     await store.update({
       status: storeStatus,
       is_verified: storeStatus === 'active',
       verification_date: storeStatus === 'active' ? new Date() : null
     });
+
+    // If store is activated, grant seller role on blockchain
+    if (storeStatus === 'active' && store.wallet_address) {
+      try {
+        await blockchainController.grantSellerRole(store.wallet_address);
+        store.blockchain_verification_date = new Date();
+        await store.save();
+      } catch (blockchainError) {
+        console.error('Failed to grant seller role on blockchain:', blockchainError);
+        // Don't fail the whole request if blockchain update fails
+        // We'll retry during the periodic blockchain sync
+      }
+    }
 
     // Check if store owner exists
     if (!store.storeOwner) {

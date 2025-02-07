@@ -28,30 +28,27 @@ class BlockchainController {
 
     async getSigner(storeWalletAddress = null) {
         if (storeWalletAddress) {
-            // Look up store's private key from environment variables, case-insensitive
-            const normalizedAddress = storeWalletAddress.slice(2).toLowerCase();
-            const storeKeys = Object.keys(process.env)
-                .filter(key => key.startsWith('STORE_') && key.endsWith('_KEY'));
+            // Import Store model dynamically to avoid circular dependency
+            const { Store } = await import('../models/index.mjs');
             
-            let privateKey = null;
-            for (const key of storeKeys) {
-                const keyAddress = key.replace('STORE_', '').replace('_KEY', '').toLowerCase();
-                if (keyAddress === normalizedAddress) {
-                    privateKey = process.env[key];
-                    break;
-                }
-            }
+            // Look up store's private key from database
+            const store = await Store.findOne({
+                where: {
+                    wallet_address: storeWalletAddress
+                },
+                attributes: ['wallet_address', 'private_key']
+            });
 
             console.log('Looking up store wallet:', {
                 address: storeWalletAddress,
-                normalizedAddress: normalizedAddress,
-                hasPrivateKey: !!privateKey,
-                availableKeys: storeKeys
+                found: !!store
             });
 
-            if (!privateKey) {
+            if (!store || !store.private_key) {
                 throw new Error(`Private key not found for store wallet ${storeWalletAddress}`);
             }
+
+            const privateKey = store.private_key;
 
             const wallet = new ethers.Wallet(privateKey, this.provider);
             const walletAddress = await wallet.getAddress();
@@ -79,7 +76,7 @@ class BlockchainController {
         }
     }
 
-    async createProduct(storeWalletAddress, name, manufacturer, tokenURI) {
+    async createProduct(storeWalletAddress, name, seller, tokenURI) {
         try {
             await this.initialize(); // Ensure initialized
             const signer = await this.getSigner(storeWalletAddress);
@@ -99,17 +96,17 @@ class BlockchainController {
             console.log('Signer address:', await signer.getAddress());
             console.log('Creating product with params:', {
                 name,
-                manufacturer,
+                seller,
                 price: 0,
                 tokenURI
             });
 
             // Create product through SupplyChain contract
             // The createProduct function signature is:
-            // function createProduct(string name, string manufacturer, uint256 price, string tokenURI)
+            // function createProduct(string name, string seller, uint256 price, string tokenURI)
             const createTx = await supplyChainContract.createProduct(
                 name,
-                manufacturer,
+                seller,
                 ethers.parseEther('0'), // Price as wei (0 ETH)
                 tokenURI
             );
@@ -368,8 +365,8 @@ class BlockchainController {
             return {
                 id: numericTokenId,
                 name: product.name,
-                manufacturer: product.manufacturer,
-                manufactureDate: Number(product.manufactureDate),
+                seller: product.seller,
+                creationDate: Number(product.creationDate),
                 status: Number(product.status),
                 currentOwner: product.currentOwner,
                 shipmentHistory: formattedShipment
@@ -411,8 +408,8 @@ class BlockchainController {
                     products.push({
                         id: id,
                         name: product.name,
-                        manufacturer: product.manufacturer,
-                        manufactureDate: Number(product.manufactureDate),
+                seller: product.seller,
+                creationDate: Number(product.creationDate),
                         status: Number(product.status),
                         currentOwner: product.currentOwner,
                         shipmentHistory: formattedShipment
@@ -483,6 +480,22 @@ class BlockchainController {
         }
     }
 
+    async grantSellerRole(address) {
+        try {
+            const supplyChain = await this.getSupplyChain();
+            const signer = await this.getSigner(); // Use deployer account
+            const contract = supplyChain.connect(signer);
+            
+            const tx = await contract.grantSellerRole(address);
+            await tx.wait();
+            
+            return { success: true, transaction: tx.hash };
+        } catch (error) {
+            console.error('Failed to grant seller role:', error);
+            throw error;
+        }
+    }
+
     async validateConfig() {
         try {
             console.log('Starting blockchain configuration validation...');
@@ -497,6 +510,9 @@ class BlockchainController {
             }
             if (!this.addresses.supplyChain) {
                 missingConfig.push('SUPPLY_CHAIN_ADDRESS');
+            }
+            if (!process.env.DEPLOYER_PRIVATE_KEY) {
+                missingConfig.push('DEPLOYER_PRIVATE_KEY');
             }
 
             if (missingConfig.length > 0) {
