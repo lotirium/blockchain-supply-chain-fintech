@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addItem } from '../store/slices/cartSlice';
 import { selectProductById, selectProducts } from '../store/slices/productsSlice';
-import { generateProductQR } from '../services/qrcode';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
 
@@ -14,10 +13,6 @@ function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [productData, setProductData] = useState(null);
-  const [qrCode, setQrCode] = useState(null);
-  const [qrLoading, setQrLoading] = useState(false);
-  const [qrError, setQrError] = useState(null);
-  
   const userRole = useSelector(state => state.auth.user?.role);
   const isSeller = userRole === 'seller';
   
@@ -88,47 +83,32 @@ function ProductDetails() {
   };
 
   const handleAddToCart = () => {
+    // Ensure we have all required data before adding to cart
+    if (!productData.store_id) {
+      console.error('Missing store_id for product:', productData);
+      alert('Unable to add item to cart: Missing store information');
+      return;
+    }
+
     dispatch(addItem({
       id: productData.id,
       name: productData.name,
       price: productData.price,
-      quantity
+      quantity,
+      store_id: productData.store_id,
+      store: productData.store // Include full store object for reference
     }));
+
+    // Log the cart addition for debugging
+    console.log('Adding item to cart:', {
+      id: productData.id,
+      name: productData.name,
+      store_id: productData.store_id,
+      store: productData.store
+    });
   };
 
-  const handleGenerateQR = async () => {
-    try {
-      setQrLoading(true);
-      setQrError(null);
-      const response = await generateProductQR(id);
-      if (response.success) {
-        setQrCode(response.data.qrCode);
-      } else {
-        throw new Error(response.message || 'Failed to generate QR code');
-      }
-    } catch (error) {
-      console.error('QR generation error:', error);
-      setQrError(error.response?.data?.message || error.message || 'Failed to generate QR code');
-      
-      // Show more detailed error in development
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('Detailed QR error:', error.response?.data?.error || error);
-      }
-    } finally {
-      setQrLoading(false);
-    }
-  };
 
-  const handleDownloadQR = () => {
-    if (qrCode) {
-      const link = document.createElement('a');
-      link.href = qrCode;
-      link.download = `product-${id}-qr.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -214,59 +194,7 @@ function ProductDetails() {
         </div>
       </div>
 
-      {/* QR Code Section (Sellers Only) */}
-      {isSeller && (
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-semibold mb-4">QR Code Management</h3>
-          {qrError && (
-            <div className="text-red-600 mb-4">
-              {qrError}
-            </div>
-          )}
-          
-          {qrCode ? (
-            <div className="space-y-4">
-              <div className="flex justify-center">
-                <img
-                  src={qrCode}
-                  alt="Product QR Code"
-                  className="w-48 h-48 border p-2"
-                />
-              </div>
-              <div className="flex space-x-4">
-                <button
-                  onClick={handleDownloadQR}
-                  className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
-                >
-                  Download QR Code
-                </button>
-                <button
-                  onClick={handleGenerateQR}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                >
-                  Regenerate QR Code
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={handleGenerateQR}
-              disabled={qrLoading}
-              className={`w-full px-4 py-2 rounded text-white transition-colors ${
-                qrLoading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            >
-              {qrLoading ? 'Generating...' : 'Generate QR Code'}
-            </button>
-          )}
-          <p className="mt-4 text-sm text-gray-600">
-            Generate a unique QR code for this product to enable easy verification by customers.
-            The QR code contains encrypted product information that can be scanned to verify authenticity.
-          </p>
-        </div>
-      )}
+
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (

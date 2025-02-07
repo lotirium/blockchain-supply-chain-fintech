@@ -15,16 +15,36 @@ export const fetchProducts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
+      console.log('🔄 Fetching products from API...');
+      
       const response = await fetch(`${API_URL}/api/products`);
       
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('❌ Failed to fetch products:', errorData);
         return rejectWithValue(errorData.error || 'Failed to fetch products');
       }
 
       const products = await response.json();
+      
+      // Validate store information in products
+      const productsWithoutStore = products.filter(p => !p.store_id || !p.store);
+      if (productsWithoutStore.length > 0) {
+        console.error('⚠️ Products missing store information:', productsWithoutStore);
+      }
+
+      console.log('✅ Successfully fetched products with store info:', 
+        products.map(p => ({
+          id: p.id,
+          name: p.name,
+          store_id: p.store_id,
+          store_name: p.store?.name
+        }))
+      );
+
       return products;
     } catch (error) {
+      console.error('❌ Error fetching products:', error);
       return rejectWithValue(error.message || 'Failed to fetch products');
     }
   }

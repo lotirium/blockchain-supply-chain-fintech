@@ -31,26 +31,20 @@ async function main() {
   }
   console.log("Verified deployer has admin role:", deployer.address);
 
-  // Grant deployer all roles using new helper functions
-  await supplyChain.grantManufacturerRole(deployer.address);
-  await supplyChain.grantDistributorRole(deployer.address);
-  await supplyChain.grantRetailerRole(deployer.address);
+  // Grant deployer seller role
+  await supplyChain.grantSellerRole(deployer.address);
 
-  // Verify all roles were granted using new helper functions
-  const hasManufacturerRole = await supplyChain.isManufacturer(deployer.address);
-  const hasDistributorRole = await supplyChain.isDistributor(deployer.address);
-  const hasRetailerRole = await supplyChain.isRetailer(deployer.address);
+  // Verify seller role was granted
+  const hasSellerRole = await supplyChain.isSeller(deployer.address);
 
   console.log("Role verification for deployer:", {
     address: deployer.address,
     admin: hasAdminRole,
-    manufacturer: hasManufacturerRole,
-    distributor: hasDistributorRole,
-    retailer: hasRetailerRole
+    seller: hasSellerRole
   });
 
-  if (!hasManufacturerRole || !hasDistributorRole || !hasRetailerRole) {
-    throw new Error("Failed to grant all roles to deployer");
+  if (!hasSellerRole) {
+    throw new Error("Failed to grant seller role to deployer");
   }
 
   // Transfer ownership of ProductNFT to SupplyChain contract

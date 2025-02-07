@@ -11,13 +11,28 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addItem: (state, action) => {
-      const { id, name, price, quantity = 1 } = action.payload;
+      const { id, name, price, quantity = 1, store_id, store } = action.payload;
+      
+      // Validate required store information
+      if (!store_id) {
+        console.error('Attempted to add item without store_id:', action.payload);
+        return;
+      }
+
       const existingItem = state.items.find(item => item.id === id);
       
       if (existingItem) {
         existingItem.quantity += quantity;
       } else {
-        state.items.push({ id, name, price, quantity });
+        // Include both store_id and store object in cart item
+        state.items.push({ 
+          id, 
+          name, 
+          price, 
+          quantity, 
+          store_id,
+          store // Include full store object for reference
+        });
       }
       
       state.itemCount = state.items.reduce((total, item) => total + item.quantity, 0);

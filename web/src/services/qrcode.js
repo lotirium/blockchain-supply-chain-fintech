@@ -1,5 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
 
+// Generate QR code for an order after payment confirmation
 export const generateOrderQR = async (orderId) => {
   try {
     const response = await fetch(`${API_URL}/api/qrcode/order/${orderId}/generate`, {
@@ -29,6 +30,7 @@ export const generateOrderQR = async (orderId) => {
   }
 };
 
+// Verify a QR code for order authenticity
 export const verifyOrderQR = async (qrData) => {
   try {
     const response = await fetch(`${API_URL}/api/qrcode/verify`, {
@@ -56,6 +58,8 @@ export const verifyOrderQR = async (qrData) => {
     throw error;
   }
 };
+
+
 
 export const getOrderQRStatus = async (orderId) => {
   try {
