@@ -77,8 +77,8 @@ const Register = () => {
           lastName: randomLast,
           email: `${randomFirst.toLowerCase()}.${randomLast.toLowerCase()}@${randomDomain}`,
           username: `${randomFirst.toLowerCase()}${randomLast.toLowerCase()}${Math.floor(Math.random() * 1000)}`,
-          password: 'Password123!',
-          confirmPassword: 'Password123!'
+          password: '12345678',
+          confirmPassword: '12345678'
         };
       case 3:
         const storeType = storeTypes[Math.floor(Math.random() * storeTypes.length)];

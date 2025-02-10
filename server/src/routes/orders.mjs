@@ -4,11 +4,115 @@ import {
   OrderItem,
   Product,
   Store,
-  User
+  User,
+  Notification
 } from '../models/index.mjs';
 import auth from '../middleware/auth.mjs';
 
 const router = express.Router();
+
+// Create new order
+router.post('/', auth(), async (req, res) => {
+  try {
+    const { items, shipping_address, billing_address } = req.body;
+    
+    if (!items || !items.length) {
+      return res.status(400).json({ message: 'Order must contain items' });
+    }
+
+    // Group items by store
+    const itemsByStore = items.reduce((acc, item) => {
+      if (!item.store_id) {
+        throw new Error('All items must have a valid store_id');
+      }
+      if (!acc[item.store_id]) {
+        acc[item.store_id] = [];
+      }
+      acc[item.store_id].push(item);
+      return acc;
+    }, {});
+
+    const orders = [];
+
+    // Create orders for each store
+    for (const [store_id, storeItems] of Object.entries(itemsByStore)) {
+      const store = await Store.findByPk(store_id);
+      if (!store) {
+        throw new Error(`Store not found: ${store_id}`);
+      }
+
+      // Calculate total
+      const total = storeItems.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+
+      // Create order
+      const order = await Order.create({
+        user_id: req.user.id,
+        store_id,
+        status: 'pending',
+        shipping_address,
+        billing_address,
+        payment_method: 'credit_card',
+        payment_status: 'pending',
+        total_fiat_amount: total,
+        shipping_method: 'standard',
+        shipping_cost: 0
+      });
+
+      // Verify all products exist and belong to the store
+      await Promise.all(storeItems.map(async item => {
+        const product = await Product.findByPk(item.product_id);
+        if (!product) {
+          throw new Error(`Product not found: ${item.product_id}`);
+        }
+        if (product.store_id !== store_id) {
+          throw new Error(`Product ${item.product_id} does not belong to store ${store_id}`);
+        }
+        return product;
+      }));
+
+      // Create order items
+      await Promise.all(storeItems.map(item =>
+        OrderItem.create({
+          order_id: order.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.unit_price * item.quantity
+        })
+      ));
+
+      // Create notification for store owner
+      await Notification.create({
+        user_id: store.user_id,
+        message: `New order received for $${total.toFixed(2)}`,
+        type: 'order_received',
+        priority: 'high',
+        read: false,
+        data: {
+          order_id: order.id,
+          total,
+          items_count: storeItems.length
+        }
+      });
+
+      orders.push({
+        ...order.toJSON(),
+        items: await OrderItem.findAll({ where: { order_id: order.id } })
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      data: orders
+    });
+  } catch (error) {
+    console.error('Error creating order:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to create order'
+    });
+  }
+});
 
 // Get all orders (admin only)
 router.get('/', auth(['admin']), async (req, res) => {

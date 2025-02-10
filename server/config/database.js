@@ -2,8 +2,8 @@ require('dotenv').config();
 
 module.exports = {
   development: {
-    username: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
+    username: process.env.DB_USER || 'shipment_user',
+    password: process.env.DB_PASSWORD || 'shipment_password_123',
     database: process.env.DB_NAME || 'shipment_db',
     host: process.env.DB_HOST || '127.0.0.1',
     port: process.env.DB_PORT || 5432,
@@ -17,8 +17,8 @@ module.exports = {
     seederStorageTableName: 'sequelize_data'
   },
   test: {
-    username: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
+    username: process.env.DB_USER || 'shipment_user',
+    password: process.env.DB_PASSWORD || 'shipment_password_123',
     database: process.env.TEST_DB_NAME || 'shipment_test_db',
     host: process.env.DB_HOST || '127.0.0.1',
     port: process.env.DB_PORT || 5432,
