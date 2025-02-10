@@ -359,6 +359,7 @@ router.get('/detail/:id', async (req, res) => {
       },
       include: [{
         model: Store,
+        as: 'store',
         attributes: ['id', 'name', 'is_verified']
       }]
     });

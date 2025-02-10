@@ -15,6 +15,8 @@ const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
 const StoreSettings = React.lazy(() => import('./pages/StoreSettings'));
 const Home = React.lazy(() => import('./pages/Home'));
 const Products = React.lazy(() => import('./pages/Products'));
+const SellerProducts = React.lazy(() => import('./pages/SellerProducts'));
+const EditProduct = React.lazy(() => import('./pages/EditProduct'));
 const ProductVerification = React.lazy(() => import('./pages/ProductVerification'));
 const ProductDetails = React.lazy(() => import('./pages/ProductDetails'));
 const Cart = React.lazy(() => import('./pages/Cart'));
@@ -82,6 +84,8 @@ function App() {
               <Route path="seller-dashboard" element={<SellerDashboard />} />
               <Route path="add-product" element={<AddProduct />} />
               <Route path="store-settings" element={<StoreSettings />} />
+              <Route path="seller-products" element={<SellerProducts />} />
+              <Route path="edit-product/:id" element={<EditProduct />} />
             </Route>
 
             {/* Admin Routes */}
