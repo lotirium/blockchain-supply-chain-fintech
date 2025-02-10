@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchProducts } from '../store/slices/productsSlice';
 
 function Home() {
+  const dispatch = useDispatch();
   const { items: products, loading } = useSelector((state) => state.products);
-  
+
+  useEffect(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
   // Get featured products (first 4 products)
   const featuredProducts = products.slice(0, 4);
 
@@ -43,7 +49,7 @@ function Home() {
               <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="aspect-w-1 aspect-h-1">
                   <img
-                    src={product.image}
+                    src={`${import.meta.env.VITE_API_URL}${product.images[0]}`}
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />
