@@ -98,7 +98,7 @@ router.post('/', auth(), async (req, res) => {
         });
       }));
 
-      // Create notification for store owner with detailed information
+      // Create notification for store owner
       await Notification.create({
         user_id: store.user_id,
         message: `New order received for $${total.toFixed(2)}`,
@@ -159,9 +159,8 @@ router.get('/', auth(['admin']), async (req, res) => {
     });
     res.json(orders);
   } catch (error) {
-    console.error('Error fetching store orders:', {
+    console.error('Error fetching all orders:', {
       userId: req.user?.id,
-      storeId: req.user?.ownedStore?.id,
       error: error.message,
       stack: error.stack
     });
@@ -191,11 +190,11 @@ router.get('/', auth(['admin']), async (req, res) => {
 router.get('/store', auth(['seller']), async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' });
+      return res.status(401).json({ error: 'Authentication required' });
     }
 
     if (!req.user.ownedStore?.id) {
-      return res.status(400).json({ message: 'No store associated with this account' });
+      return res.status(400).json({ error: 'No store associated with this account' });
     }
 
     const orders = await Order.findAll({
@@ -211,8 +210,9 @@ router.get('/store', auth(['seller']), async (req, res) => {
     });
     res.json(orders);
   } catch (error) {
-    console.error('Error fetching user orders:', {
+    console.error('Error fetching store orders:', {
       userId: req.user?.id,
+      storeId: req.user?.ownedStore?.id,
       error: error.message,
       stack: error.stack
     });
@@ -238,15 +238,15 @@ router.get('/store', auth(['seller']), async (req, res) => {
   }
 });
 
-// Get user orders (for logged in user)
-router.get('/user', auth, async (req, res) => {
+// Get user orders
+router.get('/user', auth(), async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' });
+      return res.status(401).json({ error: 'Authentication required' });
     }
 
     if (!req.user.id) {
-      return res.status(400).json({ message: 'Invalid user ID' });
+      return res.status(400).json({ error: 'Invalid user ID' });
     }
 
     const orders = await Order.findAll({
@@ -260,13 +260,28 @@ router.get('/user', auth, async (req, res) => {
     });
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching user orders:', {
+      userId: req.user?.id,
+      error: error.message,
+      stack: error.stack
+    });
+
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
   }
 });
 
 // Get single order
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth(), async (req, res) => {
   try {
+    console.log('Fetching order details:', {
+      orderId: req.params.id,
+      userId: req.user?.id,
+      userRole: req.user?.role
+    });
+
     const order = await Order.findOne({
       where: { id: req.params.id },
       include: [
@@ -276,20 +291,61 @@ router.get('/:id', auth, async (req, res) => {
       ]
     });
 
+    console.log('Order query result:', {
+      found: !!order,
+      orderId: req.params.id
+    });
+
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return res.status(404).json({ error: 'Order not found' });
     }
 
     // Check permissions
-    if (req.user.role !== 'admin' &&
-        order.user_id !== req.user.id &&
-        order.store_id !== req.user.ownedStore?.id) {
-      return res.status(403).json({ message: 'Not authorized to view this order' });
+    const hasAccess = 
+      req.user.role === 'admin' ||
+      order.user_id === req.user.id ||
+      order.store_id === req.user.ownedStore?.id;
+
+    console.log('Access check:', {
+      orderId: req.params.id,
+      userRole: req.user.role,
+      orderUserId: order.user_id,
+      userIsOrderOwner: order.user_id === req.user.id,
+      storeId: order.store_id,
+      userStoreId: req.user.ownedStore?.id,
+      hasAccess
+    });
+
+    if (!hasAccess) {
+      return res.status(403).json({ error: 'Not authorized to view this order' });
     }
 
     res.json(order);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching order:', {
+      orderId: req.params.id,
+      error: error.message,
+      stack: error.stack
+    });
+
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        error: 'Validation error',
+        details: error.errors.map(err => err.message)
+      });
+    }
+
+    if (error.name === 'SequelizeDatabaseError') {
+      return res.status(500).json({
+        error: 'Database error',
+        details: 'An error occurred while querying the database'
+      });
+    }
+
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
   }
 });
 
@@ -297,23 +353,47 @@ router.get('/:id', auth, async (req, res) => {
 router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
   try {
     const { status } = req.body;
+    
+    console.log('Updating order status:', {
+      orderId: req.params.id,
+      newStatus: status,
+      userId: req.user?.id,
+      userRole: req.user?.role
+    });
+
     const order = await Order.findOne({
       where: { id: req.params.id }
     });
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return res.status(404).json({ error: 'Order not found' });
     }
 
     // Sellers can only update their own store's orders
     if (req.user.role === 'seller' && order.store_id !== req.user.ownedStore?.id) {
-      return res.status(403).json({ message: 'Not authorized to update this order' });
+      return res.status(403).json({ error: 'Not authorized to update this order' });
     }
 
     await order.update({ status });
+    
+    console.log('Order status updated successfully:', {
+      orderId: req.params.id,
+      oldStatus: order.status,
+      newStatus: status
+    });
+
     res.json(order);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error updating order status:', {
+      orderId: req.params.id,
+      error: error.message,
+      stack: error.stack
+    });
+
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
   }
 });
 

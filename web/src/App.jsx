@@ -26,6 +26,7 @@ const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const Orders = React.lazy(() => import('./pages/Orders'));
+const OrderDetails = React.lazy(() => import('./pages/OrderDetails'));
 const AddProduct = React.lazy(() => import('./pages/AddProduct'));
 const SellerDashboard = React.lazy(() => import('./pages/SellerDashboard'));
 const VerificationPending = React.lazy(() => import('./pages/VerificationPending'));
@@ -101,6 +102,7 @@ function App() {
             {/* User Routes */}
             <Route path="profile" element={<Profile />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="orders/:id" element={<OrderDetails />} />
           </Route>
 
           {/* 404 Route */}
