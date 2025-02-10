@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import crypto from 'crypto';
-import { Order, Product, Store, User } from '../models/index.mjs';
+import { Order, Product, Store, User, OrderItem } from '../models/index.mjs';
 import blockchainController from '../controllers/blockchain.mjs';
 
 // Generate QR code for an order (called after order confirmation)
@@ -16,10 +16,16 @@ export const generateOrderQR = async (req, res) => {
         status: ['confirmed', 'packed'] // Only allow QR generation for confirmed or packed orders
       },
       include: [{
-        model: Product,
-        attributes: ['id', 'name', 'token_id', 'manufacturer']
+        model: OrderItem,
+        as: 'items',
+        include: [{
+          model: Product,
+          as: 'product',
+          attributes: ['id', 'name', 'token_id', 'manufacturer']
+        }]
       }, {
         model: Store,
+        as: 'merchantStore',
         attributes: ['id', 'name']
       }]
     });
@@ -38,6 +44,18 @@ export const generateOrderQR = async (req, res) => {
       });
     }
 
+    // Ensure there are items in the order
+    if (!order.items || order.items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order has no items'
+      });
+    }
+
+    // Get the first item for QR code
+    const firstItem = order.items[0];
+    const product = firstItem.product;
+
     // Generate a unique verification code
     const verificationCode = crypto.randomBytes(32).toString('hex');
     const timestamp = new Date().toISOString();
@@ -45,8 +63,8 @@ export const generateOrderQR = async (req, res) => {
     // Create QR code data with order and NFT information
     const qrData = JSON.stringify({
       o: order.id, // Order ID
-      p: order.Product.id, // Product ID
-      t: order.Product.token_id, // NFT Token ID
+      p: product.id, // Product ID
+      t: product.token_id, // NFT Token ID
       v: verificationCode, // Verification code
       ts: timestamp // Timestamp
     });
@@ -77,8 +95,8 @@ export const generateOrderQR = async (req, res) => {
         generatedAt: timestamp,
         orderInfo: {
           orderNumber: order.id.slice(0, 8),
-          productName: order.Product.name,
-          storeName: order.Store.name
+          productName: product.name,
+          storeName: order.merchantStore.name
         }
       }
     });
@@ -127,16 +145,23 @@ export const verifyOrderQR = async (req, res) => {
         qr_status: 'active'
       },
       include: [{
-        model: Product,
-        where: {
-          id: productId,
-          token_id: tokenId
-        }
+        model: OrderItem,
+        as: 'items',
+        include: [{
+          model: Product,
+          as: 'product',
+          where: {
+            id: productId,
+            token_id: tokenId
+          }
+        }]
       }, {
         model: Store,
+        as: 'merchantStore',
         attributes: ['id', 'name']
       }, {
         model: User,
+        as: 'orderPlacer',
         attributes: ['id', 'user_name']
       }]
     });
@@ -165,6 +190,8 @@ export const verifyOrderQR = async (req, res) => {
       qr_last_verified_at: new Date()
     });
 
+    const product = order.items[0].product;
+
     // Return verification result with order and NFT details
     res.json({
       success: true,
@@ -173,11 +200,11 @@ export const verifyOrderQR = async (req, res) => {
           isAuthentic: true,
           verifiedAt: new Date().toISOString(),
           purchaseDate: order.created_at,
-          store: order.Store.name,
+          store: order.merchantStore.name,
           product: {
-            name: order.Product.name,
-            manufacturer: order.Product.manufacturer,
-            tokenId: order.Product.token_id
+            name: product.name,
+            manufacturer: product.manufacturer,
+            tokenId: product.token_id
           },
           nftData,
           order: {

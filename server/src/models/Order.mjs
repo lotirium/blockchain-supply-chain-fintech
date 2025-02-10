@@ -1,8 +1,5 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.mjs';
-import User from './User.mjs';
-import Store from './Store.mjs';
-import Product from './Product.mjs';
 
 class Order extends Model {
   toJSON() {
@@ -77,6 +74,25 @@ Order.init({
     type: DataTypes.JSONB,
     defaultValue: {}
   },
+  // QR code fields
+  qr_data: {
+    type: DataTypes.JSONB,
+    defaultValue: null,
+    comment: 'Stores QR code verification data including codes and timestamps'
+  },
+  qr_status: {
+    type: DataTypes.ENUM('not_generated', 'active', 'revoked'),
+    defaultValue: 'not_generated',
+    allowNull: false
+  },
+  qr_verification_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  qr_last_verified_at: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
   // Shipping information
   shipping_address: {
     type: DataTypes.JSONB,
@@ -149,6 +165,10 @@ Order.init({
     {
       name: 'idx_orders_transaction',
       fields: ['transaction_hash']
+    },
+    {
+      name: 'idx_orders_qr_status',
+      fields: ['qr_status']
     }
   ]
 });

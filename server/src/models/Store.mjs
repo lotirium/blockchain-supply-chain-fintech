@@ -1,16 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.mjs';
-import User from './User.mjs';
 
 class Store extends Model {
-  static associate(models) {
-    // Define association with User
-    Store.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'storeOwner'
-    });
-  }
-
   toJSON() {
     const values = { ...this.get() };
     // Remove sensitive data if any
