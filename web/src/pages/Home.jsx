@@ -46,18 +46,18 @@ function Home() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
-              <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="aspect-w-1 aspect-h-1">
+              <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full">
+                <div className="h-48 relative">
                   <img
                     src={`${import.meta.env.VITE_API_URL}${product.images[0]}`}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover absolute inset-0"
                   />
                 </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-                  <p className="text-gray-600 mb-4">{product.description}</p>
-                  <div className="flex items-center justify-between">
+                <div className="p-4 flex-1 flex flex-col">
+                  <h3 className="text-lg font-semibold mb-2 overflow-hidden text-ellipsis whitespace-nowrap">{product.name}</h3>
+                  <p className="text-gray-600 mb-4 overflow-hidden text-ellipsis line-clamp-2 flex-1">{product.description}</p>
+                  <div className="flex items-center justify-between mt-auto">
                     <span className="text-xl font-bold">${product.price}</span>
                     <Link
                       to={`/products/${product.id}`}
