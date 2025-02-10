@@ -19,6 +19,7 @@ const ProductVerification = React.lazy(() => import('./pages/ProductVerification
 const ProductDetails = React.lazy(() => import('./pages/ProductDetails'));
 const Cart = React.lazy(() => import('./pages/Cart'));
 const Checkout = React.lazy(() => import('./pages/Checkout'));
+const CheckoutSuccess = React.lazy(() => import('./pages/CheckoutSuccess'));
 const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
 const Profile = React.lazy(() => import('./pages/Profile'));
@@ -76,6 +77,7 @@ function App() {
             <Route path="products/:id" element={<ProductDetails />} />
             <Route path="cart" element={<Cart />} />
             <Route path="checkout" element={<Checkout />} />
+            <Route path="checkout/success" element={<CheckoutSuccess />} />
             
             {/* Verified Seller Routes */}
             <Route element={<SellerRoute />}>

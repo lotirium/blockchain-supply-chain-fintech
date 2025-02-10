@@ -14,10 +14,14 @@ const router = express.Router();
 // Create new order
 router.post('/', auth(), async (req, res) => {
   try {
-    const { items, shipping_address, billing_address } = req.body;
+    const { items, shipping_address, billing_address, payment_info } = req.body;
     
     if (!items || !items.length) {
       return res.status(400).json({ message: 'Order must contain items' });
+    }
+
+    if (!payment_info) {
+      return res.status(400).json({ message: 'Payment information is required' });
     }
 
     // Group items by store
@@ -51,14 +55,19 @@ router.post('/', auth(), async (req, res) => {
         status: 'pending',
         shipping_address,
         billing_address,
-        payment_method: 'credit_card',
+        payment_method: payment_info?.method || 'credit_card',
         payment_status: 'pending',
+        payment_details: {
+          last_four: payment_info?.card_number?.slice(-4),
+          expiry: payment_info?.expiry,
+          card_type: 'credit'
+        },
         total_fiat_amount: total,
         shipping_method: 'standard',
         shipping_cost: 0
       });
 
-      // Verify all products exist and belong to the store
+      // Verify products and create order items
       await Promise.all(storeItems.map(async item => {
         const product = await Product.findByPk(item.product_id);
         if (!product) {
@@ -67,31 +76,54 @@ router.post('/', auth(), async (req, res) => {
         if (product.store_id !== store_id) {
           throw new Error(`Product ${item.product_id} does not belong to store ${store_id}`);
         }
-        return product;
-      }));
 
-      // Create order items
-      await Promise.all(storeItems.map(item =>
-        OrderItem.create({
+        // Create snapshot of product at time of order
+        const productSnapshot = {
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          manufacturer: product.manufacturer,
+          category: product.category,
+          images: product.images,
+          attributes: product.attributes
+        };
+
+        return OrderItem.create({
           order_id: order.id,
           product_id: item.product_id,
           quantity: item.quantity,
           unit_price: item.unit_price,
-          total_price: item.unit_price * item.quantity
-        })
-      ));
+          total_price: item.unit_price * item.quantity,
+          product_snapshot: productSnapshot
+        });
+      }));
 
-      // Create notification for store owner
+      // Create notification for store owner with detailed information
       await Notification.create({
         user_id: store.user_id,
         message: `New order received for $${total.toFixed(2)}`,
-        type: 'order_received',
-        priority: 'high',
+        type: 'success',
+        priority: 10,
         read: false,
         data: {
           order_id: order.id,
           total,
-          items_count: storeItems.length
+          items_count: storeItems.length,
+          customer: {
+            name: shipping_address.full_name,
+            email: shipping_address.email,
+            phone: shipping_address.phone
+          },
+          shipping_address: {
+            full_name: shipping_address.full_name,
+            city: shipping_address.city,
+            state: shipping_address.state
+          },
+          items: storeItems.map(item => ({
+            product_id: item.product_id,
+            quantity: item.quantity,
+            total_price: item.unit_price * item.quantity
+          }))
         }
       });
 

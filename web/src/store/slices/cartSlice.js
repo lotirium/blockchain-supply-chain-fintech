@@ -12,12 +12,23 @@ const cartSlice = createSlice({
   reducers: {
     addItem: (state, action) => {
       const { id, name, price, store_id, quantity = 1 } = action.payload;
+      
+      if (!store_id) {
+        throw new Error('store_id is required when adding items to cart');
+      }
+
       const existingItem = state.items.find(item => item.id === id);
       
       if (existingItem) {
         existingItem.quantity += quantity;
       } else {
-        state.items.push({ id, name, price, store_id, quantity });
+        state.items.push({
+          id,
+          name,
+          price,
+          store_id,
+          quantity
+        });
       }
       
       state.itemCount = state.items.reduce((total, item) => total + item.quantity, 0);
