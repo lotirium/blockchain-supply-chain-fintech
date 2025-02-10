@@ -61,7 +61,7 @@ const OrderQRCode = ({ order, onQRGenerated }) => {
         <div className="text-red-600 text-sm mb-2">{error}</div>
       )}
       {qrCode ? (
-        <div className="space-y-4">
+        <div className="space-y-4 p-4">
           <div className="flex justify-center">
             <img
               src={qrCode}
@@ -117,8 +117,131 @@ const OrderStatusBadge = ({ status }) => {
   );
 };
 
+const OrderListItem = ({ order, isExpanded, onToggle, role, onStatusUpdate, orders, setOrders }) => {
+  return (
+    <div className="bg-white shadow rounded-lg overflow-hidden">
+      {/* Header - always visible and clickable */}
+      <div
+        className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50"
+        onClick={() => onToggle(order.id)}
+      >
+        <div>
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <span>Order #{order.id.slice(0, 8)}</span>
+          {order.merchantStore && <span>- {order.merchantStore.name}</span>}
+          <span className="text-gray-600 text-sm">•</span>
+          <span className="text-gray-600 text-sm">${order.total_fiat_amount}</span>
+          {order.orderPlacer && (
+            <>
+              <span className="text-gray-600 text-sm">•</span>
+              <span className="text-gray-600 text-sm">
+                {order.orderPlacer.first_name} {order.orderPlacer.last_name}
+              </span>
+            </>
+          )}
+        </h3>
+        </div>
+        <div className="flex items-center space-x-3">
+          <OrderStatusBadge status={order.status} />
+          <svg
+            className={`w-5 h-5 text-gray-500 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Content - only visible when expanded */}
+      {isExpanded && (
+        <div className="border-t">
+          <div className="grid md:grid-cols-3 gap-4 p-4">
+            <div>
+              <h4 className="font-medium text-gray-700">Payment</h4>
+              <p>Method: {order.payment_method}</p>
+              <p>Status: {order.payment_status}</p>
+              <p>Amount: ${order.total_fiat_amount}</p>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-700">Shipping</h4>
+              <p>Method: {order.shipping_method}</p>
+              {order.tracking_number && (
+                <p>Tracking: {order.tracking_number}</p>
+              )}
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-700">Delivery</h4>
+              <p>Status: {order.status}</p>
+              {order.estimated_delivery_date && (
+                <p>Est. Delivery: {new Date(order.estimated_delivery_date).toLocaleDateString()}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t p-4">
+            <h4 className="font-medium text-gray-700 mb-2">Order Items:</h4>
+            <div className="space-y-2">
+              {order.items?.map(item => (
+                <div key={item.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                  <div>
+                    <span className="font-medium">{item.product?.name}</span>
+                    <span className="text-gray-600 ml-2">x{item.quantity}</span>
+                  </div>
+                  <span className="text-gray-700">${item.total_price}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {(role === 'admin' || role === 'seller') && (
+            <>
+              <div className="border-t p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Update Status:</label>
+                <select
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  value={order.status}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onStatusUpdate(order.id, e.target.value);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {['pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'refunded'].map(status => (
+                    <option key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {role === 'seller' && (
+                <div onClick={(e) => e.stopPropagation()} className="border-t p-4">
+                  <OrderQRCode
+                    order={order}
+                    onQRGenerated={() => {
+                      const updatedOrders = orders.map(o =>
+                        o.id === order.id ? { ...o, qr_status: 'active' } : o
+                      );
+                      setOrders(updatedOrders);
+                    }}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 const Orders = () => {
   const [orders, setOrders] = useState([]);
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const user = useSelector(state => state.auth.user);
@@ -201,113 +324,34 @@ const Orders = () => {
   }
 
   const statusOptions = ['pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'refunded'];
+return (
+  <div className="container mx-auto px-4 py-8">
+    <h1 className="text-2xl font-bold mb-6">
+      {role === 'admin' ? 'All Orders' : role === 'seller' ? 'Store Orders' : 'My Orders'}
+    </h1>
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">
-        {role === 'admin' ? 'All Orders' : role === 'seller' ? 'Store Orders' : 'My Orders'}
-      </h1>
+    {orders.length === 0 ? (
+      <div className="text-center py-8 text-gray-500">
+        No orders found.
+      </div>
+    ) : (
+      <div className="space-y-4">
+        {orders.map(order => (
+          <OrderListItem
+            key={order.id}
+            order={order}
+            isExpanded={expandedOrderId === order.id}
+            onToggle={(orderId) => setExpandedOrderId(orderId === expandedOrderId ? null : orderId)}
+            role={role}
+            onStatusUpdate={handleStatusUpdate}
+            orders={orders}
+            setOrders={setOrders}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+);
 
-      {orders.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          No orders found.
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {orders.map(order => (
-            <div key={order.id} className="bg-white shadow rounded-lg p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    Order #{order.id.slice(0, 8)}
-                    {order.merchantStore && ` - ${order.merchantStore.name}`}
-                  </h3>
-                  <p className="text-gray-600">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                    {order.orderPlacer && ` - ${order.orderPlacer.first_name} ${order.orderPlacer.last_name}`}
-                  </p>
-                </div>
-                <OrderStatusBadge status={order.status} />
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <h4 className="font-medium text-gray-700">Payment</h4>
-                  <p>Method: {order.payment_method}</p>
-                  <p>Status: {order.payment_status}</p>
-                  <p>Amount: ${order.total_fiat_amount}</p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-700">Shipping</h4>
-                  <p>Method: {order.shipping_method}</p>
-                  {order.tracking_number && (
-                    <p>Tracking: {order.tracking_number}</p>
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-700">Delivery</h4>
-                  <p>Status: {order.status}</p>
-                  {order.estimated_delivery_date && (
-                    <p>Est. Delivery: {new Date(order.estimated_delivery_date).toLocaleDateString()}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-4 border-t pt-4">
-                <h4 className="font-medium text-gray-700 mb-2">Order Items:</h4>
-                <div className="space-y-2">
-                  {order.items?.map(item => (
-                    <div key={item.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                      <div>
-                        <span className="font-medium">{item.product?.name}</span>
-                        <span className="text-gray-600 ml-2">x{item.quantity}</span>
-                      </div>
-                      <span className="text-gray-700">${item.total_price}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {(role === 'admin' || role === 'seller') && (
-                <>
-                  <div className="mt-4 border-t pt-4">
-                    <label className="block text-sm font-medium text-gray-700">Update Status:</label>
-                    <select
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      value={order.status}
-                      onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                    >
-                      {statusOptions.map(status => (
-                        <option key={status} value={status}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  {/* QR Code Section for Sellers */}
-                  {role === 'seller' && (
-                    <OrderQRCode 
-                      order={order} 
-                      onQRGenerated={() => {
-                        // Refresh the orders list to get updated QR status
-                        const updatedOrders = [...orders];
-                        const index = updatedOrders.findIndex(o => o.id === order.id);
-                        if (index !== -1) {
-                          updatedOrders[index] = { ...order, qr_status: 'active' };
-                          setOrders(updatedOrders);
-                        }
-                      }}
-                    />
-                  )}
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 };
-
 export default Orders;
