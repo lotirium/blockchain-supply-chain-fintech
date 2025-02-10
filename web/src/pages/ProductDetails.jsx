@@ -94,7 +94,8 @@ function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    if (!productData.store?.id) {
+    const store_id = productData.store_id || productData.store?.id;
+    if (!store_id) {
       console.error('Product is missing store information');
       return;
     }
@@ -103,7 +104,7 @@ function ProductDetails() {
       id: productData.id,
       name: productData.name,
       price: productData.price,
-      store_id: productData.store.id,
+      store_id,
       quantity
     }));
   };

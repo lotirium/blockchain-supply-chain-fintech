@@ -65,8 +65,9 @@ Order.init({
     type: DataTypes.STRING // Store as string to maintain precision
   },
   payment_method: {
-    type: DataTypes.ENUM('crypto', 'fiat'),
-    allowNull: false
+    type: DataTypes.ENUM('crypto', 'fiat', 'credit_card'),
+    allowNull: false,
+    defaultValue: 'credit_card'
   },
   payment_status: {
     type: DataTypes.ENUM('pending', 'completed', 'failed', 'refunded'),

@@ -11,7 +11,7 @@ function Checkout() {
   const { user } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
   const [sameAsShipping, setSameAsShipping] = useState(true);
-  const [orderComplete, setOrderComplete] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [formData, setFormData] = useState({
     // Shipping Info
     shippingFirstName: '',
@@ -39,16 +39,10 @@ function Checkout() {
 
   // All useEffect hooks must be called together
   useEffect(() => {
-    if (items.length === 0) {
+    if (items.length === 0 && !isCheckingOut) {
       navigate('/cart');
     }
-  }, [items.length, navigate]);
-
-  useEffect(() => {
-    if (orderComplete) {
-      navigate('/checkout/success');
-    }
-  }, [orderComplete, navigate]);
+  }, [items.length, navigate, isCheckingOut]);
 
   useEffect(() => {
     if (sameAsShipping && formData.shippingFirstName) {
@@ -137,27 +131,21 @@ function Checkout() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setIsCheckingOut(true);
 
     try {
-      // Group items by store
-      const itemsByStore = items.reduce((acc, item) => {
-        const store_id = item.store_id;
-        if (!store_id) {
-          throw new Error('All items must have a valid store_id');
-        }
-        if (!acc[store_id]) {
-          acc[store_id] = [];
-        }
-        acc[store_id].push(item);
-        return acc;
-      }, {});
+      // Validate items have store_id
+      if (items.some(item => !item.store_id)) {
+        throw new Error('Some items are missing store information');
+      }
 
       const orderData = {
         items: items.map(item => ({
           product_id: item.id,
           quantity: item.quantity,
           unit_price: item.price,
-          store_id: item.store_id
+          store_id: item.store_id || item.store?.id, // Handle both formats
+          total_price: item.price * item.quantity
         })),
         shipping_address: {
           full_name: `${formData.shippingFirstName} ${formData.shippingLastName}`,
@@ -184,20 +172,40 @@ function Checkout() {
           city: formData.billingCity,
           state: formData.billingState,
           postal_code: formData.billingZip
+        },
+        payment_info: {
+          method: 'credit_card',
+          card_number: formData.cardNumber.replace(/\s/g, ''),
+          expiry: formData.cardExpiry,
+          cvc: formData.cardCvc
         }
       };
 
       const result = await createOrder(orderData);
       
       if (result.success) {
+        navigate('/checkout/success', { 
+          replace: true,
+          state: {
+            orderDetails: {
+              orderId: result.orderId,
+              date: new Date().toISOString(),
+              estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
+            },
+            subtotal: total.toFixed(2),
+            total: total.toFixed(2),
+            shippingAddress: `${formData.shippingFirstName} ${formData.shippingLastName}, ${formData.shippingAddress}, ${formData.shippingCity}, ${formData.shippingState} ${formData.shippingZip}`
+          }
+        });
         dispatch(clearCart());
-        setOrderComplete(true);
+        return;
       } else {
         throw new Error(result.message || 'Failed to create order');
       }
     } catch (error) {
       console.error('Checkout failed:', error);
       alert(error.message || 'Failed to create order. Please try again.');
+      setIsCheckingOut(false);
     } finally {
       setLoading(false);
     }

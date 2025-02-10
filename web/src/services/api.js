@@ -7,8 +7,29 @@ export const createOrder = async (orderData) => {
   }
 
   // Validate store_id exists for all items
-  if (!orderData.items?.length || orderData.items.some(item => !item.store_id)) {
-    throw new Error('All items must have a valid store_id');
+  if (!orderData.items?.length) {
+    throw new Error('Order must contain items');
+  }
+
+  // Validate each item has required fields
+  orderData.items.forEach(item => {
+    if (!item.product_id) {
+      throw new Error('Each item must have a product_id');
+    }
+    if (!item.store_id) {
+      throw new Error('Each item must have a store_id');
+    }
+    if (!item.quantity || item.quantity < 1) {
+      throw new Error('Each item must have a valid quantity');
+    }
+    if (!item.unit_price || item.unit_price < 0) {
+      throw new Error('Each item must have a valid unit price');
+    }
+  });
+
+  // Validate addresses
+  if (!orderData.shipping_address || !orderData.billing_address) {
+    throw new Error('Shipping and billing addresses are required');
   }
 
   const response = await fetch(`${API_URL}/api/orders`, {

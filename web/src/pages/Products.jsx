@@ -31,11 +31,19 @@ function Products() {
   };
 
   const handleAddToCart = (product) => {
+    const store_id = product.store_id || product.store?.id;
+    if (!store_id) {
+      alert('Product is missing store information');
+      return;
+    }
+
     dispatch(addItem({
       id: product.id,
       name: product.name,
       price: product.price,
-      quantity: 1
+      store_id,
+      quantity: 1,
+      store_name: product.store?.name // Include store name for reference
     }));
   };
 
