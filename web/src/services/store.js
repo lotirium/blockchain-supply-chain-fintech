@@ -112,6 +112,12 @@ export const deleteNotification = async (notificationId) => {
   });
 };
 
+export const generateHologram = async () => {
+  return handleRequest(`${API_URL}/api/seller/store/hologram`, {
+    method: 'POST'
+  });
+};
+
 export const getStore = async () => {
   return handleRequest(`${API_URL}/api/seller/store`, {
     method: 'GET'
@@ -125,5 +131,6 @@ export default {
   markNotificationRead,
   markAllNotificationsRead,
   deleteNotification,
-  getStore
+  getStore,
+  generateHologram
 };

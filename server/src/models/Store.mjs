@@ -68,6 +68,10 @@ Store.init({
   banner: {
     type: DataTypes.STRING
   },
+  hologram_label: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   shipping_policy: {
     type: DataTypes.TEXT
   },

@@ -72,7 +72,8 @@ const validateHologramConfig = () => {
 // Ensure upload directories exist
 const uploadDirs = [
   path.join(__dirname, '..', 'uploads'),
-  path.join(__dirname, '..', 'uploads', 'products')
+  path.join(__dirname, '..', 'uploads', 'products'),
+  path.join(__dirname, '..', 'uploads', 'holograms')
 ];
 
 await Promise.all(uploadDirs.map(dir => fs.mkdir(dir, { recursive: true })));

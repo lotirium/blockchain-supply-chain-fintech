@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateStore } from '../store/slices/authSlice';
+import { updateStore, setHologramLabel } from '../store/slices/authSlice';
+import { generateHologram } from '../services/store';
 
 function StoreSettings() {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ function StoreSettings() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [generatingHologram, setGeneratingHologram] = useState(false);
+  const [hologramError, setHologramError] = useState(null);
   const [formData, setFormData] = useState({
     name: user?.store?.name || '',
     description: user?.store?.description || '',
@@ -55,6 +58,20 @@ function StoreSettings() {
       setError(err.message || 'Failed to update store settings. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateHologram = async () => {
+    setGeneratingHologram(true);
+    setHologramError(null);
+    try {
+      await generateHologram();
+      const { hologram_label } = await generateHologram();
+      dispatch(setHologramLabel(hologram_label));
+    } catch (err) {
+      setHologramError(err.message || 'Failed to generate hologram label');
+    } finally {
+      setGeneratingHologram(false);
     }
   };
 
@@ -284,6 +301,52 @@ function StoreSettings() {
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+          <h2 className="text-xl font-semibold mb-4">Store Hologram Label</h2>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-600 mb-4">
+                Generate a unique hologram label for your store's products to verify authenticity.
+              </p>
+              {user?.store?.hologram_label ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
+                    <img
+                      src={`${import.meta.env.VITE_API_URL}${user.store.hologram_label}`}
+                      alt="Store Hologram"
+                      className="max-w-[200px] h-auto"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleGenerateHologram}
+                    disabled={generatingHologram}
+                    className={`w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md ${
+                      generatingHologram ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+                    }`}
+                  >
+                    {generatingHologram ? 'Generating...' : 'Generate New Hologram'}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleGenerateHologram}
+                  disabled={generatingHologram}
+                  className={`w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md ${
+                    generatingHologram ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+                  }`}
+                >
+                  {generatingHologram ? 'Generating...' : 'Generate Hologram Label'}
+                </button>
+              )}
+              {hologramError && (
+                <p className="mt-2 text-sm text-red-600">{hologramError}</p>
+              )}
             </div>
           </div>
         </div>

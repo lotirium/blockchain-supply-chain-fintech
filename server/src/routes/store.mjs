@@ -69,6 +69,34 @@ router.put('/', requireSeller, async (req, res) => {
   }
 });
 
+// Generate hologram label
+router.post('/hologram', requireSeller, async (req, res) => {
+  try {
+    const store = await Store.findOne({ where: { user_id: req.user.id } });
+    if (!store) {
+      return res.status(404).json({ error: 'Store not found' });
+    }
+
+    // Simulate hologram generation with a delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Use mock hologram image
+    const hologramPath = '/uploads/holograms/mock.jpg';
+    
+    await store.update({
+      hologram_label: hologramPath
+    });
+
+    res.json({
+      message: 'Hologram label generated successfully',
+      hologram_label: hologramPath
+    });
+  } catch (error) {
+    console.error('Generate hologram error:', error);
+    res.status(500).json({ error: 'Failed to generate hologram label' });
+  }
+});
+
 router.put('/setup', auth, async (req, res) => {
   try {
     const store = await Store.findOne({ where: { user_id: req.user.id } });
