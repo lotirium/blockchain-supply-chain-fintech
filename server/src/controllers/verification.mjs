@@ -1,5 +1,6 @@
 import Store from '../models/Store.mjs';
 import { User, Notification } from '../models/index.mjs';
+import { Op } from 'sequelize';
 
 // Admin endpoints
 export const getPendingVerifications = async (req, res) => {
@@ -238,9 +239,82 @@ const calculateEstimatedTime = (status) => {
       return '24-48 hours';
   }
 };
+// Admin customer management endpoints
+export const getCustomers = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const customers = await User.findAll({
+      where: {
+        type: 'buyer'
+      },
+      attributes: ['id', 'user_name', 'first_name', 'last_name', 'email', 'is_email_verified', 'last_login'],
+      order: [['created_at', 'DESC']]
+    });
+
+    res.json({ success: true, data: customers });
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch customers'
+    });
+  }
+};
+
+export const verifyCustomerEmail = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const { userId } = req.params;
+    
+    const user = await User.findOne({
+      where: {
+        id: userId,
+        type: 'buyer'
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Customer not found'
+      });
+    }
+
+    await user.update({ is_email_verified: true });
+
+    // Create notification for the customer
+    await Notification.create({
+      user_id: user.id,
+      type: 'success',
+      message: 'Your email has been verified by an administrator.',
+      read: false
+    });
+
+    res.json({
+      success: true,
+      message: 'Customer email verified successfully'
+    });
+  } catch (error) {
+    console.error('Error verifying customer email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify customer email'
+    });
+  }
+};
 
 export default {
   getVerificationStatus,
   updateVerificationStatus,
-  getPendingVerifications
+  getPendingVerifications,
+  getCustomers,
+  verifyCustomerEmail
 };
