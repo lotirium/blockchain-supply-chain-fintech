@@ -17,6 +17,7 @@ const Home = React.lazy(() => import('./pages/Home'));
 const Products = React.lazy(() => import('./pages/Products'));
 const SellerProducts = React.lazy(() => import('./pages/SellerProducts'));
 const EditProduct = React.lazy(() => import('./pages/EditProduct'));
+const Customers = React.lazy(() => import('./pages/Customers'));
 const ProductVerification = React.lazy(() => import('./pages/ProductVerification'));
 const ProductDetails = React.lazy(() => import('./pages/ProductDetails'));
 const Cart = React.lazy(() => import('./pages/Cart'));
@@ -81,6 +82,7 @@ function App() {
             <Route path="cart" element={<Cart />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="checkout/success" element={<CheckoutSuccess />} />
+            <Route path="customers" element={<Customers />} />
             
             {/* Verified Seller Routes */}
             <Route element={<SellerRoute />}>
@@ -96,6 +98,7 @@ function App() {
               <Route element={<AdminLayout />}>
                 <Route path="verification" element={<AdminVerification />} />
                 <Route path="blockchain" element={<AdminBlockchainDashboard />} />
+                <Route path="customers" element={<Customers />} />
               </Route>
             </Route>
             

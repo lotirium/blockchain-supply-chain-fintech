@@ -4,6 +4,7 @@ import sellerDashboardRoutes from './sellerDashboard.mjs';
 import productRoutes from './products.mjs';
 import orderRoutes from './orders.mjs';
 import blockchainRoutes from './blockchain.mjs';
+import customerRoutes from './customers.mjs';
 import { errorHandler } from '../middleware/errorHandler.mjs';
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.use('/api/seller/dashboard', sellerDashboardRoutes);
 router.use('/api/products', productRoutes);
 router.use('/api/orders', orderRoutes);
 router.use('/api/blockchain', blockchainRoutes);
+router.use('/api/customers', customerRoutes);
 
 // Error handling
 router.use((req, res, next) => {

@@ -17,6 +17,7 @@ import sellerDashboardRoutes from './routes/sellerDashboard.mjs';
 import verificationRoutes from './routes/verification.mjs';
 import orderRoutes from './routes/orders.mjs';
 import qrcodeRoutes from './routes/qrcode.mjs';
+import customerRoutes from './routes/customers.mjs';
 import { errorHandler } from './middleware/errorHandler.mjs';
 import blockchainController from './controllers/blockchain.mjs';
 import ipfsService from './services/ipfs.mjs';
@@ -243,6 +244,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/seller/dashboard', sellerDashboardLimiter, sellerDashboardRoutes);
 app.use('/api/qrcode', qrcodeLimiter, qrcodeRoutes);
+app.use('/api/customers', customerRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
