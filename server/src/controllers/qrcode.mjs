@@ -211,7 +211,13 @@ export const verifyOrderQR = async (req, res) => {
             id: order.id,
             status: order.status,
             purchaseDate: order.created_at,
-            deliveryDate: order.actual_delivery_date
+            timeline: [
+              { status: 'pending', time: order.created_at },
+              ...(order.status !== 'pending' ? [{ status: 'confirmed', time: order.updated_at }] : []),
+              ...(order.status === 'packed' || order.status === 'shipped' || order.status === 'delivered' ? [{ status: 'packed', time: order.updated_at }] : []),
+              ...(order.status === 'shipped' || order.status === 'delivered' ? [{ status: 'shipped', time: order.updated_at }] : []),
+              ...(order.status === 'delivered' ? [{ status: 'delivered', time: order.actual_delivery_date }] : [])
+            ]
           }
         }
       }

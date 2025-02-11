@@ -110,30 +110,36 @@ const ProductVerification = () => {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-2">Purchase Information</h3>
+                <h3 className="text-lg font-semibold mb-4">Order Timeline</h3>
+                <div className="relative">
+                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                  {verificationResult.order.timeline.map((event, index) => (
+                    <div key={index} className="relative mb-8 ml-4 pl-6">
+                      <div className="absolute left-0 -translate-x-2/4 w-4 h-4 rounded-full bg-white border-2 border-blue-500"></div>
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <div className="font-medium text-gray-900 capitalize mb-1">
+                          {event.status}
+                        </div>
+                        <time className="text-sm text-gray-500">
+                          {format(new Date(event.time), 'PPP pp')}
+                        </time>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Order Details</h3>
                 <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <dt className="text-sm text-gray-500">Purchase Date</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {format(new Date(verificationResult.order.purchaseDate), 'PPP')}
-                    </dd>
-                  </div>
                   <div>
                     <dt className="text-sm text-gray-500">Order ID</dt>
                     <dd className="mt-1 text-sm text-gray-900">{verificationResult.order.id}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm text-gray-500">Order Status</dt>
+                    <dt className="text-sm text-gray-500">Current Status</dt>
                     <dd className="mt-1 text-sm text-gray-900 capitalize">{verificationResult.order.status}</dd>
                   </div>
-                  {verificationResult.order.deliveryDate && (
-                    <div>
-                      <dt className="text-sm text-gray-500">Delivery Date</dt>
-                      <dd className="mt-1 text-sm text-gray-900">
-                        {format(new Date(verificationResult.order.deliveryDate), 'PPP')}
-                      </dd>
-                    </div>
-                  )}
                 </dl>
               </div>
 
