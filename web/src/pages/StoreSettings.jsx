@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateStore, setHologramLabel } from '../store/slices/authSlice';
+import { updateStore, setHologramLabel, getProfile } from '../store/slices/authSlice';
 import { generateHologram } from '../services/store';
 
 function StoreSettings() {
@@ -65,9 +65,12 @@ function StoreSettings() {
     setGeneratingHologram(true);
     setHologramError(null);
     try {
-      await generateHologram();
-      const { hologram_label } = await generateHologram();
-      dispatch(setHologramLabel(hologram_label));
+      const response = await generateHologram();
+      if (response.store) {
+        dispatch(setHologramLabel(response.store.hologram_label));
+      }
+      // Refresh profile to ensure store data is up to date
+      await dispatch(getProfile()).unwrap();
     } catch (err) {
       setHologramError(err.message || 'Failed to generate hologram label');
     } finally {

@@ -3,10 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { generateOrderQR, getOrderQRStatus } from '../services/qrcode';
+import OrderLabels from '../components/OrderLabels';
+import OrderStatusControl from '../components/OrderStatusControl';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
 
-const OrderQRCode = ({ order, onQRGenerated }) => {
+const OrderQRCodeSection = ({ order, onQRGenerated }) => {
   const [qrCode, setQrCode] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -54,43 +56,35 @@ const OrderQRCode = ({ order, onQRGenerated }) => {
     return null;
   }
 
+  if (qrCode) {
+    return (
+      <OrderLabels
+        qrCode={qrCode}
+        onDownloadQR={handleDownloadQR}
+        showQRCodeOnly={false}
+      />
+    );
+  }
+
   return (
     <div className="bg-white shadow rounded-lg p-6">
-      <h4 className="font-medium text-gray-700 mb-2">QR Code</h4>
+      <h4 className="font-medium text-gray-700 mb-2">Generate Product Labels</h4>
       {error && (
         <div className="text-red-600 text-sm mb-2">{error}</div>
       )}
-      {qrCode ? (
-        <div className="space-y-4">
-          <div className="flex justify-center">
-            <img
-              src={qrCode}
-              alt="Order QR Code"
-              className="w-48 h-48 border p-2"
-            />
-          </div>
-          <button
-            onClick={handleDownloadQR}
-            className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
-          >
-            Download QR Code
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={handleGenerateQR}
-          disabled={loading}
-          className={`w-full px-4 py-2 rounded text-white transition-colors ${
-            loading
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
-          }`}
-        >
-          {loading ? 'Generating...' : 'Generate QR Code'}
-        </button>
-      )}
+      <button
+        onClick={handleGenerateQR}
+        disabled={loading}
+        className={`w-full px-4 py-2 rounded text-white transition-colors ${
+          loading
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-blue-600 hover:bg-blue-700'
+        }`}
+      >
+        {loading ? 'Generating...' : 'Generate Product Labels'}
+      </button>
       <p className="mt-2 text-sm text-gray-600">
-        Generate and attach this QR code to the product package before shipping.
+        Generate QR code and download store hologram label for the product package.
       </p>
     </div>
   );
@@ -174,7 +168,6 @@ const OrderDetails = () => {
           throw new Error('No authentication token found');
         }
 
-        // Add small delay to ensure loading state is visible
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const response = await axios.get(`${API_URL}/api/orders/${orderId}`, {
@@ -182,11 +175,13 @@ const OrderDetails = () => {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
           },
-          timeout: 5000 // 5 second timeout
+          timeout: 5000
         });
+        
         if (!response.data) {
           throw new Error('No data received from server');
         }
+        
         setOrder(response.data);
         setLoading(false);
       } catch (err) {
@@ -206,8 +201,6 @@ const OrderDetails = () => {
         throw new Error('No authentication token found');
       }
 
-      console.log('Updating order status:', { orderId, newStatus });
-      
       const response = await axios.patch(`${API_URL}/api/orders/${orderId}/status`,
         { status: newStatus },
         {
@@ -217,8 +210,6 @@ const OrderDetails = () => {
           }
         }
       );
-
-      console.log('Status update response:', response.data);
       
       if (!response.data) {
         throw new Error('No response data from status update');
@@ -317,22 +308,11 @@ const OrderDetails = () => {
         </div>
         
         {(role === 'admin' || role === 'seller') && (
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Update Status:
-            </label>
-            <select
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              value={order.status}
-              onChange={(e) => handleStatusUpdate(e.target.value)}
-            >
-              {['pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'refunded'].map(status => (
-                <option key={status} value={status}>
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
+          <OrderStatusControl
+            currentStatus={order.status}
+            onStatusUpdate={handleStatusUpdate}
+            qrGenerated={order.qr_status === 'active'}
+          />
         )}
       </div>
 
@@ -352,7 +332,7 @@ const OrderDetails = () => {
       </div>
 
       {role === 'seller' && (
-        <OrderQRCode
+        <OrderQRCodeSection
           order={order}
           onQRGenerated={() => {
             setOrder(prev => ({ ...prev, qr_status: 'active' }));

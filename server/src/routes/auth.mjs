@@ -216,7 +216,8 @@ router.post('/login', loginValidation, async (req, res) => {
       include: [{
         model: Store,
         as: 'ownedStore',
-        required: false
+        required: false,
+        attributes: { exclude: ['payment_details'] } // Include all fields except sensitive data
       }]
     });
 
@@ -269,7 +270,8 @@ router.post('/login', loginValidation, async (req, res) => {
           business_email: userData.ownedStore.business_email,
           business_phone: userData.ownedStore.business_phone,
           business_address: userData.ownedStore.business_address,
-          wallet_address: userData.ownedStore.wallet_address
+          wallet_address: userData.ownedStore.wallet_address,
+          hologram_label: userData.ownedStore.hologram_label
         } : null
       }
     });
@@ -295,7 +297,8 @@ router.get('/me', auth, async (req, res) => {
     const user = await User.findByPk(req.user.id, {
       include: [{
         model: Store,
-        as: 'ownedStore'
+        as: 'ownedStore',
+        attributes: { exclude: ['payment_details'] } // Include all fields except sensitive data
       }]
     });
 
@@ -325,7 +328,8 @@ router.get('/me', auth, async (req, res) => {
           business_email: userData.ownedStore.business_email,
           business_phone: userData.ownedStore.business_phone,
           business_address: userData.ownedStore.business_address,
-          wallet_address: userData.ownedStore.wallet_address
+          wallet_address: userData.ownedStore.wallet_address,
+          hologram_label: userData.ownedStore.hologram_label
         } : null
       }
     });

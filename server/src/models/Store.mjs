@@ -4,8 +4,9 @@ import sequelize from '../config/database.mjs';
 class Store extends Model {
   toJSON() {
     const values = { ...this.get() };
-    // Remove sensitive data if any
+    // Remove only sensitive data while keeping hologram_label
     delete values.payment_details;
+    delete values.private_key;
     return values;
   }
 }

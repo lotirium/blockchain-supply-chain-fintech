@@ -7,10 +7,13 @@ const router = express.Router();
 // Get store information for the authenticated user
 router.get('/', requireSeller, async (req, res) => {
   try {
-    const store = await Store.findOne({ 
-      where: { 
+    const store = await Store.findOne({
+      where: {
         user_id: req.user.id
-      } 
+      },
+      attributes: {
+        exclude: ['payment_details', 'private_key']
+      }
     });
     
     if (!store) {
@@ -86,10 +89,13 @@ router.post('/hologram', requireSeller, async (req, res) => {
     await store.update({
       hologram_label: hologramPath
     });
+    
+    // Fetch the updated store to ensure we have all fields
+    const updatedStore = await Store.findOne({ where: { user_id: req.user.id } });
 
     res.json({
       message: 'Hologram label generated successfully',
-      hologram_label: hologramPath
+      store: updatedStore
     });
   } catch (error) {
     console.error('Generate hologram error:', error);
