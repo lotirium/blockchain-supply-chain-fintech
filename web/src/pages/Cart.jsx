@@ -1,19 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateQuantity, removeItem, clearCart } from '../store/slices/cartSlice';
+import { fetchProducts } from '../store/slices/productsSlice';
 
 function Cart() {
   const dispatch = useDispatch();
   const { items, total, itemCount } = useSelector((state) => state.cart);
   const products = useSelector((state) => state.products.items);
 
+  useEffect(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
+
   // Get full product details for cart items
   const cartItems = items.map(item => {
     const product = products.find(p => p.id === item.id);
     return {
       ...item,
-      image: product?.image,
+      image: product?.images?.[0] ? `${API_URL}${product.images[0]}` : (product?.image ? `${API_URL}${product.image}` : null),
       stock: product?.stock
     };
   });

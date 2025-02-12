@@ -1,9 +1,36 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const initialState = {
-  items: [],
-  total: 0,
-  itemCount: 0,
+// Load cart state from localStorage
+const loadCartState = () => {
+  try {
+    const serializedState = localStorage.getItem('cart');
+    if (serializedState === null) {
+      return {
+        items: [],
+        total: 0,
+        itemCount: 0,
+      };
+    }
+    return JSON.parse(serializedState);
+  } catch (err) {
+    return {
+      items: [],
+      total: 0,
+      itemCount: 0,
+    };
+  }
+};
+
+const initialState = loadCartState();
+
+// Save cart state to localStorage
+const saveCartState = (state) => {
+  try {
+    const serializedState = JSON.stringify(state);
+    localStorage.setItem('cart', serializedState);
+  } catch (err) {
+    // Ignore write errors
+  }
 };
 
 const cartSlice = createSlice({
@@ -33,6 +60,7 @@ const cartSlice = createSlice({
       
       state.itemCount = state.items.reduce((total, item) => total + item.quantity, 0);
       state.total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+      saveCartState(state);
     },
     removeItem: (state, action) => {
       const { id } = action.payload;
@@ -40,6 +68,7 @@ const cartSlice = createSlice({
       
       state.itemCount = state.items.reduce((total, item) => total + item.quantity, 0);
       state.total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+      saveCartState(state);
     },
     updateQuantity: (state, action) => {
       const { id, quantity } = action.payload;
@@ -54,11 +83,13 @@ const cartSlice = createSlice({
       
       state.itemCount = state.items.reduce((total, item) => total + item.quantity, 0);
       state.total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+      saveCartState(state);
     },
     clearCart: (state) => {
       state.items = [];
       state.total = 0;
       state.itemCount = 0;
+      saveCartState(state);
     },
   },
 });
