@@ -5,7 +5,8 @@ import {
   Product,
   Store,
   User,
-  Notification
+  Notification,
+  OrderStatusHistory
 } from '../models/index.mjs';
 import auth from '../middleware/auth.mjs';
 import sequelize from '../config/database.mjs';
@@ -180,44 +181,14 @@ router.get('/', auth(['admin']), async (req, res) => {
     });
     res.json(orders);
   } catch (error) {
-    console.error('Error fetching all orders:', {
-      userId: req.user?.id,
-      error: error.message,
-      stack: error.stack
-    });
-
-    if (error.name === 'SequelizeValidationError') {
-      return res.status(400).json({
-        error: 'Validation error',
-        details: error.errors.map(err => err.message)
-      });
-    }
-
-    if (error.name === 'SequelizeDatabaseError') {
-      return res.status(500).json({
-        error: 'Database error',
-        details: 'An error occurred while querying the database'
-      });
-    }
-
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error.message
-    });
+    console.error('Error fetching all orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
 
 // Get store orders (seller only)
 router.get('/store', auth(['seller']), async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    if (!req.user.ownedStore?.id) {
-      return res.status(400).json({ error: 'No store associated with this account' });
-    }
-
     const orders = await Order.findAll({
       where: {
         store_id: req.user.ownedStore.id
@@ -231,45 +202,14 @@ router.get('/store', auth(['seller']), async (req, res) => {
     });
     res.json(orders);
   } catch (error) {
-    console.error('Error fetching store orders:', {
-      userId: req.user?.id,
-      storeId: req.user?.ownedStore?.id,
-      error: error.message,
-      stack: error.stack
-    });
-
-    if (error.name === 'SequelizeValidationError') {
-      return res.status(400).json({
-        error: 'Validation error',
-        details: error.errors.map(err => err.message)
-      });
-    }
-
-    if (error.name === 'SequelizeDatabaseError') {
-      return res.status(500).json({
-        error: 'Database error',
-        details: 'An error occurred while querying the database'
-      });
-    }
-
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error.message
-    });
+    console.error('Error fetching store orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
 
 // Get user orders
 router.get('/user', auth(), async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    if (!req.user.id) {
-      return res.status(400).json({ error: 'Invalid user ID' });
-    }
-
     const orders = await Order.findAll({
       where: { user_id: req.user.id },
       include: [
@@ -281,28 +221,14 @@ router.get('/user', auth(), async (req, res) => {
     });
     res.json(orders);
   } catch (error) {
-    console.error('Error fetching user orders:', {
-      userId: req.user?.id,
-      error: error.message,
-      stack: error.stack
-    });
-
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error.message
-    });
+    console.error('Error fetching user orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
 
 // Get single order
 router.get('/:id', auth(), async (req, res) => {
   try {
-    console.log('Fetching order details:', {
-      orderId: req.params.id,
-      userId: req.user?.id,
-      userRole: req.user?.role
-    });
-
     const order = await Order.findOne({
       where: { id: req.params.id },
       include: [
@@ -310,11 +236,6 @@ router.get('/:id', auth(), async (req, res) => {
         { model: Store, as: 'merchantStore' },
         { model: User, as: 'orderPlacer' }
       ]
-    });
-
-    console.log('Order query result:', {
-      found: !!order,
-      orderId: req.params.id
     });
 
     if (!order) {
@@ -327,55 +248,23 @@ router.get('/:id', auth(), async (req, res) => {
       order.user_id === req.user.id ||
       order.store_id === req.user.ownedStore?.id;
 
-    console.log('Access check:', {
-      orderId: req.params.id,
-      userRole: req.user.role,
-      orderUserId: order.user_id,
-      userIsOrderOwner: order.user_id === req.user.id,
-      storeId: order.store_id,
-      userStoreId: req.user.ownedStore?.id,
-      hasAccess
-    });
-
     if (!hasAccess) {
       return res.status(403).json({ error: 'Not authorized to view this order' });
     }
 
     res.json(order);
   } catch (error) {
-    console.error('Error fetching order:', {
-      orderId: req.params.id,
-      error: error.message,
-      stack: error.stack
-    });
-
-    if (error.name === 'SequelizeValidationError') {
-      return res.status(400).json({
-        error: 'Validation error',
-        details: error.errors.map(err => err.message)
-      });
-    }
-
-    if (error.name === 'SequelizeDatabaseError') {
-      return res.status(500).json({
-        error: 'Database error',
-        details: 'An error occurred while querying the database'
-      });
-    }
-
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error.message
-    });
+    console.error('Error fetching order:', error);
+    res.status(500).json({ error: 'Failed to fetch order' });
   }
 });
 
-// Update order status (seller and admin only)
+// Update order status
 router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
   const transaction = await sequelize.transaction();
   
   try {
-    const { status } = req.body;
+    const { status, notes } = req.body;
     
     console.log('Updating order status:', {
       orderId: req.params.id,
@@ -446,17 +335,20 @@ router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
       }));
     }
 
+    // Record status change in history
+    await OrderStatusHistory.create({
+      order_id: order.id,
+      from_status: oldStatus,
+      to_status: status,
+      changed_by: req.user.id,
+      notes: notes || `Status changed from ${oldStatus} to ${status}`
+    }, { transaction });
+
     await order.update({ status }, { transaction });
     
     await transaction.commit();
-    
-    console.log('Order status updated successfully:', {
-      orderId: req.params.id,
-      oldStatus,
-      newStatus: status
-    });
 
-    // Fetch fresh order data with updated relations
+    // Fetch fresh order data
     const updatedOrder = await Order.findOne({
       where: { id: req.params.id },
       include: [
@@ -470,12 +362,162 @@ router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
 
     res.json(updatedOrder);
   } catch (error) {
-    console.error('Error updating order status:', {
-      orderId: req.params.id,
-      error: error.message,
-      stack: error.stack
+    await transaction.rollback();
+    console.error('Error updating order status:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
+
+// Get order status history
+router.get('/:id/status-history', auth(), async (req, res) => {
+  try {
+    const order = await Order.findByPk(req.params.id);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Check permissions
+    const hasAccess = 
+      req.user.role === 'admin' ||
+      order.user_id === req.user.id ||
+      order.store_id === req.user.ownedStore?.id;
+
+    if (!hasAccess) {
+      return res.status(403).json({ error: 'Not authorized to view this order' });
+    }
+
+    const history = await OrderStatusHistory.findAll({
+      where: { order_id: req.params.id },
+      order: [['created_at', 'DESC']],
+      include: [{
+        model: User,
+        as: 'changedByUser',
+        attributes: ['id', 'user_name', 'first_name', 'last_name', 'role']
+      }]
     });
 
+    res.json(history);
+  } catch (error) {
+    console.error('Error fetching status history:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
+
+// Undo last status change
+router.post('/:id/undo-status', auth(['seller', 'admin']), async (req, res) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const order = await Order.findOne({
+      where: { id: req.params.id },
+      include: [
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        }
+      ],
+      transaction
+    });
+
+    if (!order) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Sellers can only update their own store's orders
+    if (req.user.role === 'seller' && order.store_id !== req.user.ownedStore?.id) {
+      await transaction.rollback();
+      return res.status(403).json({ error: 'Not authorized to update this order' });
+    }
+
+    // Get the last status change
+    const lastStatusChange = await OrderStatusHistory.findOne({
+      where: { order_id: order.id },
+      order: [['created_at', 'DESC']],
+      transaction
+    });
+
+    if (!lastStatusChange) {
+      await transaction.rollback();
+      return res.status(400).json({ error: 'No status changes to undo' });
+    }
+
+    const oldStatus = lastStatusChange.from_status;
+    const currentStatus = order.status;
+
+    // Handle stock updates for status changes
+    if (currentStatus === 'cancelled' && oldStatus !== 'cancelled') {
+      // Remove items from inventory again
+      await Promise.all(order.items.map(async (item) => {
+        const product = await Product.findByPk(item.product_id, {
+          lock: true,
+          transaction
+        });
+        
+        if (product) {
+          // Ensure we have enough stock
+          if (product.stock < item.quantity) {
+            throw new Error(`Insufficient stock for product: ${product.name}`);
+          }
+          
+          await product.update({
+            stock: product.stock - item.quantity
+          }, { transaction });
+        }
+      }));
+    }
+    // If undoing from cancelled to active status, return items to inventory
+    else if (currentStatus !== 'cancelled' && oldStatus === 'cancelled') {
+      await Promise.all(order.items.map(async (item) => {
+        const product = await Product.findByPk(item.product_id, {
+          lock: true,
+          transaction
+        });
+        
+        if (product) {
+          await product.update({
+            stock: product.stock + item.quantity
+          }, { transaction });
+        }
+      }));
+    }
+
+    // Record status change in history
+    await OrderStatusHistory.create({
+      order_id: order.id,
+      from_status: currentStatus,
+      to_status: oldStatus,
+      changed_by: req.user.id,
+      notes: `Undid status change from ${oldStatus} to ${currentStatus}`
+    }, { transaction });
+
+    await order.update({ status: oldStatus }, { transaction });
+    
+    await transaction.commit();
+
+    // Fetch fresh order data
+    const updatedOrder = await Order.findOne({
+      where: { id: req.params.id },
+      include: [
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        }
+      ]
+    });
+
+    res.json(updatedOrder);
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Error undoing status change:', error);
     res.status(500).json({
       error: 'Internal server error',
       message: error.message

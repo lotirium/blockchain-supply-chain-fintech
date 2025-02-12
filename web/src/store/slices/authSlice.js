@@ -15,6 +15,7 @@ export const updateStore = createAsyncThunk(
     }
   }
 );
+
 export const register = createAsyncThunk(
   'auth/register',
   async (userData, { rejectWithValue }) => {
@@ -133,8 +134,8 @@ const initialState = {
   registrationSuccess: false,
   lastProfileFetch: null,
   profileRefreshInterval: 5 * 60 * 1000,
-  profileFetchPending: false, // Track pending profile requests
-  initialized: false // Track if auth has been initialized
+  profileFetchPending: false,
+  initialized: false
 };
 
 const authSlice = createSlice({
@@ -180,7 +181,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.registrationSuccess = true;
         state.error = null;
-        state.lastProfileFetch = Date.now(); // Add this to prevent immediate profile fetch
+        state.lastProfileFetch = Date.now();
         localStorage.setItem('token', action.payload.token);
         localStorage.setItem('userType', state.userType);
       })
@@ -195,7 +196,6 @@ const authSlice = createSlice({
         state.lastProfileFetch = null;
       })
 
-    // Login
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -214,7 +214,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-    // Logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.token = null;
@@ -224,7 +223,6 @@ const authSlice = createSlice({
         state.error = null;
       })
 
-    // Initialize Auth
       .addCase(initializeAuth.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -249,7 +247,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-    // Get Profile
       .addCase(getProfile.pending, (state) => {
         state.loading = true;
         state.profileFetchPending = true;
@@ -258,7 +255,6 @@ const authSlice = createSlice({
       .addCase(getProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.profileFetchPending = false;
-        // Only update if data is not from cache and not from a pending fetch
         if (!action.payload.fromCache && !action.payload.pendingFetch) {
           state.user = action.payload.data;
           state.userType = action.payload.data.role;
@@ -280,7 +276,13 @@ const authSlice = createSlice({
       .addCase(updateStore.fulfilled, (state, action) => {
         state.loading = false;
         if (state.user) {
-          state.user.store = action.payload;
+          state.user = {
+            ...state.user,
+            store: {
+              ...state.user.store,  // Keep existing store data
+              ...action.payload,    // Merge with new data
+            }
+          };
         }
         state.error = null;
       })
@@ -289,7 +291,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Update Profile
       .addCase(updateProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -306,6 +307,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, resetRegistration, setHologramLabel } = authSlice.actions;
+export const { clearError, resetRegistration, setUserType, setHologramLabel } = authSlice.actions;
 
 export default authSlice.reducer;

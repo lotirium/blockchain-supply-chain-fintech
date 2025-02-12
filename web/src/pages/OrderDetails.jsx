@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import axios from 'axios';
 import { generateOrderQR, getOrderQRStatus } from '../services/qrcode';
+import { getOrderById, getOrderStatusHistory } from '../services/orders';
 import OrderLabels from '../components/OrderLabels';
 import OrderStatusControl from '../components/OrderStatusControl';
+import OrderStatusHistory from '../components/OrderStatusHistory';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
 
@@ -21,7 +22,10 @@ const OrderQRCodeSection = ({ order, onQRGenerated }) => {
             setQrCode(response.data.qrCode);
           }
         })
-        .catch(console.error);
+        .catch(err => {
+          console.error('Error fetching QR code:', err);
+          setError(err.message);
+        });
     }
   }, [order.id, order.qr_status]);
 
@@ -154,71 +158,46 @@ const OrderStatusTimeline = ({ currentStatus }) => {
 const OrderDetails = () => {
   const { id: orderId } = useParams();
   const [order, setOrder] = useState(null);
+  const [statusHistory, setStatusHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const user = useSelector(state => state.auth.user);
   const role = user?.role;
   const navigate = useNavigate();
 
+  const fetchOrderAndHistory = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch order details and status history in parallel
+      const [orderData, historyData] = await Promise.all([
+        getOrderById(orderId),
+        getOrderStatusHistory(orderId)
+      ]);
+
+      setOrder(orderData);
+      setStatusHistory(historyData);
+    } catch (err) {
+      console.error('Error fetching order data:', err);
+      setError(err.message || 'Failed to fetch order details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const response = await axios.get(`${API_URL}/api/orders/${orderId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-          },
-          timeout: 5000
-        });
-        
-        if (!response.data) {
-          throw new Error('No data received from server');
-        }
-        
-        setOrder(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching order:', err);
-        setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to fetch order');
-        setLoading(false);
-      }
-    };
-
-    fetchOrder();
+    fetchOrderAndHistory();
   }, [orderId]);
 
   const handleStatusUpdate = async (newStatus) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await axios.patch(`${API_URL}/api/orders/${orderId}/status`,
-        { status: newStatus },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-          }
-        }
-      );
-      
-      if (!response.data) {
-        throw new Error('No response data from status update');
-      }
-      
-      setOrder(prev => ({ ...prev, status: newStatus }));
+      setError(null);
+      // Refresh data after status update
+      await fetchOrderAndHistory();
     } catch (err) {
-      console.error('Error updating order status:', err);
-      setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to update order status');
+      console.error('Error refreshing order data:', err);
+      setError(err.message || 'Failed to refresh order data');
     }
   };
 
@@ -312,8 +291,11 @@ const OrderDetails = () => {
             currentStatus={order.status}
             onStatusUpdate={handleStatusUpdate}
             qrGenerated={order.qr_status === 'active'}
+            orderId={order.id}
           />
         )}
+
+        <OrderStatusHistory history={statusHistory} />
       </div>
 
       <div className="bg-white shadow rounded-lg p-6 mb-6">

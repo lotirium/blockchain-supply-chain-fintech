@@ -204,7 +204,7 @@ export const authService = {
 
   async getProfile(retryCount = 0) {
     const MAX_RETRIES = 3;
-    const BASE_DELAY = 1000; // 1 second
+    const BASE_DELAY = 1000;
 
     try {
       const token = localStorage.getItem('token');
@@ -228,10 +228,9 @@ export const authService = {
           throw new Error('Session expired. Please login again.');
         }
 
-        // Handle rate limit error specifically
         if (response.status === 429) {
           const retryAfter = response.headers.get('Retry-After') || 
-            Math.pow(2, retryCount + 1); // Exponential backoff if no Retry-After header
+            Math.pow(2, retryCount + 1);
 
           const error = await response.json();
           error.retryAfter = retryAfter;
@@ -250,9 +249,8 @@ export const authService = {
         error.message.includes('ERR_RATE_LIMIT_EXCEEDED') ||
         error.status === 429
       )) {
-        // Use Retry-After header value if available, otherwise use exponential backoff
         const delay = error.retryAfter ? 
-          error.retryAfter * 1000 : // Convert to milliseconds
+          error.retryAfter * 1000 :
           Math.min(BASE_DELAY * Math.pow(2, retryCount) + Math.random() * 1000, 10000);
 
         console.log(`Rate limit hit, retrying after ${delay}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
@@ -265,7 +263,7 @@ export const authService = {
 
   async updateProfile(userData, retryCount = 0) {
     const MAX_RETRIES = 3;
-    const BASE_DELAY = 1000; // 1 second
+    const BASE_DELAY = 1000;
 
     try {
       const token = localStorage.getItem('token');
@@ -292,10 +290,9 @@ export const authService = {
           throw new Error('Session expired. Please login again.');
         }
 
-        // Handle rate limit error specifically
         if (response.status === 429) {
           const retryAfter = response.headers.get('Retry-After') || 
-            Math.pow(2, retryCount + 1); // Exponential backoff if no Retry-After header
+            Math.pow(2, retryCount + 1);
 
           const error = await response.json();
           error.retryAfter = retryAfter;
@@ -314,9 +311,8 @@ export const authService = {
         error.message.includes('ERR_RATE_LIMIT_EXCEEDED') ||
         error.status === 429
       )) {
-        // Use Retry-After header value if available, otherwise use exponential backoff
         const delay = error.retryAfter ? 
-          error.retryAfter * 1000 : // Convert to milliseconds
+          error.retryAfter * 1000 :
           Math.min(BASE_DELAY * Math.pow(2, retryCount) + Math.random() * 1000, 10000);
 
         console.log(`Rate limit hit, retrying after ${delay}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
@@ -329,7 +325,7 @@ export const authService = {
 
   async updateStore(storeData, retryCount = 0) {
     const MAX_RETRIES = 3;
-    const BASE_DELAY = 1000; // 1 second
+    const BASE_DELAY = 1000;
 
     try {
       const token = localStorage.getItem('token');
@@ -348,15 +344,30 @@ export const authService = {
         throw new Error('Business address is required');
       }
 
-      // Normalize store data
+      // Keep all store data fields and normalize only string fields
       const normalizedStoreData = {
-        ...storeData,
+        ...storeData,  // Keep all original fields
+        // Only trim string fields if they exist
         name: storeData.name.trim(),
-        description: storeData.description?.trim() || '',
-        business_email: storeData.business_email?.trim() || '',
+        description: storeData.description?.trim(),
+        business_email: storeData.business_email?.trim(),
         business_phone: storeData.business_phone.trim(),
-        business_address: storeData.business_address.trim()
+        business_address: storeData.business_address.trim(),
+        shipping_policy: storeData.shipping_policy?.trim(),
+        return_policy: storeData.return_policy?.trim(),
+        // Preserve other fields exactly as they are
+        hologram_label: storeData.hologram_label,
+        is_verified: storeData.is_verified,
+        type: storeData.type,
+        logo: storeData.logo,
+        banner: storeData.banner,
+        rating: storeData.rating,
+        total_sales: storeData.total_sales,
+        total_products: storeData.total_products,
+        total_orders: storeData.total_orders
       };
+
+      console.log('Sending store update with data:', normalizedStoreData);
 
       const response = await fetch(`${API_URL}/api/seller/store`, {
         method: 'PUT',
@@ -390,7 +401,9 @@ export const authService = {
         throw new Error(error.message || 'Failed to update store information');
       }
 
-      return response.json();
+      const updatedStore = await response.json();
+      console.log('Received updated store data:', updatedStore);
+      return updatedStore;
     } catch (error) {
       if (retryCount < MAX_RETRIES && (
         error.message === 'Failed to fetch' || 
@@ -408,5 +421,5 @@ export const authService = {
       }
       throw error;
     }
-  },
+  }
 };

@@ -4,6 +4,31 @@ import { User, Store } from '../models/index.mjs';
 
 const router = express.Router();
 
+const formatStoreData = (store) => ({
+  id: store.id,
+  name: store.name,
+  description: store.description,
+  status: store.status,
+  type: store.type,
+  is_verified: store.is_verified,
+  verification_date: store.verification_date,
+  business_email: store.business_email,
+  business_phone: store.business_phone,
+  business_address: store.business_address,
+  wallet_address: store.wallet_address,
+  rating: store.rating,
+  total_sales: store.total_sales,
+  total_products: store.total_products,
+  total_orders: store.total_orders,
+  shipping_policy: store.shipping_policy,
+  return_policy: store.return_policy,
+  hologram_label: store.hologram_label,
+  logo: store.logo,
+  banner: store.banner,
+  created_at: store.created_at,
+  updated_at: store.updated_at
+});
+
 // Get user profile
 router.get('/', auth(), async (req, res) => {
   try {
@@ -42,25 +67,7 @@ router.get('/', auth(), async (req, res) => {
       lastLogin: userData.last_login,
       createdAt: userData.created_at,
       updatedAt: userData.updated_at,
-      store: userData.ownedStore ? {
-        id: userData.ownedStore.id,
-        name: userData.ownedStore.name,
-        description: userData.ownedStore.description,
-        status: userData.ownedStore.status,
-        type: userData.ownedStore.type,
-        is_verified: userData.ownedStore.is_verified,
-        verification_date: userData.ownedStore.verification_date,
-        business_email: userData.ownedStore.business_email,
-        business_phone: userData.ownedStore.business_phone,
-        business_address: userData.ownedStore.business_address,
-        wallet_address: userData.ownedStore.wallet_address,
-        rating: userData.ownedStore.rating,
-        total_sales: userData.ownedStore.total_sales,
-        total_products: userData.ownedStore.total_products,
-        total_orders: userData.ownedStore.total_orders,
-        created_at: userData.ownedStore.created_at,
-        updated_at: userData.ownedStore.updated_at
-      } : null
+      store: userData.ownedStore ? formatStoreData(userData.ownedStore) : null
     });
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -153,25 +160,7 @@ router.put('/', auth(), async (req, res) => {
       lastLogin: updatedUserData.last_login,
       createdAt: updatedUserData.created_at,
       updatedAt: updatedUserData.updated_at,
-      store: updatedUserData.ownedStore ? {
-        id: updatedUserData.ownedStore.id,
-        name: updatedUserData.ownedStore.name,
-        description: updatedUserData.ownedStore.description,
-        status: updatedUserData.ownedStore.status,
-        type: updatedUserData.ownedStore.type,
-        is_verified: updatedUserData.ownedStore.is_verified,
-        verification_date: updatedUserData.ownedStore.verification_date,
-        business_email: updatedUserData.ownedStore.business_email,
-        business_phone: updatedUserData.ownedStore.business_phone,
-        business_address: updatedUserData.ownedStore.business_address,
-        wallet_address: updatedUserData.ownedStore.wallet_address,
-        rating: updatedUserData.ownedStore.rating,
-        total_sales: updatedUserData.ownedStore.total_sales,
-        total_products: updatedUserData.ownedStore.total_products,
-        total_orders: updatedUserData.ownedStore.total_orders,
-        created_at: updatedUserData.ownedStore.created_at,
-        updated_at: updatedUserData.ownedStore.updated_at
-      } : null
+      store: updatedUserData.ownedStore ? formatStoreData(updatedUserData.ownedStore) : null
     });
   } catch (error) {
     console.error('Error updating profile:', error);

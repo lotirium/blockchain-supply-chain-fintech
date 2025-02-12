@@ -214,15 +214,25 @@ try {
 }
 
 // Static file serving with proper headers
-app.use('/uploads', express.static(uploadsDir));
 app.use('/uploads', (req, res, next) => {
+  // Set CORS headers
   res.set({
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET',
     'Cache-Control': 'public, max-age=31536000',
   });
+
+  // Set Content-Disposition: attachment for hologram files to trigger download
+  if (req.path.startsWith('/holograms/')) {
+    const filename = path.basename(req.path);
+    res.set({
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Type': 'image/png'
+    });
+  }
+  
   next();
-});
+}, express.static(uploadsDir));
 
 // Rate limiting middleware
 app.use('/api/auth', authLimiter);

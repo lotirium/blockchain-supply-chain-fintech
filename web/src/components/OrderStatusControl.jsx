@@ -1,18 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { updateOrderStatus, undoOrderStatus } from '../services/orders';
 
-const OrderStatusControl = ({ currentStatus, onStatusUpdate, qrGenerated, allowUndo = true }) => {
-  // Previous status mapping for undo
-  const previousStatus = {
-    confirmed: 'pending',
-    packed: 'confirmed',
-    shipped: 'packed',
-    delivered: 'shipped',
-    cancelled: currentStatus,
-    refunded: 'delivered'
-  };
+const OrderStatusControl = ({ currentStatus, onStatusUpdate, qrGenerated, orderId }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Define valid status transitions
-  const statusTransitions = {
+  const statusFlow = {
     pending: ['confirmed', 'cancelled'],
     confirmed: ['packed', 'cancelled'],
     packed: ['shipped', 'cancelled'],
@@ -22,109 +15,100 @@ const OrderStatusControl = ({ currentStatus, onStatusUpdate, qrGenerated, allowU
     refunded: []
   };
 
-  // Get available next statuses based on current status and QR status
-  let availableTransitions = statusTransitions[currentStatus] || [];
-  
-  // Prevent packed status if QR is not generated
-  if (!qrGenerated && currentStatus === 'confirmed') {
-    availableTransitions = availableTransitions.filter(status => status !== 'packed');
-  }
-
-  const handleUndo = () => {
-    const prevStatus = previousStatus[currentStatus];
-    if (prevStatus) {
-      onStatusUpdate(prevStatus);
+  const handleStatusChange = async (newStatus) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await updateOrderStatus(orderId, newStatus);
+      onStatusUpdate(newStatus);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Define status descriptions
-  const statusInfo = {
-    confirmed: {
-      description: 'Order has been confirmed and payment verified',
-      action: 'Confirm Order'
-    },
-    packed: {
-      description: 'Products have been packaged and ready for shipping',
-      action: 'Mark as Packed'
-    },
-    shipped: {
-      description: 'Order has been handed over to shipping carrier',
-      action: 'Mark as Shipped'
-    },
-    delivered: {
-      description: 'Order has been delivered to the customer',
-      action: 'Mark as Delivered'
-    },
-    cancelled: {
-      description: 'Order has been cancelled',
-      action: 'Cancel Order'
-    },
-    refunded: {
-      description: 'Order has been refunded',
-      action: 'Mark as Refunded'
+  const handleUndo = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const updatedOrder = await undoOrderStatus(orderId);
+      onStatusUpdate(updatedOrder.status);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Define status colors
-  const statusColors = {
-    confirmed: 'bg-blue-600 hover:bg-blue-700',
-    packed: 'bg-indigo-600 hover:bg-indigo-700',
-    shipped: 'bg-purple-600 hover:bg-purple-700',
-    delivered: 'bg-green-600 hover:bg-green-700',
-    cancelled: 'bg-red-600 hover:bg-red-700',
-    refunded: 'bg-gray-600 hover:bg-gray-700'
+  // Helper function to get button style based on status
+  const getButtonStyle = (status) => {
+    const styles = {
+      default: 'inline-flex items-center px-4 py-2 border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ',
+      confirmed: 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700',
+      packed: 'border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700',
+      shipped: 'border-purple-600 bg-purple-600 text-white hover:bg-purple-700',
+      delivered: 'border-green-600 bg-green-600 text-white hover:bg-green-700',
+      cancelled: 'border-red-600 bg-red-600 text-white hover:bg-red-700',
+      refunded: 'border-gray-600 bg-gray-600 text-white hover:bg-gray-700',
+      undo: 'border-yellow-600 bg-yellow-600 text-white hover:bg-yellow-700'
+    };
+
+    return `${styles.default} ${styles[status] || styles.confirmed}`;
   };
 
-  if (availableTransitions.length === 0) {
+  // Get available next statuses
+  const nextStatuses = statusFlow[currentStatus] || [];
+
+  // Don't show controls for final statuses
+  if (['cancelled', 'refunded'].includes(currentStatus)) {
     return (
-      <div className="mt-4">
-        <p className="text-sm text-gray-600">
-          No further status updates available for {currentStatus} status.
-        </p>
+      <div className="space-y-4">
+        {error && (
+          <div className="text-red-600 text-sm">{error}</div>
+        )}
+        <button
+          onClick={handleUndo}
+          disabled={loading}
+          className={`${getButtonStyle('undo')} mr-2`}
+        >
+          {loading ? 'Processing...' : 'Undo Status Change'}
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="mt-4 space-y-4">
-      {currentStatus === 'confirmed' && !qrGenerated && (
-        <div className="bg-yellow-50 text-yellow-800 px-4 py-2 rounded-md text-sm">
-          Generate QR code first before marking order as packed
-        </div>
+    <div className="space-y-4">
+      {error && (
+        <div className="text-red-600 text-sm">{error}</div>
       )}
-      
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Available Actions:</h3>
-        <div className="flex flex-wrap gap-2">
-          {availableTransitions.map(status => (
-            <div key={status} className="flex-1 min-w-[200px]">
-              <button
-                onClick={() => onStatusUpdate(status)}
-                className={`w-full px-4 py-2 text-white rounded-md transition-colors ${statusColors[status]}`}
-              >
-                {statusInfo[status].action}
-              </button>
-              <p className="mt-1 text-sm text-gray-600">
-                {statusInfo[status].description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <div className="flex flex-wrap gap-2">
+        {nextStatuses.map(status => {
+          // Don't show cancelled option if QR is generated
+          if (status === 'cancelled' && qrGenerated) {
+            return null;
+          }
 
-      {allowUndo && currentStatus !== 'pending' && (
-        <div className="flex justify-end">
-          <button
-            onClick={handleUndo}
-            className="text-gray-600 hover:text-gray-800 text-sm flex items-center gap-1"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-            </svg>
-            Undo Status Change
-          </button>
-        </div>
-      )}
+          return (
+            <button
+              key={status}
+              onClick={() => handleStatusChange(status)}
+              disabled={loading}
+              className={getButtonStyle(status)}
+            >
+              {loading ? 'Processing...' : `Mark as ${status}`}
+            </button>
+          );
+        })}
+        <button
+          onClick={handleUndo}
+          disabled={loading}
+          className={`${getButtonStyle('undo')} ml-auto`}
+        >
+          {loading ? 'Processing...' : 'Undo Last Change'}
+        </button>
+      </div>
     </div>
   );
 };

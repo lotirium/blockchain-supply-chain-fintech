@@ -3,11 +3,54 @@ import sequelize from '../config/database.mjs';
 
 class Store extends Model {
   toJSON() {
-    const values = { ...this.get() };
-    // Remove only sensitive data while keeping hologram_label
+    // Get raw values
+    const values = Object.assign({}, this.get());
+    
+    // Log the raw values before modification
+    console.log('Store raw values:', values);
+    
+    // Remove only sensitive data while keeping everything else
     delete values.payment_details;
     delete values.private_key;
-    return values;
+    
+    // Ensure all defined fields are included
+    const fieldsToInclude = [
+      'id',
+      'user_id',
+      'name',
+      'description',
+      'status',
+      'type',
+      'business_email',
+      'business_phone',
+      'business_address',
+      'logo',
+      'banner',
+      'hologram_label',
+      'shipping_policy',
+      'return_policy',
+      'is_verified',
+      'verification_date',
+      'blockchain_verification_date',
+      'wallet_address',
+      'rating',
+      'total_sales',
+      'total_products',
+      'total_orders',
+      'createdAt',
+      'updatedAt'
+    ];
+
+    // Ensure all fields are present, even if null
+    const result = {};
+    fieldsToInclude.forEach(field => {
+      result[field] = values[field];
+    });
+
+    // Log the final serialized object
+    console.log('Store serialized:', result);
+    
+    return result;
   }
 }
 
@@ -91,7 +134,7 @@ Store.init({
   },
   wallet_address: {
     type: DataTypes.STRING,
-    allowNull: false, // Required for all stores
+    allowNull: false,
     validate: {
       is: /^0x[a-fA-F0-9]{40}$/,
       validateWalletAddress(value) {

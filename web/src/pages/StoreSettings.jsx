@@ -13,6 +13,8 @@ function StoreSettings() {
   const [success, setSuccess] = useState(false);
   const [generatingHologram, setGeneratingHologram] = useState(false);
   const [hologramError, setHologramError] = useState(null);
+  
+  // Initialize form data with all store fields
   const [formData, setFormData] = useState({
     name: user?.store?.name || '',
     description: user?.store?.description || '',
@@ -21,10 +23,44 @@ function StoreSettings() {
     business_address: user?.store?.business_address || '',
     wallet_address: user?.store?.wallet_address || '',
     shipping_policy: user?.store?.shipping_policy || '',
-    return_policy: user?.store?.return_policy || ''
+    return_policy: user?.store?.return_policy || '',
+    type: user?.store?.type || 'manufacturer',
+    logo: user?.store?.logo || '',
+    banner: user?.store?.banner || '',
+    hologram_label: user?.store?.hologram_label || '',
+    is_verified: user?.store?.is_verified || false,
+    rating: user?.store?.rating || 0,
+    total_sales: user?.store?.total_sales || 0,
+    total_products: user?.store?.total_products || 0,
+    total_orders: user?.store?.total_orders || 0
   });
 
-  // Redirect if not a seller
+  // Update form data when user store data changes
+  useEffect(() => {
+    if (user?.store) {
+      setFormData(prevData => ({
+        ...prevData,
+        name: user.store.name || prevData.name,
+        description: user.store.description || prevData.description,
+        business_email: user.store.business_email || user.email || prevData.business_email,
+        business_phone: user.store.business_phone || prevData.business_phone,
+        business_address: user.store.business_address || prevData.business_address,
+        wallet_address: user.store.wallet_address || prevData.wallet_address,
+        shipping_policy: user.store.shipping_policy || prevData.shipping_policy,
+        return_policy: user.store.return_policy || prevData.return_policy,
+        type: user.store.type || prevData.type,
+        logo: user.store.logo || prevData.logo,
+        banner: user.store.banner || prevData.banner,
+        hologram_label: user.store.hologram_label || prevData.hologram_label,
+        is_verified: user.store.is_verified || prevData.is_verified,
+        rating: user.store.rating || prevData.rating,
+        total_sales: user.store.total_sales || prevData.total_sales,
+        total_products: user.store.total_products || prevData.total_products,
+        total_orders: user.store.total_orders || prevData.total_orders
+      }));
+    }
+  }, [user]);
+
   useEffect(() => {
     if (user && user.role !== 'seller') {
       navigate('/');
@@ -114,14 +150,13 @@ function StoreSettings() {
     const randomType = storeTypes[Math.floor(Math.random() * storeTypes.length)];
     const sample = sampleData[randomType];
     
-    // Merge existing data with sample data, keeping existing values
     setFormData(prev => ({
+      ...prev,
       name: prev.name || sample.name,
       description: prev.description || sample.description,
       business_email: prev.business_email || user?.email || `info@${sample.name.toLowerCase().replace(/\s+/g, '')}.com`,
       business_phone: prev.business_phone || sample.business_phone,
       business_address: prev.business_address || sample.business_address,
-      wallet_address: prev.wallet_address || wallet_address,
       shipping_policy: prev.shipping_policy || sample.shipping_policy,
       return_policy: prev.return_policy || sample.return_policy
     }));
@@ -255,6 +290,7 @@ function StoreSettings() {
                 />
               </div>
             </div>
+
             <div>
               <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
                 Business Address
