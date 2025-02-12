@@ -8,11 +8,14 @@ import {
   Notification
 } from '../models/index.mjs';
 import auth from '../middleware/auth.mjs';
+import sequelize from '../config/database.mjs';
 
 const router = express.Router();
 
 // Create new order
 router.post('/', auth(), async (req, res) => {
+  const transaction = await sequelize.transaction();
+
   try {
     const { items, shipping_address, billing_address, payment_info } = req.body;
     
@@ -40,7 +43,7 @@ router.post('/', auth(), async (req, res) => {
 
     // Create orders for each store
     for (const [store_id, storeItems] of Object.entries(itemsByStore)) {
-      const store = await Store.findByPk(store_id);
+      const store = await Store.findByPk(store_id, { transaction });
       if (!store) {
         throw new Error(`Store not found: ${store_id}`);
       }
@@ -65,17 +68,29 @@ router.post('/', auth(), async (req, res) => {
         total_fiat_amount: total,
         shipping_method: 'standard',
         shipping_cost: 0
-      });
+      }, { transaction });
 
-      // Verify products and create order items
+      // Verify products, check stock, and create order items
       await Promise.all(storeItems.map(async item => {
-        const product = await Product.findByPk(item.product_id);
+        const product = await Product.findByPk(item.product_id, {
+          lock: true, // Lock the row for update
+          transaction
+        });
+
         if (!product) {
           throw new Error(`Product not found: ${item.product_id}`);
         }
         if (product.store_id !== store_id) {
           throw new Error(`Product ${item.product_id} does not belong to store ${store_id}`);
         }
+        if (product.stock < item.quantity) {
+          throw new Error(`Insufficient stock for product: ${product.name}`);
+        }
+
+        // Update product stock
+        await product.update({
+          stock: product.stock - item.quantity
+        }, { transaction });
 
         // Create snapshot of product at time of order
         const productSnapshot = {
@@ -95,7 +110,7 @@ router.post('/', auth(), async (req, res) => {
           unit_price: item.unit_price,
           total_price: item.unit_price * item.quantity,
           product_snapshot: productSnapshot
-        });
+        }, { transaction });
       }));
 
       // Create notification for store owner
@@ -125,19 +140,25 @@ router.post('/', auth(), async (req, res) => {
             total_price: item.unit_price * item.quantity
           }))
         }
-      });
+      }, { transaction });
 
       orders.push({
         ...order.toJSON(),
-        items: await OrderItem.findAll({ where: { order_id: order.id } })
+        items: await OrderItem.findAll({ 
+          where: { order_id: order.id },
+          transaction
+        })
       });
     }
+
+    await transaction.commit();
 
     res.status(201).json({
       success: true,
       data: orders
     });
   } catch (error) {
+    await transaction.rollback();
     console.error('Error creating order:', error);
     res.status(500).json({
       success: false,
@@ -351,6 +372,8 @@ router.get('/:id', auth(), async (req, res) => {
 
 // Update order status (seller and admin only)
 router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
+  const transaction = await sequelize.transaction();
+  
   try {
     const { status } = req.body;
     
@@ -362,27 +385,90 @@ router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
     });
 
     const order = await Order.findOne({
-      where: { id: req.params.id }
+      where: { id: req.params.id },
+      include: [
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        }
+      ],
+      transaction
     });
 
     if (!order) {
+      await transaction.rollback();
       return res.status(404).json({ error: 'Order not found' });
     }
 
     // Sellers can only update their own store's orders
     if (req.user.role === 'seller' && order.store_id !== req.user.ownedStore?.id) {
+      await transaction.rollback();
       return res.status(403).json({ error: 'Not authorized to update this order' });
     }
 
-    await order.update({ status });
+    const oldStatus = order.status;
+
+    // Handle stock updates for cancelled orders
+    if (status === 'cancelled' && oldStatus !== 'cancelled') {
+      // Return items to inventory
+      await Promise.all(order.items.map(async (item) => {
+        const product = await Product.findByPk(item.product_id, {
+          lock: true,
+          transaction
+        });
+        
+        if (product) {
+          await product.update({
+            stock: product.stock + item.quantity
+          }, { transaction });
+        }
+      }));
+    }
+    // If reactivating a cancelled order, remove items from inventory again
+    else if (oldStatus === 'cancelled' && status !== 'cancelled') {
+      await Promise.all(order.items.map(async (item) => {
+        const product = await Product.findByPk(item.product_id, {
+          lock: true,
+          transaction
+        });
+        
+        if (product) {
+          // Ensure we have enough stock to reactivate
+          if (product.stock < item.quantity) {
+            throw new Error(`Insufficient stock for product: ${product.name}`);
+          }
+          
+          await product.update({
+            stock: product.stock - item.quantity
+          }, { transaction });
+        }
+      }));
+    }
+
+    await order.update({ status }, { transaction });
+    
+    await transaction.commit();
     
     console.log('Order status updated successfully:', {
       orderId: req.params.id,
-      oldStatus: order.status,
+      oldStatus,
       newStatus: status
     });
 
-    res.json(order);
+    // Fetch fresh order data with updated relations
+    const updatedOrder = await Order.findOne({
+      where: { id: req.params.id },
+      include: [
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        }
+      ]
+    });
+
+    res.json(updatedOrder);
   } catch (error) {
     console.error('Error updating order status:', {
       orderId: req.params.id,

@@ -185,8 +185,8 @@ function AddProduct() {
         formDataToSend.append('images', image);
       });
 
-      const result = await dispatch(createProduct({ formData: formDataToSend })).unwrap();
-      navigate(`/products/${result.product.id}`);
+      await dispatch(createProduct({ formData: formDataToSend })).unwrap();
+      navigate('/seller-products');
     } catch (err) {
       setError(err.message || 'Failed to create product. Please try again.');
     }

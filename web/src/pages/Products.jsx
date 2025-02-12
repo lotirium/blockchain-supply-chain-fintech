@@ -22,8 +22,15 @@ function Products() {
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Set initial category from URL params
+  useEffect(() => {
+    const category = searchParams.get('category') || 'all';
+    dispatch(setCategory(category));
+  }, [searchParams, dispatch]);
+
   const handleCategoryChange = (category) => {
     setSearchParams({ category });
+    dispatch(setCategory(category));
   };
 
   const handleSortChange = (e) => {
@@ -37,14 +44,18 @@ function Products() {
       return;
     }
 
-    dispatch(addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      store_id,
-      quantity: 1,
-      store_name: product.store?.name // Include store name for reference
-    }));
+    // Only add if stock is available
+    if (product.stock > 0) {
+      dispatch(addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        store_id,
+        quantity: 1,
+        stock: product.stock, // Pass stock information
+        store_name: product.store?.name
+      }));
+    }
   };
 
   return (
@@ -122,9 +133,14 @@ function Products() {
                       <span className="text-xl font-bold">${product.price}</span>
                       <button
                         onClick={() => handleAddToCart(product)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                        className={`px-4 py-2 rounded-md transition-colors ${
+                          product.stock > 0
+                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                            : 'bg-gray-400 text-white cursor-not-allowed'
+                        }`}
+                        disabled={product.stock === 0}
                       >
-                        Add to Cart
+                        {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
                       </button>
                     </div>
                     {product.stock < 5 && (

@@ -38,7 +38,7 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addItem: (state, action) => {
-      const { id, name, price, store_id, quantity = 1 } = action.payload;
+      const { id, name, price, store_id, quantity = 1, stock } = action.payload;
       
       if (!store_id) {
         throw new Error('store_id is required when adding items to cart');
@@ -47,14 +47,21 @@ const cartSlice = createSlice({
       const existingItem = state.items.find(item => item.id === id);
       
       if (existingItem) {
-        existingItem.quantity += quantity;
+        // Calculate new total quantity
+        const newQuantity = existingItem.quantity + quantity;
+        // Ensure new quantity doesn't exceed stock
+        if (newQuantity <= stock) {
+          existingItem.quantity = newQuantity;
+        }
       } else {
+        // Ensure initial quantity doesn't exceed stock
+        const initialQuantity = Math.min(quantity, stock);
         state.items.push({
           id,
           name,
           price,
           store_id,
-          quantity
+          quantity: initialQuantity
         });
       }
       

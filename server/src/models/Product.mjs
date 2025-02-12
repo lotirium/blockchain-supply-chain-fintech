@@ -121,6 +121,18 @@ Product.init({
   sequelize,
   modelName: 'Product',
   tableName: 'products',
+  hooks: {
+    beforeSave: async (product) => {
+      // Update status to 'sold_out' if stock reaches 0
+      if (product.status === 'active' && product.stock === 0) {
+        product.status = 'sold_out';
+      }
+      // Update status back to 'active' if stock becomes available again
+      else if (product.status === 'sold_out' && product.stock > 0) {
+        product.status = 'active';
+      }
+    }
+  },
   indexes: [
     {
       fields: ['user_id']

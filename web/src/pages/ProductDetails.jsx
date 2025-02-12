@@ -105,7 +105,8 @@ function ProductDetails() {
       name: productData.name,
       price: productData.price,
       store_id,
-      quantity
+      quantity,
+      stock: productData.stock // Pass stock information
     }));
   };
 
