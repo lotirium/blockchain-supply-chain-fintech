@@ -1,3 +1,4 @@
+import express from 'express';
 
 import {
   Order,
@@ -107,7 +108,7 @@ router.post('/', auth(), async (req, res) => {
         // Create initial order history entry
         await OrderStatusHistory.create({
           order_id: order.id,
-          from_status: 'created',
+          from_status: 'pending',
           to_status: 'pending',
           changed_by: req.user.id,
           notes: 'Order created'
@@ -126,10 +127,11 @@ router.post('/', auth(), async (req, res) => {
       // Create notification for store owner
       await Notification.create({
         user_id: store.user_id,
+        title: 'New Order Received',
         message: `New order received for $${total.toFixed(2)}`,
         type: 'success',
         priority: 10,
-        read: false,
+        is_read: false,
         data: {
           order_id: order.id,
           total,
@@ -181,10 +183,28 @@ router.post('/', auth(), async (req, res) => {
 router.get('/', auth(['admin']), async (req, res) => {
   try {
     const orders = await Order.findAll({
+      attributes: ['id', 'status', 'total_fiat_amount', 'created_at', 'updated_at'],
       include: [
-        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product' }] },
-        { model: Store, as: 'merchantStore' },
-        { model: User, as: 'orderPlacer' }
+        {
+          model: OrderItem,
+          as: 'items',
+          attributes: ['quantity', 'unit_price', 'total_price'],
+          include: [{
+            model: Product,
+            as: 'product',
+            attributes: ['id', 'name', 'description']
+          }]
+        },
+        {
+          model: Store,
+          as: 'merchantStore',
+          attributes: ['id', 'name']
+        },
+        {
+          model: User,
+          as: 'orderPlacer',
+          attributes: ['id', 'first_name', 'last_name', 'email']
+        }
       ],
       order: [['created_at', 'DESC']]
     });
@@ -202,10 +222,28 @@ router.get('/store', auth(['seller']), async (req, res) => {
       where: {
         store_id: req.user.ownedStore.id
       },
+      attributes: ['id', 'status', 'total_fiat_amount', 'created_at', 'updated_at'],
       include: [
-        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product' }] },
-        { model: Store, as: 'merchantStore' },
-        { model: User, as: 'orderPlacer' }
+        {
+          model: OrderItem,
+          as: 'items',
+          attributes: ['quantity', 'unit_price', 'total_price'],
+          include: [{
+            model: Product,
+            as: 'product',
+            attributes: ['id', 'name', 'description']
+          }]
+        },
+        {
+          model: Store,
+          as: 'merchantStore',
+          attributes: ['id', 'name']
+        },
+        {
+          model: User,
+          as: 'orderPlacer',
+          attributes: ['id', 'first_name', 'last_name', 'email']
+        }
       ],
       order: [['created_at', 'DESC']]
     });
@@ -221,10 +259,28 @@ router.get('/user', auth(), async (req, res) => {
   try {
     const orders = await Order.findAll({
       where: { user_id: req.user.id },
+      attributes: ['id', 'status', 'total_fiat_amount', 'created_at', 'updated_at'],
       include: [
-        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product' }] },
-        { model: Store, as: 'merchantStore' },
-        { model: User, as: 'orderPlacer' }
+        {
+          model: OrderItem,
+          as: 'items',
+          attributes: ['quantity', 'unit_price', 'total_price'],
+          include: [{
+            model: Product,
+            as: 'product',
+            attributes: ['id', 'name', 'description']
+          }]
+        },
+        {
+          model: Store,
+          as: 'merchantStore',
+          attributes: ['id', 'name']
+        },
+        {
+          model: User,
+          as: 'orderPlacer',
+          attributes: ['id', 'first_name', 'last_name', 'email']
+        }
       ],
       order: [['created_at', 'DESC']]
     });
@@ -240,11 +296,34 @@ router.get('/:id', auth(), async (req, res) => {
   try {
     const order = await Order.findOne({
       where: { id: req.params.id },
+      attributes: ['id', 'status', 'total_fiat_amount', 'created_at', 'updated_at', 'shipping_address', 'payment_method', 'payment_status', 'user_id', 'store_id'],
       include: [
-        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product' }] },
-        { model: Store, as: 'merchantStore' },
-        { model: User, as: 'orderPlacer' },
-        { model: OrderStatusHistory, as: 'statusHistory', order: [['created_at', 'DESC']] }
+        {
+          model: OrderItem,
+          as: 'items',
+          attributes: ['quantity', 'unit_price', 'total_price'],
+          include: [{
+            model: Product,
+            as: 'product',
+            attributes: ['id', 'name', 'description', 'images']
+          }]
+        },
+        {
+          model: Store,
+          as: 'merchantStore',
+          attributes: ['id', 'name', 'business_email', 'business_phone']
+        },
+        {
+          model: User,
+          as: 'orderPlacer',
+          attributes: ['id', 'first_name', 'last_name', 'email']
+        },
+        {
+          model: OrderStatusHistory,
+          as: 'statusHistory',
+          attributes: ['from_status', 'to_status', 'notes', 'created_at'],
+          order: [['created_at', 'DESC']]
+        }
       ]
     });
 
@@ -252,14 +331,30 @@ router.get('/:id', auth(), async (req, res) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Check permissions
-    const hasAccess = 
-      req.user.role === 'admin' ||
-      order.user_id === req.user.id ||
-      order.store_id === req.user.ownedStore?.id;
+    // Check permissions with detailed logging
+    console.log('Order access check:', {
+      requestUserId: req.user.id,
+      userRole: req.user.role,
+      orderUserId: order.user_id,
+      storeId: order.store_id,
+      userStoreId: req.user.ownedStore?.id
+    });
+
+    const hasAccess =
+      req.user.role === 'admin' || // Admin can access all orders
+      (req.user.id === order.user_id) || // User can access their own orders
+      (req.user.role === 'seller' && req.user.ownedStore?.id === order.store_id); // Seller can access their store's orders
 
     if (!hasAccess) {
-      return res.status(403).json({ error: 'Not authorized to view this order' });
+      console.log('Access denied for order:', {
+        orderId: req.params.id,
+        userId: req.user.id,
+        userRole: req.user.role
+      });
+      return res.status(403).json({
+        error: 'Not authorized to view this order',
+        details: 'You must be the order owner, store owner, or an admin to view this order'
+      });
     }
 
     res.json(order);
@@ -435,7 +530,7 @@ router.post('/:id/undo-status', auth(['seller', 'admin']), async (req, res) => {
           model: OrderStatusHistory,
           as: 'statusHistory',
           order: [['created_at', 'DESC']],
-          limit: 2
+          limit: null
         }
       ],
       transaction
@@ -452,14 +547,22 @@ router.post('/:id/undo-status', auth(['seller', 'admin']), async (req, res) => {
       return res.status(403).json({ error: 'Not authorized to update this order' });
     }
 
-    // Get the last status change
     if (!order.statusHistory.length) {
       await transaction.rollback();
       return res.status(400).json({ error: 'No status changes to undo' });
     }
 
-    const lastStatus = order.statusHistory[0];
-    const oldStatus = lastStatus.from_status;
+    // Find the next status to revert to by looking for the last change to current status
+    let targetStatus = null;
+    for (let i = 1; i < order.statusHistory.length; i++) {
+      if (order.statusHistory[i].to_status === order.statusHistory[0].from_status) {
+        targetStatus = order.statusHistory[i].from_status;
+        break;
+      }
+    }
+
+    // If no previous state found, use the initial from_status
+    const oldStatus = targetStatus || order.statusHistory[0].from_status;
     const currentStatus = order.status;
 
     // Handle stock updates for status changes

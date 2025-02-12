@@ -44,13 +44,31 @@ Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
 // Helper functions
 export const syncDatabase = async (force = false) => {
+  // Drop tables in reverse dependency order
+  if (force) {
+    await Promise.all([
+      OrderItem.drop({ cascade: true }),
+      OrderStatusHistory.drop({ cascade: true }),
+      Notification.drop({ cascade: true })
+    ]);
+    await Promise.all([
+      Order.drop({ cascade: true }),
+      Product.drop({ cascade: true })
+    ]);
+    await Store.drop({ cascade: true });
+    await User.drop({ cascade: true });
+  }
+
+  // Create tables in dependency order
   await User.sync({ force });
   await Store.sync({ force });
   await Product.sync({ force });
   await Order.sync({ force });
-  await OrderItem.sync({ force });
-  await OrderStatusHistory.sync({ force });
-  await Notification.sync({ force });
+  await Promise.all([
+    OrderItem.sync({ force }),
+    OrderStatusHistory.sync({ force }),
+    Notification.sync({ force })
+  ]);
 };
 
 export const initializeDatabase = async () => {

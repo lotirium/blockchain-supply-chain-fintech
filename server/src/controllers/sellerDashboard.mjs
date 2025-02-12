@@ -6,7 +6,7 @@ const getUnreadNotificationsCount = async (userId) => {
   return await Notification.count({
     where: {
       user_id: userId,
-      read: false,
+      is_read: false,
       [Op.or]: [
         { expiry_date: null },
         { expiry_date: { [Op.gt]: new Date() } }
@@ -117,7 +117,7 @@ export const getDashboardData = async (req, res) => {
         message: notification.message,
         type: notification.type,
         priority: notification.priority,
-        read: notification.read,
+        is_read: notification.is_read,
         created_at: notification.created_at,
         data: notification.data
       }))
@@ -152,7 +152,7 @@ export const getNotifications = async (req, res) => {
     };
 
     if (type) where.type = type;
-    if (read !== undefined) where.read = read === 'true';
+    if (read !== undefined) where.is_read = read === 'true';
 
     // Get notifications with pagination
     const { count, rows } = await Notification.findAndCountAll({
@@ -204,7 +204,7 @@ export const markNotificationRead = async (req, res) => {
       });
     }
 
-    await notification.update({ read: true });
+    await notification.update({ is_read: true });
 
     return res.json({
       success: true,
@@ -224,11 +224,11 @@ export const markAllNotificationsRead = async (req, res) => {
     const userId = req.user.id;
 
     await Notification.update(
-      { read: true },
+      { is_read: true },
       {
         where: {
           user_id: userId,
-          read: false
+          is_read: false
         }
       }
     );
@@ -385,12 +385,12 @@ export const getStoreCustomers = async (req, res) => {
         'id',
         'user_name',
         'email',
-        [Sequelize.fn('COUNT', Sequelize.col('placedOrders.id')), 'orderCount'],
-        [Sequelize.fn('SUM', Sequelize.col('placedOrders.total_fiat_amount')), 'totalSpent']
+        [Sequelize.fn('COUNT', Sequelize.col('orders.id')), 'orderCount'],
+        [Sequelize.fn('SUM', Sequelize.col('orders.total_fiat_amount')), 'totalSpent']
       ],
       include: [{
         model: Order,
-        as: 'placedOrders',
+        as: 'orders',
         where: { store_id: store.id },
         attributes: []
       }],

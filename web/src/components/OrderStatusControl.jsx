@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { updateOrderStatus, undoOrderStatus } from '../services/orders';
+import { updateOrderStatus } from '../services/orders';
 
-const OrderStatusControl = ({ currentStatus, onStatusUpdate, qrGenerated, orderId }) => {
+const OrderStatusControl = ({ currentStatus, onStatusUpdate, onUndo, qrGenerated, orderId }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -32,9 +32,7 @@ const OrderStatusControl = ({ currentStatus, onStatusUpdate, qrGenerated, orderI
     try {
       setLoading(true);
       setError(null);
-      // Use status history to go back one step
-      const updatedOrder = await undoOrderStatus(orderId);
-      onStatusUpdate(updatedOrder.status);
+      await onUndo();
     } catch (err) {
       setError(err.message);
     } finally {

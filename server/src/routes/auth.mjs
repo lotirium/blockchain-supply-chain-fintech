@@ -95,6 +95,15 @@ router.post('/register', registerValidation, async (req, res) => {
     if (mappedRole === 'seller' && store) {
       try {
         try {
+          // Check if store name already exists
+          const existingStore = await Store.findOne({
+            where: { name: store.name }
+          });
+
+          if (existingStore) {
+            throw new Error('Store name already exists');
+          }
+
           // Generate a new wallet for the store
           const newWallet = ethers.Wallet.createRandom();
           
@@ -108,6 +117,7 @@ router.post('/register', registerValidation, async (req, res) => {
             business_address: store.business_address,
             status: 'pending_verification',
             is_verified: false,
+            hologram_label: store.hologram_label,
             created_at: new Date(),
             updated_at: new Date(),
             wallet_address: newWallet.address,
@@ -188,18 +198,29 @@ router.post('/register', registerValidation, async (req, res) => {
   } catch (error) {
     console.error('Registration error:', error);
     
-    // Handle Sequelize unique constraint violation
+    // Handle Sequelize unique constraint violations
     if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(400).json({ 
+      const field = error.errors[0]?.path;
+      if (field === 'email') {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already registered'
+        });
+      }
+    }
+    
+    // Handle store-specific errors
+    if (error.message === 'Store name already exists') {
+      return res.status(400).json({
         success: false,
-        message: 'Email already registered' 
+        message: 'A store with this name already exists. Please choose a different name.'
       });
     }
     
     // Handle other errors without exposing internal details
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Registration failed. Please try again later.' 
+      message: 'Registration failed. Please try again later.'
     });
   }
 });

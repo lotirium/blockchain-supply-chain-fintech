@@ -18,6 +18,7 @@ sudo -u postgres psql -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM
 sudo -u postgres psql -c "DROP DATABASE IF EXISTS shipment_db;"
 sudo -u postgres psql -c "DROP USER IF EXISTS shipment_user;"
 sudo -u postgres psql -f setup-db.sql
+node create-admin.mjs
 ```
 
 ## 3. Install Dependencies
@@ -26,9 +27,10 @@ sudo -u postgres psql -f setup-db.sql
 cd blockchain && npm install
 cd ../server && npm install
 cd ../web && npm install
+cd ../image-service && source venv/bin/activate && pip install -r requirements.txt
 ```
 
-## 4. Normal Run (On 3 Terminals)
+## 4. Normal Run (On 4 Terminals)
 
 ### Terminal 1: Start Blockchain
 
@@ -43,11 +45,18 @@ npx hardhat node
 cd blockchain
 npx hardhat run scripts/deploy.js --network localhost
 cd ../server
-node scripts/create-admin.mjs
 npm run dev
 ```
 
-### Terminal 3: Frontend
+### Terminal 3: Hologram Server
+
+```bash
+cd image-service
+source venv/bin/activate
+uvicorn src.main:app --reload --port 5001
+```
+
+### Terminal 4: Frontend
 
 ```bash
 cd web

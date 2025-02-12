@@ -2,6 +2,12 @@ import Store from '../models/Store.mjs';
 import { User, Notification } from '../models/index.mjs';
 import { Op } from 'sequelize';
 
+// Helper function to validate UUID
+const isValidUUID = (uuid) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 // Admin endpoints
 export const getPendingVerifications = async (req, res) => {
   try {
@@ -41,6 +47,11 @@ export const updateVerificationStatus = async (req, res) => {
     const { storeId } = req.params;
     const { status, message } = req.body;
 
+    // Validate storeId is a valid UUID
+    if (!isValidUUID(storeId)) {
+      return res.status(400).json({ message: 'Invalid store ID format' });
+    }
+
     // Validate status and map to valid enum values
     let storeStatus;
     if (status === 'active') {
@@ -75,11 +86,17 @@ export const updateVerificationStatus = async (req, res) => {
     if (store.owner) {
       await Notification.create({
         user_id: store.owner.id,
-        type: status === 'active' ? 'success' : 'error',
+        title: status === 'active' ? 'Store Verification' : 'Store Verification Failed',
         message: message || (status === 'active'
           ? 'Your store has been verified and activated!'
           : 'Your store verification was not approved.'),
-        read: false
+        is_read: false,
+        priority: 1,
+        data: {
+          storeId,
+          status,
+          timestamp: new Date().toISOString()
+        }
       });
     }
 
@@ -115,7 +132,7 @@ export const getVerificationStatus = async (req, res) => {
     const notifications = await Notification.findAll({
       where: {
         user_id: req.user.id,
-        read: false
+        is_read: false
       },
       order: [['created_at', 'DESC']],
       limit: 5
@@ -195,9 +212,14 @@ export const verifyCustomerEmail = async (req, res) => {
     // Create notification
     await Notification.create({
       user_id: user.id,
-      type: 'success',
+      title: 'Email Verification',
       message: 'Your email has been verified by an administrator.',
-      read: false
+      is_read: false,
+      priority: 1,
+      data: {
+        verifiedAt: new Date().toISOString(),
+        verifiedBy: req.user.id
+      }
     });
 
     res.json({

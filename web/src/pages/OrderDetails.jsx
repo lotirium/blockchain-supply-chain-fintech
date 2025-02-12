@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { generateOrderQR, getOrderQRStatus } from '../services/qrcode';
-import { getOrderById, getOrderStatusHistory } from '../services/orders';
+import { getOrderById, getOrderStatusHistory, updateOrderStatus } from '../services/orders';
 import OrderLabels from '../components/OrderLabels';
 import OrderStatusControl from '../components/OrderStatusControl';
 import OrderStatusHistory from '../components/OrderStatusHistory';
@@ -161,6 +161,7 @@ const OrderDetails = () => {
   const [statusHistory, setStatusHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [statusStack, setStatusStack] = useState([]);
   const user = useSelector(state => state.auth.user);
   const role = user?.role;
   const navigate = useNavigate();
@@ -189,15 +190,37 @@ const OrderDetails = () => {
   useEffect(() => {
     fetchOrderAndHistory();
   }, [orderId]);
-
   const handleStatusUpdate = async (newStatus) => {
     try {
       setError(null);
-      // Refresh data after status update
+      // Add current status to stack before updating
+      setStatusStack(prev => [...prev, order.status]);
+      // Update status in backend
+      await updateOrderStatus(orderId, newStatus);
+      // Refresh data
       await fetchOrderAndHistory();
     } catch (err) {
-      console.error('Error refreshing order data:', err);
-      setError(err.message || 'Failed to refresh order data');
+      console.error('Error updating status:', err);
+      setError(err.message || 'Failed to update status');
+    }
+  };
+
+  const handleUndo = async () => {
+    if (statusStack.length === 0) return;
+    
+    try {
+      setError(null);
+      // Get last status from stack
+      const previousStatus = statusStack[statusStack.length - 1];
+      // Update the status
+      await updateOrderStatus(orderId, previousStatus);
+      // Remove the last status from stack
+      setStatusStack(prev => prev.slice(0, -1));
+      // Refresh data
+      await fetchOrderAndHistory();
+    } catch (err) {
+      console.error('Error undoing status:', err);
+      setError(err.message || 'Failed to undo status');
     }
   };
 
@@ -290,6 +313,7 @@ const OrderDetails = () => {
           <OrderStatusControl
             currentStatus={order.status}
             onStatusUpdate={handleStatusUpdate}
+            onUndo={handleUndo}
             qrGenerated={order.qr_status === 'active'}
             orderId={order.id}
           />
@@ -302,7 +326,7 @@ const OrderDetails = () => {
         <h2 className="text-lg font-semibold mb-4">Order Items</h2>
         <div className="space-y-4">
           {order.items?.map(item => (
-            <div key={item.id} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
+            <div key={`${item.id}-${item.product?.id || ''}-${item.quantity}`} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
               <div>
                 <span className="font-medium">{item.product?.name}</span>
                 <span className="text-gray-600 ml-2">x{item.quantity}</span>

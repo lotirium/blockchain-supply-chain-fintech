@@ -100,6 +100,8 @@ function StoreSettings() {
   const handleGenerateHologram = async () => {
     setGeneratingHologram(true);
     setHologramError(null);
+    // Store current form values before generating hologram
+    const currentFormData = { ...formData };
     try {
       const response = await generateHologram();
       if (response.store) {
@@ -107,6 +109,11 @@ function StoreSettings() {
       }
       // Refresh profile to ensure store data is up to date
       await dispatch(getProfile()).unwrap();
+      // Restore form values while keeping the new hologram_label
+      setFormData(prevData => ({
+        ...currentFormData,
+        hologram_label: response.store?.hologram_label || prevData.hologram_label
+      }));
     } catch (err) {
       setHologramError(err.message || 'Failed to generate hologram label');
     } finally {
@@ -191,22 +198,67 @@ function StoreSettings() {
         </div>
       )}
 
-      <div className="mb-6 text-right">
-        <button
-          type="button"
-          onClick={handleFillSample}
-          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors duration-200 flex items-center space-x-1"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-          </svg>
-          <span>Fill Missing Data</span>
-        </button>
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Store Hologram Label</h2>
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm text-gray-600 mb-4">
+              Generate a unique hologram label for your store's products to verify authenticity.
+            </p>
+            {user?.store?.hologram_label ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
+                  <img
+                    src={`${import.meta.env.VITE_API_URL}${user.store.hologram_label}`}
+                    alt="Store Hologram"
+                    className="max-w-[200px] h-auto"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateHologram}
+                  disabled={generatingHologram}
+                  className={`w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md ${
+                    generatingHologram ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+                  }`}
+                >
+                  {generatingHologram ? 'Generating...' : 'Generate New Hologram'}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleGenerateHologram}
+                disabled={generatingHologram}
+                className={`w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md ${
+                  generatingHologram ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+                }`}
+              >
+                {generatingHologram ? 'Generating...' : 'Generate Hologram Label'}
+              </button>
+            )}
+            {hologramError && (
+              <p className="mt-2 text-sm text-red-600">{hologramError}</p>
+            )}
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Basic Information</h2>
+            <button
+              type="button"
+              onClick={handleFillSample}
+              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors duration-200 flex items-center space-x-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <span>Fill Missing Data</span>
+            </button>
+          </div>
           
           <div className="space-y-4">
             <div>
@@ -340,52 +392,6 @@ function StoreSettings() {
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
-          <h2 className="text-xl font-semibold mb-4">Store Hologram Label</h2>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm text-gray-600 mb-4">
-                Generate a unique hologram label for your store's products to verify authenticity.
-              </p>
-              {user?.store?.hologram_label ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
-                    <img
-                      src={`${import.meta.env.VITE_API_URL}${user.store.hologram_label}`}
-                      alt="Store Hologram"
-                      className="max-w-[200px] h-auto"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleGenerateHologram}
-                    disabled={generatingHologram}
-                    className={`w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md ${
-                      generatingHologram ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
-                    }`}
-                  >
-                    {generatingHologram ? 'Generating...' : 'Generate New Hologram'}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleGenerateHologram}
-                  disabled={generatingHologram}
-                  className={`w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md ${
-                    generatingHologram ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
-                  }`}
-                >
-                  {generatingHologram ? 'Generating...' : 'Generate Hologram Label'}
-                </button>
-              )}
-              {hologramError && (
-                <p className="mt-2 text-sm text-red-600">{hologramError}</p>
-              )}
             </div>
           </div>
         </div>

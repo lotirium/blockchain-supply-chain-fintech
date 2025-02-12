@@ -16,6 +16,7 @@ router.get('/status', auth(['seller']), getVerificationStatus);
 // Admin routes
 router.get('/pending', auth(['admin']), getPendingVerifications);
 router.patch('/:storeId/status', auth(['admin']), updateVerificationStatus);
+router.put('/:storeId/status', auth(['admin']), updateVerificationStatus); // Add PUT support for backward compatibility
 
 // Customer management routes
 router.get('/customers', auth(['admin']), getCustomers);

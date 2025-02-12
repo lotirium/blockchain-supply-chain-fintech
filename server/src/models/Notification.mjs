@@ -12,7 +12,7 @@ class Notification extends Model {
 
   // Instance methods
   async markAsRead() {
-    this.read = true;
+    this.is_read = true;
     await this.save();
   }
 
@@ -52,14 +52,14 @@ Notification.init({
       notEmpty: true
     }
   },
-  type: {
-    type: DataTypes.ENUM('info', 'success', 'warning', 'error'),
-    defaultValue: 'info',
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false,
     validate: {
-      isIn: [['info', 'success', 'warning', 'error']]
+      notEmpty: true
     }
   },
-  read: {
+  is_read: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
@@ -106,16 +106,13 @@ Notification.init({
       fields: ['user_id']
     },
     {
-      fields: ['read']
-    },
-    {
-      fields: ['type']
+      fields: ['is_read']
     },
     {
       fields: ['created_at']
     },
     {
-      fields: ['user_id', 'read']
+      fields: ['user_id', 'is_read']
     }
   ]
 });

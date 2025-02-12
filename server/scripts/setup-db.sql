@@ -29,10 +29,11 @@ CREATE TYPE enum_stores_status AS ENUM ('pending', 'pending_verification', 'acti
 CREATE TYPE enum_stores_type AS ENUM ('manufacturer', 'retailer');
 CREATE TYPE enum_products_status AS ENUM ('draft', 'active', 'inactive', 'sold_out');
 CREATE TYPE enum_orders_status AS ENUM ('pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'refunded');
-CREATE TYPE enum_orders_payment_method AS ENUM ('crypto', 'fiat');
+CREATE TYPE enum_orders_payment_method AS ENUM ('crypto', 'fiat', 'credit_card');
 CREATE TYPE enum_orders_payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
 CREATE TYPE enum_products_blockchain_status AS ENUM ('pending', 'minted', 'failed');
 CREATE TYPE enum_orders_qr_status AS ENUM ('not_generated', 'active', 'revoked');
+CREATE TYPE enum_products_qr_status AS ENUM ('not_generated', 'active', 'revoked');
 
 RESET ROLE;
 
@@ -83,6 +84,7 @@ CREATE TABLE stores (
     blockchain_verification_date TIMESTAMP WITH TIME ZONE,
     wallet_address VARCHAR(255) NOT NULL,
     private_key VARCHAR(64) NOT NULL,
+    hologram_label VARCHAR(255),
     rating FLOAT DEFAULT 0,
     total_sales INTEGER DEFAULT 0,
     total_products INTEGER DEFAULT 0,
@@ -109,6 +111,8 @@ CREATE TABLE products (
     attributes JSONB DEFAULT '[]',
     token_uri VARCHAR(255),
     hologram_data JSONB,
+    qr_data JSONB,
+    qr_status enum_products_qr_status DEFAULT 'not_generated',
     shipment_stage VARCHAR(255),
     shipment_location VARCHAR(255),
     total_views INTEGER DEFAULT 0,
@@ -157,6 +161,21 @@ CREATE TABLE notifications (
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
+    data JSONB DEFAULT '{}',
+    priority INTEGER DEFAULT 0,
+    expiry_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE order_status_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+    from_status enum_orders_status NOT NULL,
+    to_status enum_orders_status NOT NULL,
+    changed_by UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE NO ACTION,
+    notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE
@@ -178,15 +197,21 @@ ALTER TABLE stores OWNER TO shipment_user;
 ALTER TABLE products OWNER TO shipment_user;
 ALTER TABLE orders OWNER TO shipment_user;
 ALTER TABLE notifications OWNER TO shipment_user;
+ALTER TABLE order_status_history OWNER TO shipment_user;
 
 -- Create indexes for performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_products_status ON products(status);
 CREATE INDEX idx_products_user_id ON products(user_id);
 CREATE INDEX idx_products_store_id ON products(store_id);
+CREATE INDEX idx_products_qr_status ON products(qr_status);
 CREATE INDEX idx_orders_user_id ON orders(user_id);
 CREATE INDEX idx_orders_store_id ON orders(store_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_stores_user_id ON stores(user_id);
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_is_read ON notifications(is_read);
 CREATE INDEX idx_orders_qr_status ON orders(qr_status);
+CREATE INDEX idx_status_history_order ON order_status_history(order_id);
+CREATE INDEX idx_status_history_user ON order_status_history(changed_by);
+CREATE INDEX idx_status_history_deleted_at ON order_status_history(deleted_at);
