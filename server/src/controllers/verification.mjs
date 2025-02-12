@@ -18,7 +18,7 @@ export const getPendingVerifications = async (req, res) => {
       },
       include: [{
         model: User,
-        as: 'storeOwner',
+        as: 'owner',
         attributes: ['id', 'email', 'user_name']
       }],
       order: [['created_at', 'ASC']]
@@ -55,26 +55,14 @@ export const updateVerificationStatus = async (req, res) => {
     const store = await Store.findByPk(storeId, {
       include: [{
         model: User,
-        as: 'storeOwner',
-        attributes: ['id', 'email'] // Include email for better logging
+        as: 'owner',
+        attributes: ['id', 'email']
       }]
     });
 
     if (!store) {
-      console.error(`Store not found with ID: ${storeId}`);
       return res.status(404).json({ message: 'Store not found' });
     }
-
-    console.log('Found store:', {
-      storeId: store.id,
-      storeName: store.name,
-      currentStatus: store.status,
-      hasStoreOwner: !!store.storeOwner,
-      storeOwnerData: store.storeOwner ? {
-        id: store.storeOwner.id,
-        email: store.storeOwner.email
-      } : 'No owner data'
-    });
 
     // Update store status
     await store.update({
@@ -83,25 +71,16 @@ export const updateVerificationStatus = async (req, res) => {
       verification_date: storeStatus === 'active' ? new Date() : null
     });
 
-    // Check if store owner exists
-    if (!store.storeOwner) {
-      console.error('Store owner not found for store:', store.id);
-      return res.status(500).json({ message: 'Store owner data not found' });
-    }
-
     // Create notification for store owner
-    try {
+    if (store.owner) {
       await Notification.create({
-        user_id: store.storeOwner.id,
+        user_id: store.owner.id,
         type: status === 'active' ? 'success' : 'error',
         message: message || (status === 'active'
           ? 'Your store has been verified and activated!'
           : 'Your store verification was not approved.'),
         read: false
       });
-    } catch (notificationError) {
-      console.error('Failed to create notification:', notificationError);
-      // Don't fail the whole request if notification creation fails
     }
 
     res.json({
@@ -115,6 +94,122 @@ export const updateVerificationStatus = async (req, res) => {
   } catch (error) {
     console.error('Error updating verification status:', error);
     res.status(500).json({ message: 'Failed to update verification status' });
+  }
+};
+
+export const getVerificationStatus = async (req, res) => {
+  try {
+    const store = await Store.findOne({
+      where: { user_id: req.user.id },
+      attributes: [
+        'id', 'status', 'is_verified', 'verification_date',
+        'name', 'business_email', 'business_phone', 'business_address'
+      ]
+    });
+
+    if (!store) {
+      return res.status(404).json({ error: 'Store not found' });
+    }
+
+    // Get notifications
+    const notifications = await Notification.findAll({
+      where: {
+        user_id: req.user.id,
+        read: false
+      },
+      order: [['created_at', 'DESC']],
+      limit: 5
+    });
+
+    const steps = determineVerificationSteps(store);
+    const estimatedTime = calculateEstimatedTime(store.status);
+
+    res.json({
+      status: store.status,
+      estimatedTime,
+      lastUpdated: store.updated_at,
+      completedSteps: steps.completed,
+      pendingSteps: steps.pending,
+      notifications: notifications.map(n => ({
+        id: n.id,
+        message: n.message,
+        timestamp: n.created_at
+      })),
+      supportEmail: process.env.SUPPORT_EMAIL || 'support@marketplace.com'
+    });
+  } catch (error) {
+    console.error('Error fetching verification status:', error);
+    res.status(500).json({ error: 'Failed to fetch verification status' });
+  }
+};
+
+// Admin customer management endpoints
+export const getCustomers = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const customers = await User.findAll({
+      where: {
+        type: 'buyer'
+      },
+      attributes: ['id', 'user_name', 'first_name', 'last_name', 'email', 'is_email_verified', 'last_login'],
+      order: [['created_at', 'DESC']]
+    });
+
+    res.json({ success: true, data: customers });
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch customers'
+    });
+  }
+};
+
+export const verifyCustomerEmail = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const { userId } = req.params;
+    
+    const user = await User.findOne({
+      where: {
+        id: userId,
+        type: 'buyer'
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Customer not found'
+      });
+    }
+
+    await user.update({ is_email_verified: true });
+
+    // Create notification
+    await Notification.create({
+      user_id: user.id,
+      type: 'success',
+      message: 'Your email has been verified by an administrator.',
+      read: false
+    });
+
+    res.json({
+      success: true,
+      message: 'Customer email verified successfully'
+    });
+  } catch (error) {
+    console.error('Error verifying customer email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify customer email'
+    });
   }
 };
 
@@ -138,59 +233,6 @@ const VERIFICATION_STEPS = {
     id: 'final_approval',
     title: 'Final Approval',
     description: 'Awaiting final verification approval'
-  }
-};
-
-export const getVerificationStatus = async (req, res) => {
-  try {
-    const store = await Store.findOne({
-      where: { user_id: req.user.id },
-      attributes: [
-        'id', 'status', 'is_verified', 'verification_date',
-        'name', 'business_email', 'business_phone', 'business_address'
-      ]
-    });
-
-    if (!store) {
-      return res.status(404).json({
-        error: 'Store not found'
-      });
-    }
-
-    // Get any pending notifications related to verification
-    const notifications = await Notification.findAll({
-      where: {
-        user_id: req.user.id,
-        read: false
-      },
-      order: [['created_at', 'DESC']],
-      limit: 5
-    });
-
-    // Determine completed and pending steps based on store status
-    const steps = determineVerificationSteps(store);
-
-    // Calculate estimated time based on current status
-    const estimatedTime = calculateEstimatedTime(store.status);
-
-    res.json({
-      status: store.status,
-      estimatedTime,
-      lastUpdated: store.updated_at,
-      completedSteps: steps.completed,
-      pendingSteps: steps.pending,
-      notifications: notifications.map(n => ({
-        id: n.id,
-        message: n.message,
-        timestamp: n.created_at
-      })),
-      supportEmail: process.env.SUPPORT_EMAIL || 'support@marketplace.com'
-    });
-  } catch (error) {
-    console.error('Error fetching verification status:', error);
-    res.status(500).json({
-      error: 'Failed to fetch verification status'
-    });
   }
 };
 
@@ -239,82 +281,11 @@ const calculateEstimatedTime = (status) => {
       return '24-48 hours';
   }
 };
-// Admin customer management endpoints
-export const getCustomers = async (req, res) => {
-  try {
-    // Check if user is admin
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    const customers = await User.findAll({
-      where: {
-        type: 'buyer'
-      },
-      attributes: ['id', 'user_name', 'first_name', 'last_name', 'email', 'is_email_verified', 'last_login'],
-      order: [['created_at', 'DESC']]
-    });
-
-    res.json({ success: true, data: customers });
-  } catch (error) {
-    console.error('Error fetching customers:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch customers'
-    });
-  }
-};
-
-export const verifyCustomerEmail = async (req, res) => {
-  try {
-    // Check if user is admin
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    const { userId } = req.params;
-    
-    const user = await User.findOne({
-      where: {
-        id: userId,
-        type: 'buyer'
-      }
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Customer not found'
-      });
-    }
-
-    await user.update({ is_email_verified: true });
-
-    // Create notification for the customer
-    await Notification.create({
-      user_id: user.id,
-      type: 'success',
-      message: 'Your email has been verified by an administrator.',
-      read: false
-    });
-
-    res.json({
-      success: true,
-      message: 'Customer email verified successfully'
-    });
-  } catch (error) {
-    console.error('Error verifying customer email:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to verify customer email'
-    });
-  }
-};
 
 export default {
-  getVerificationStatus,
-  updateVerificationStatus,
   getPendingVerifications,
+  updateVerificationStatus,
+  getVerificationStatus,
   getCustomers,
   verifyCustomerEmail
 };

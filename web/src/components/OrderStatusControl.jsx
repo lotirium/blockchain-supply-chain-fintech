@@ -10,9 +10,9 @@ const OrderStatusControl = ({ currentStatus, onStatusUpdate, qrGenerated, orderI
     confirmed: ['packed', 'cancelled'],
     packed: ['shipped', 'cancelled'],
     shipped: ['delivered', 'cancelled'],
-    delivered: ['refunded'],
+    delivered: ['refunded', 'cancelled'],
     cancelled: [],
-    refunded: []
+    refunded: ['cancelled']
   };
 
   const handleStatusChange = async (newStatus) => {
@@ -32,6 +32,7 @@ const OrderStatusControl = ({ currentStatus, onStatusUpdate, qrGenerated, orderI
     try {
       setLoading(true);
       setError(null);
+      // Use status history to go back one step
       const updatedOrder = await undoOrderStatus(orderId);
       onStatusUpdate(updatedOrder.status);
     } catch (err) {
@@ -60,20 +61,25 @@ const OrderStatusControl = ({ currentStatus, onStatusUpdate, qrGenerated, orderI
   // Get available next statuses
   const nextStatuses = statusFlow[currentStatus] || [];
 
-  // Don't show controls for final statuses
+  // Always show undo button except for new orders
+  const showUndo = currentStatus !== 'pending';
+
+  // Don't show controls for final statuses except undo
   if (['cancelled', 'refunded'].includes(currentStatus)) {
     return (
       <div className="space-y-4">
         {error && (
           <div className="text-red-600 text-sm">{error}</div>
         )}
-        <button
-          onClick={handleUndo}
-          disabled={loading}
-          className={`${getButtonStyle('undo')} mr-2`}
-        >
-          {loading ? 'Processing...' : 'Undo Status Change'}
-        </button>
+        {showUndo && (
+          <button
+            onClick={handleUndo}
+            disabled={loading}
+            className={`${getButtonStyle('undo')} mr-2`}
+          >
+            {loading ? 'Processing...' : 'Undo Last Change'}
+          </button>
+        )}
       </div>
     );
   }
@@ -85,11 +91,6 @@ const OrderStatusControl = ({ currentStatus, onStatusUpdate, qrGenerated, orderI
       )}
       <div className="flex flex-wrap gap-2">
         {nextStatuses.map(status => {
-          // Don't show cancelled option if QR is generated
-          if (status === 'cancelled' && qrGenerated) {
-            return null;
-          }
-
           return (
             <button
               key={status}
@@ -101,13 +102,15 @@ const OrderStatusControl = ({ currentStatus, onStatusUpdate, qrGenerated, orderI
             </button>
           );
         })}
-        <button
-          onClick={handleUndo}
-          disabled={loading}
-          className={`${getButtonStyle('undo')} ml-auto`}
-        >
-          {loading ? 'Processing...' : 'Undo Last Change'}
-        </button>
+        {showUndo && (
+          <button
+            onClick={handleUndo}
+            disabled={loading}
+            className={`${getButtonStyle('undo')} ml-auto`}
+          >
+            {loading ? 'Processing...' : 'Undo Last Change'}
+          </button>
+        )}
       </div>
     </div>
   );

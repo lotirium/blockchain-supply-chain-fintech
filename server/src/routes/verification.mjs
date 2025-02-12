@@ -1,25 +1,24 @@
 import express from 'express';
+import auth from '../middleware/auth.mjs';
 import {
-  getVerificationStatus,
-  updateVerificationStatus,
   getPendingVerifications,
+  updateVerificationStatus,
+  getVerificationStatus,
   getCustomers,
   verifyCustomerEmail
 } from '../controllers/verification.mjs';
-import auth from '../middleware/auth.mjs';
-import { requireAdmin } from '../middleware/auth.mjs';
 
 const router = express.Router();
 
-// Seller routes
-router.get('/status', auth(), getVerificationStatus);
+// Get verification status (seller only)
+router.get('/status', auth(['seller']), getVerificationStatus);
 
 // Admin routes
-router.get('/pending', requireAdmin, getPendingVerifications);
-router.put('/:storeId/status', requireAdmin, updateVerificationStatus);
+router.get('/pending', auth(['admin']), getPendingVerifications);
+router.patch('/:storeId/status', auth(['admin']), updateVerificationStatus);
 
 // Customer management routes
-router.get('/customers', requireAdmin, getCustomers);
-router.post('/customers/:userId/verify', requireAdmin, verifyCustomerEmail);
+router.get('/customers', auth(['admin']), getCustomers);
+router.post('/customers/:userId/verify-email', auth(['admin']), verifyCustomerEmail);
 
 export default router;

@@ -1,4 +1,4 @@
-import express from 'express';
+
 import {
   Order,
   OrderItem,
@@ -74,7 +74,7 @@ router.post('/', auth(), async (req, res) => {
       // Verify products, check stock, and create order items
       await Promise.all(storeItems.map(async item => {
         const product = await Product.findByPk(item.product_id, {
-          lock: true, // Lock the row for update
+          lock: true,
           transaction
         });
 
@@ -103,6 +103,15 @@ router.post('/', auth(), async (req, res) => {
           images: product.images,
           attributes: product.attributes
         };
+
+        // Create initial order history entry
+        await OrderStatusHistory.create({
+          order_id: order.id,
+          from_status: 'created',
+          to_status: 'pending',
+          changed_by: req.user.id,
+          notes: 'Order created'
+        }, { transaction });
 
         return OrderItem.create({
           order_id: order.id,
@@ -234,7 +243,8 @@ router.get('/:id', auth(), async (req, res) => {
       include: [
         { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product' }] },
         { model: Store, as: 'merchantStore' },
-        { model: User, as: 'orderPlacer' }
+        { model: User, as: 'orderPlacer' },
+        { model: OrderStatusHistory, as: 'statusHistory', order: [['created_at', 'DESC']] }
       ]
     });
 
@@ -259,20 +269,51 @@ router.get('/:id', auth(), async (req, res) => {
   }
 });
 
+// Get order status history
+router.get('/:id/status-history', auth(), async (req, res) => {
+  try {
+    const order = await Order.findByPk(req.params.id);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Check permissions
+    const hasAccess = 
+      req.user.role === 'admin' ||
+      order.user_id === req.user.id ||
+      order.store_id === req.user.ownedStore?.id;
+
+    if (!hasAccess) {
+      return res.status(403).json({ error: 'Not authorized to view this order' });
+    }
+
+    const history = await OrderStatusHistory.findAll({
+      where: { order_id: req.params.id },
+      order: [['created_at', 'DESC']],
+      include: [{
+        model: User,
+        as: 'changedByUser',
+        attributes: ['id', 'user_name', 'first_name', 'last_name', 'role']
+      }]
+    });
+
+    res.json(history);
+  } catch (error) {
+    console.error('Error fetching status history:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
+
 // Update order status
 router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
   const transaction = await sequelize.transaction();
   
   try {
-    const { status, notes } = req.body;
+    const { status } = req.body;
     
-    console.log('Updating order status:', {
-      orderId: req.params.id,
-      newStatus: status,
-      userId: req.user?.id,
-      userRole: req.user?.role
-    });
-
     const order = await Order.findOne({
       where: { id: req.params.id },
       include: [
@@ -298,7 +339,7 @@ router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
 
     const oldStatus = order.status;
 
-    // Handle stock updates for cancelled orders
+    // Handle stock updates for status changes
     if (status === 'cancelled' && oldStatus !== 'cancelled') {
       // Return items to inventory
       await Promise.all(order.items.map(async (item) => {
@@ -341,14 +382,14 @@ router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
       from_status: oldStatus,
       to_status: status,
       changed_by: req.user.id,
-      notes: notes || `Status changed from ${oldStatus} to ${status}`
+      notes: `Status changed from ${oldStatus} to ${status}`
     }, { transaction });
 
     await order.update({ status }, { transaction });
     
     await transaction.commit();
 
-    // Fetch fresh order data
+    // Fetch fresh order data with status history
     const updatedOrder = await Order.findOne({
       where: { id: req.params.id },
       include: [
@@ -356,6 +397,12 @@ router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
           model: OrderItem,
           as: 'items',
           include: [{ model: Product, as: 'product' }]
+        },
+        {
+          model: OrderStatusHistory,
+          as: 'statusHistory',
+          limit: 10,
+          order: [['created_at', 'DESC']]
         }
       ]
     });
@@ -364,44 +411,6 @@ router.patch('/:id/status', auth(['seller', 'admin']), async (req, res) => {
   } catch (error) {
     await transaction.rollback();
     console.error('Error updating order status:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error.message
-    });
-  }
-});
-
-// Get order status history
-router.get('/:id/status-history', auth(), async (req, res) => {
-  try {
-    const order = await Order.findByPk(req.params.id);
-    if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
-
-    // Check permissions
-    const hasAccess = 
-      req.user.role === 'admin' ||
-      order.user_id === req.user.id ||
-      order.store_id === req.user.ownedStore?.id;
-
-    if (!hasAccess) {
-      return res.status(403).json({ error: 'Not authorized to view this order' });
-    }
-
-    const history = await OrderStatusHistory.findAll({
-      where: { order_id: req.params.id },
-      order: [['created_at', 'DESC']],
-      include: [{
-        model: User,
-        as: 'changedByUser',
-        attributes: ['id', 'user_name', 'first_name', 'last_name', 'role']
-      }]
-    });
-
-    res.json(history);
-  } catch (error) {
-    console.error('Error fetching status history:', error);
     res.status(500).json({
       error: 'Internal server error',
       message: error.message
@@ -421,6 +430,12 @@ router.post('/:id/undo-status', auth(['seller', 'admin']), async (req, res) => {
           model: OrderItem,
           as: 'items',
           include: [{ model: Product, as: 'product' }]
+        },
+        {
+          model: OrderStatusHistory,
+          as: 'statusHistory',
+          order: [['created_at', 'DESC']],
+          limit: 2
         }
       ],
       transaction
@@ -438,18 +453,13 @@ router.post('/:id/undo-status', auth(['seller', 'admin']), async (req, res) => {
     }
 
     // Get the last status change
-    const lastStatusChange = await OrderStatusHistory.findOne({
-      where: { order_id: order.id },
-      order: [['created_at', 'DESC']],
-      transaction
-    });
-
-    if (!lastStatusChange) {
+    if (!order.statusHistory.length) {
       await transaction.rollback();
       return res.status(400).json({ error: 'No status changes to undo' });
     }
 
-    const oldStatus = lastStatusChange.from_status;
+    const lastStatus = order.statusHistory[0];
+    const oldStatus = lastStatus.from_status;
     const currentStatus = order.status;
 
     // Handle stock updates for status changes
@@ -495,14 +505,15 @@ router.post('/:id/undo-status', auth(['seller', 'admin']), async (req, res) => {
       from_status: currentStatus,
       to_status: oldStatus,
       changed_by: req.user.id,
-      notes: `Undid status change from ${oldStatus} to ${currentStatus}`
+      notes: `Undid status change back to ${oldStatus}`
     }, { transaction });
 
+    // Update order status
     await order.update({ status: oldStatus }, { transaction });
     
     await transaction.commit();
 
-    // Fetch fresh order data
+    // Fetch fresh order data with status history
     const updatedOrder = await Order.findOne({
       where: { id: req.params.id },
       include: [
@@ -510,6 +521,11 @@ router.post('/:id/undo-status', auth(['seller', 'admin']), async (req, res) => {
           model: OrderItem,
           as: 'items',
           include: [{ model: Product, as: 'product' }]
+        },
+        {
+          model: OrderStatusHistory,
+          as: 'statusHistory',
+          order: [['created_at', 'DESC']]
         }
       ]
     });
