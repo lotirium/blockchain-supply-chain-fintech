@@ -161,7 +161,7 @@ const AdminVerification = () => {
           {/* Header */}
           <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
             <h1 className="text-lg font-medium text-gray-900">
-              {activeTab === 'stores' ? 'Pending Store Verifications' : 'Customer Management'}
+              {activeTab === 'stores' ? 'Pending Store Verifications' : 'Buyer Email Verification'}
             </h1>
             <p className="mt-1 text-sm text-gray-500">
               {activeTab === 'stores' 

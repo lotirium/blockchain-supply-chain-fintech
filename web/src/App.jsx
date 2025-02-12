@@ -32,6 +32,7 @@ const SellerDashboard = React.lazy(() => import('./pages/SellerDashboard'));
 const VerificationPending = React.lazy(() => import('./pages/VerificationPending'));
 const AdminVerification = React.lazy(() => import('./pages/AdminVerification'));
 const AdminBlockchainDashboard = React.lazy(() => import('./pages/AdminBlockchainDashboard'));
+const Customers = React.lazy(() => import('./pages/Customers'));
 
 function App() {
   const dispatch = useDispatch();
@@ -89,6 +90,7 @@ function App() {
               <Route path="store-settings" element={<StoreSettings />} />
               <Route path="seller-products" element={<SellerProducts />} />
               <Route path="edit-product/:id" element={<EditProduct />} />
+              <Route path="customers" element={<Customers />} />
             </Route>
 
             {/* Admin Routes */}

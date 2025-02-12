@@ -27,4 +27,7 @@ router.delete('/notifications/:notificationId', sellerDashboardController.delete
 // Get store statistics
 router.get('/stats', sellerDashboardController.getStoreStats);
 
+// Get store customers
+router.get('/customers', sellerDashboardController.getStoreCustomers);
+
 export default router;

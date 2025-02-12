@@ -361,11 +361,77 @@ export const getStoreStats = async (req, res) => {
   }
 };
 
+export const getStoreCustomers = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    // Get store
+    const store = await Store.findOne({
+      where: { user_id: userId }
+    });
+
+    if (!store) {
+      return res.status(404).json({
+        success: false,
+        message: 'Store not found'
+      });
+    }
+
+    // Get unique customers who have ordered from this store
+    const { count, rows: customers } = await User.findAndCountAll({
+      attributes: [
+        'id',
+        'user_name',
+        'email',
+        [Sequelize.fn('COUNT', Sequelize.col('placedOrders.id')), 'orderCount'],
+        [Sequelize.fn('SUM', Sequelize.col('placedOrders.total_fiat_amount')), 'totalSpent']
+      ],
+      include: [{
+        model: Order,
+        as: 'placedOrders',
+        where: { store_id: store.id },
+        attributes: []
+      }],
+      group: ['User.id', 'User.user_name', 'User.email'],
+      limit: parseInt(limit),
+      offset,
+      subQuery: false
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        customers: customers.map(customer => ({
+          id: customer.id,
+          userName: customer.user_name,
+          email: customer.email,
+          orderCount: parseInt(customer.dataValues.orderCount || 0),
+          totalSpent: parseFloat(customer.dataValues.totalSpent || 0)
+        })),
+        pagination: {
+          total: count.length,
+          page: parseInt(page),
+          totalPages: Math.ceil(count.length / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Failed to fetch store customers:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch store customers'
+    });
+  }
+};
+
 export default {
   getDashboardData,
   getNotifications,
   markNotificationRead,
   markAllNotificationsRead,
   deleteNotification,
-  getStoreStats
+  getStoreStats,
+  getStoreCustomers
 };
