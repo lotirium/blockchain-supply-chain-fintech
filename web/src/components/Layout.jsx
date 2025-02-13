@@ -22,7 +22,7 @@ function Layout() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="text-2xl font-bold text-blue-600">
-              EShop
+              LogiShop
             </Link>
 
             {/* Main Navigation */}
@@ -96,7 +96,7 @@ function Layout() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Company Info */}
             <div>
-              <h3 className="text-xl font-bold mb-4">EShop</h3>
+              <h3 className="text-xl font-bold mb-4">LogiShop</h3>
               <p className="text-gray-300">
                 Your one-stop shop for all your needs. Quality products at competitive prices.
               </p>
@@ -149,7 +149,7 @@ function Layout() {
 
           {/* Copyright */}
           <div className="mt-8 pt-8 border-t border-gray-700 text-center text-gray-300">
-            <p>&copy; {new Date().getFullYear()} EShop. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} LogiShop. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -29,7 +29,7 @@ function Layout() {
           React.createElement(Link, {
             to: '/',
             className: 'text-2xl font-bold text-blue-600'
-          }, 'EShop'),
+          }, 'LogiShop'),
 
           // Main Navigation
           React.createElement('div', {
@@ -125,7 +125,7 @@ function Layout() {
           React.createElement('div', null, [
             React.createElement('h3', {
               className: 'text-xl font-bold mb-4'
-            }, 'EShop'),
+            }, 'LogiShop'),
             React.createElement('p', {
               className: 'text-gray-300'
             }, 'Your one-stop shop for all your needs. Quality products at competitive prices.')
@@ -189,7 +189,7 @@ function Layout() {
           className: 'mt-8 pt-8 border-t border-gray-700 text-center text-gray-300'
         },
           React.createElement('p', null,
-            `© ${new Date().getFullYear()} EShop. All rights reserved.`
+            `© ${new Date().getFullYear()} LogiShop. All rights reserved.`
           )
         )
       ])

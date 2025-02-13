@@ -190,6 +190,7 @@ const OrderDetails = () => {
   useEffect(() => {
     fetchOrderAndHistory();
   }, [orderId]);
+
   const handleStatusUpdate = async (newStatus) => {
     try {
       setError(null);
@@ -207,7 +208,7 @@ const OrderDetails = () => {
 
   const handleUndo = async () => {
     if (statusStack.length === 0) return;
-    
+
     try {
       setError(null);
       // Get last status from stack
@@ -264,7 +265,7 @@ const OrderDetails = () => {
         </button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3 mb-6">
+      <div className="grid gap-6 md:grid-cols-4 mb-6">
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-semibold mb-4">Order Information</h2>
           <div className="space-y-2">
@@ -301,6 +302,21 @@ const OrderDetails = () => {
             )}
           </div>
         </div>
+
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-lg font-semibold mb-4">Order Items</h2>
+          <div className="space-y-4">
+            {order.items?.map(item => (
+              <div key={`${item.id}-${item.product?.id || ''}-${item.quantity}`} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
+                <div>
+                  <span className="font-medium">{item.product?.name}</span>
+                  <span className="text-gray-600 ml-2">x{item.quantity}</span>
+                </div>
+                <span className="text-gray-700">${item.total_price}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="bg-white shadow rounded-lg p-6 mb-6">
@@ -308,7 +324,7 @@ const OrderDetails = () => {
         <div className="mb-8">
           <OrderStatusTimeline currentStatus={order.status} />
         </div>
-        
+
         {(role === 'admin' || role === 'seller') && (
           <OrderStatusControl
             currentStatus={order.status}
@@ -320,21 +336,6 @@ const OrderDetails = () => {
         )}
 
         <OrderStatusHistory history={statusHistory} />
-      </div>
-
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Order Items</h2>
-        <div className="space-y-4">
-          {order.items?.map(item => (
-            <div key={`${item.id}-${item.product?.id || ''}-${item.quantity}`} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
-              <div>
-                <span className="font-medium">{item.product?.name}</span>
-                <span className="text-gray-600 ml-2">x{item.quantity}</span>
-              </div>
-              <span className="text-gray-700">${item.total_price}</span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {role === 'seller' && (

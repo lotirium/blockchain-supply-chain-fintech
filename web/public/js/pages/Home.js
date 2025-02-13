@@ -22,7 +22,7 @@ function Home() {
         }, [
           React.createElement('h1', {
             className: 'text-4xl md:text-5xl font-bold mb-4'
-          }, 'Welcome to EShop'),
+          }, 'Welcome to LogiShop'),
           React.createElement('p', {
             className: 'text-xl mb-8'
           }, 'Discover amazing products at unbeatable prices. Shop now and enjoy exclusive deals!'),

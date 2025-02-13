@@ -21,7 +21,7 @@ function Home() {
         <div className="container mx-auto px-4">
           <div className="max-w-2xl">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Welcome to EShop
+              Welcome to LogiShop
             </h1>
             <p className="text-xl mb-8">
               Discover amazing products at unbeatable prices. Shop now and enjoy exclusive deals!
