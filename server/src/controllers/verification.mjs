@@ -75,12 +75,39 @@ export const updateVerificationStatus = async (req, res) => {
       return res.status(404).json({ message: 'Store not found' });
     }
 
-    // Update store status
-    await store.update({
-      status: storeStatus,
-      is_verified: storeStatus === 'active',
-      verification_date: storeStatus === 'active' ? new Date() : null
-    });
+    // Update store status and generate hologram if approved
+    if (storeStatus === 'active') {
+      // Import the image service
+      const { generateHologramLabel } = await import('../services/imageService.mjs');
+      
+      try {
+        // Generate hologram label
+        const hologramPath = await generateHologramLabel(store.name);
+        
+        // Update store with status and hologram
+        await store.update({
+          status: storeStatus,
+          is_verified: true,
+          verification_date: new Date(),
+          hologram_label: hologramPath
+        });
+      } catch (error) {
+        console.error('Error generating hologram:', error);
+        // Continue with store approval even if hologram generation fails
+        await store.update({
+          status: storeStatus,
+          is_verified: true,
+          verification_date: new Date()
+        });
+      }
+    } else {
+      // Update store status for rejection
+      await store.update({
+        status: storeStatus,
+        is_verified: false,
+        verification_date: null
+      });
+    }
 
     // Create notification for store owner
     if (store.owner) {
