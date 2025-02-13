@@ -79,7 +79,7 @@ class BlockchainController {
         }
     }
 
-    async createProduct(storeWalletAddress, name, manufacturer, tokenURI) {
+    async createProduct(storeWalletAddress, name, tokenURI) {
         try {
             await this.initialize(); // Ensure initialized
             const signer = await this.getSigner(storeWalletAddress);
@@ -99,17 +99,13 @@ class BlockchainController {
             console.log('Signer address:', await signer.getAddress());
             console.log('Creating product with params:', {
                 name,
-                manufacturer,
                 price: 0,
                 tokenURI
             });
 
             // Create product through SupplyChain contract
-            // The createProduct function signature is:
-            // function createProduct(string name, string manufacturer, uint256 price, string tokenURI)
             const createTx = await supplyChainContract.createProduct(
                 name,
-                manufacturer,
                 ethers.parseEther('0'), // Price as wei (0 ETH)
                 tokenURI
             );
@@ -368,7 +364,6 @@ class BlockchainController {
             return {
                 id: numericTokenId,
                 name: product.name,
-                manufacturer: product.manufacturer,
                 manufactureDate: Number(product.manufactureDate),
                 status: Number(product.status),
                 currentOwner: product.currentOwner,
@@ -411,7 +406,6 @@ class BlockchainController {
                     products.push({
                         id: id,
                         name: product.name,
-                        manufacturer: product.manufacturer,
                         manufactureDate: Number(product.manufactureDate),
                         status: Number(product.status),
                         currentOwner: product.currentOwner,

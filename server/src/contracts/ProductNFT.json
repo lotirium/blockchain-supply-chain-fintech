@@ -111,26 +111,18 @@
     },
     {
       "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "manufacturer",
-          "type": "address"
-        }
-      ],
+      "inputs": [{
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      }],
       "name": "ProductCreated",
       "type": "event"
     },
@@ -254,11 +246,6 @@
         },
         {
           "internalType": "string",
-          "name": "manufacturer",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
           "name": "tokenURI",
           "type": "string"
         }
@@ -319,11 +306,6 @@
         {
           "internalType": "string",
           "name": "name",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "manufacturer",
           "type": "string"
         },
         {

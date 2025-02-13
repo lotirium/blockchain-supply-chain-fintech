@@ -136,7 +136,12 @@ router.post('/register', registerValidation, async (req, res) => {
           await fundingTx.wait();
 
           // Then grant retailer role
-          const grantTx = await supplyChain.grantRetailerRole(newWallet.address, {
+          // Use grantRole from AccessControl instead of a custom grantRetailerRole function
+          const RETAILER_ROLE = await supplyChain.RETAILER_ROLE();
+          const grantTx = await supplyChain.grantRole(
+            RETAILER_ROLE,
+            newWallet.address,
+            {
             nonce: nonce + 1
           });
           await grantTx.wait();

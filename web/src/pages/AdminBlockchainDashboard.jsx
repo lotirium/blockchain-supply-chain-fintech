@@ -57,7 +57,7 @@ const NetworkStatus = ({ networkDetails }) => (
 // Role Management Component
 const RoleManagement = ({ onGrantRole }) => {
   const [address, setAddress] = useState('');
-  const [role, setRole] = useState('manufacturer');
+  const [role, setRole] = useState('retailer');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -85,8 +85,6 @@ const RoleManagement = ({ onGrantRole }) => {
             onChange={(e) => setRole(e.target.value)}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
           >
-            <option value="manufacturer">Manufacturer</option>
-            <option value="distributor">Distributor</option>
             <option value="retailer">Retailer</option>
           </select>
         </div>
@@ -163,12 +161,6 @@ const AdminBlockchainDashboard = () => {
   const handleGrantRole = async (address, role) => {
     try {
       switch (role) {
-        case 'manufacturer':
-          await blockchainService.grantManufacturerRole(address);
-          break;
-        case 'distributor':
-          await blockchainService.grantDistributorRole(address);
-          break;
         case 'retailer':
           await blockchainService.grantRetailerRole(address);
           break;

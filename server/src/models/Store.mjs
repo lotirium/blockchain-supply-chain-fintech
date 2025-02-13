@@ -6,8 +6,6 @@ class Store extends Model {
     // Get raw values
     const values = Object.assign({}, this.get());
     
-    // Log the raw values before modification
-    console.log('Store raw values:', values);
     
     // Remove only sensitive data while keeping everything else
     delete values.payment_details;
@@ -47,8 +45,6 @@ class Store extends Model {
       result[field] = values[field];
     });
 
-    // Log the final serialized object
-    console.log('Store serialized:', result);
     
     return result;
   }
@@ -83,11 +79,9 @@ Store.init({
     defaultValue: 'pending'
   },
   type: {
-    type: DataTypes.ENUM('manufacturer', 'retailer'),
-    allowNull: true, // Allow null for existing records
-    defaultValue: 'manufacturer', // Default for existing records
+    type: DataTypes.ENUM('retailer'),
     validate: {
-      isIn: [['manufacturer', 'retailer']]
+      isIn: [['retailer']]
     }
   },
   business_email: {

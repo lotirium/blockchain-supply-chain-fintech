@@ -63,35 +63,17 @@ router.get('/status', async (req, res) => {
 });
 
 // Role Management Routes
-router.post('/roles/manufacturer', requireAdmin, async (req, res) => {
-  try {
-    const result = await blockchainController.grantManufacturerRole(req.body.address);
-    res.json(result);
-  } catch (error) {
-    console.error('Failed to grant manufacturer role:', error);
-    res.status(500).json({
-      error: 'Failed to grant manufacturer role',
-      details: error.message
-    });
-  }
-});
-
-router.post('/roles/distributor', requireAdmin, async (req, res) => {
-  try {
-    const result = await blockchainController.grantDistributorRole(req.body.address);
-    res.json(result);
-  } catch (error) {
-    console.error('Failed to grant distributor role:', error);
-    res.status(500).json({
-      error: 'Failed to grant distributor role',
-      details: error.message
-    });
-  }
-});
 
 router.post('/roles/retailer', requireAdmin, async (req, res) => {
   try {
-    const result = await blockchainController.grantRetailerRole(req.body.address);
+    const supplyChain = await blockchainController.getSupplyChain();
+    const RETAILER_ROLE = await supplyChain.RETAILER_ROLE();
+    const signer = await blockchainController.getSigner();
+    const tx = await supplyChain.connect(signer).grantRole(RETAILER_ROLE, req.body.address);
+    await tx.wait();
+    const result = {
+      transaction: tx.hash
+    };
     res.json(result);
   } catch (error) {
     console.error('Failed to grant retailer role:', error);
@@ -168,7 +150,6 @@ router.get('/events', async (req, res) => {
 // Validation middleware
 const createProductValidation = [
   body('name').notEmpty().trim().withMessage('Product name is required'),
-  body('manufacturer').notEmpty().trim().withMessage('Manufacturer is required'),
   body('price').isNumeric().withMessage('Price must be a number'),
   body('description').notEmpty().trim().withMessage('Description is required'),
   body('attributes')
@@ -207,7 +188,7 @@ router.get('/products', async (req, res) => {
         as: 'store',  // Add the alias that's defined in the association
         attributes: ['name', 'wallet_address']
       }],
-      attributes: ['id', 'name', 'description', 'manufacturer', 'token_id', 'status', 'blockchain_status', 'images', 'attributes']
+      attributes: ['id', 'name', 'description', 'token_id', 'status', 'blockchain_status', 'images', 'attributes']
     });
 
     res.json(products);
@@ -222,11 +203,10 @@ router.get('/products', async (req, res) => {
 
 router.post('/products', requireSeller, createProductValidation, async (req, res) => {
   try {
-    const { name, manufacturer, price, description, attributes } = req.body;
+    const { name, price, description, attributes } = req.body;
     const result = await blockchainController.createProduct(
       req.user.id,
       name,
-      manufacturer,
       price,
       description,
       attributes

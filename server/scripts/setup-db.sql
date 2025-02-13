@@ -26,7 +26,7 @@ SET ROLE shipment_user;
 CREATE TYPE enum_users_role AS ENUM ('user', 'seller', 'admin');
 CREATE TYPE enum_users_type AS ENUM ('buyer', 'seller', 'admin');
 CREATE TYPE enum_stores_status AS ENUM ('pending', 'pending_verification', 'active', 'suspended');
-CREATE TYPE enum_stores_type AS ENUM ('manufacturer', 'retailer');
+CREATE TYPE enum_stores_type AS ENUM ('retailer');
 CREATE TYPE enum_products_status AS ENUM ('draft', 'active', 'inactive', 'sold_out');
 CREATE TYPE enum_orders_status AS ENUM ('pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'refunded');
 CREATE TYPE enum_orders_payment_method AS ENUM ('crypto', 'fiat', 'credit_card');
@@ -70,7 +70,7 @@ CREATE TABLE stores (
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
     status enum_stores_status DEFAULT 'pending',
-    type enum_stores_type DEFAULT 'manufacturer',
+    type enum_stores_type DEFAULT 'retailer',
     business_email VARCHAR(255),
     business_phone VARCHAR(255),
     business_address TEXT,
@@ -105,7 +105,6 @@ CREATE TABLE products (
     status enum_products_status DEFAULT 'draft',
     blockchain_status enum_products_blockchain_status DEFAULT 'pending',
     token_id VARCHAR(255) UNIQUE,
-    manufacturer VARCHAR(255),
     category VARCHAR(255),
     images JSONB DEFAULT '[]',
     attributes JSONB DEFAULT '[]',

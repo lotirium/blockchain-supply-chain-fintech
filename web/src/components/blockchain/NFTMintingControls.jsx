@@ -4,7 +4,6 @@ import { blockchainService } from '../../services/blockchain';
 const NFTMintingControls = ({ onMintSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
-    manufacturer: '',
     price: '',
     tokenURI: ''
   });
@@ -26,14 +25,12 @@ const NFTMintingControls = ({ onMintSuccess }) => {
     try {
       const response = await blockchainService.createProduct(
         formData.name,
-        formData.manufacturer,
         formData.price,
         formData.tokenURI
       );
 
       setFormData({
         name: '',
-        manufacturer: '',
         price: '',
         tokenURI: ''
       });
@@ -71,17 +68,6 @@ const NFTMintingControls = ({ onMintSuccess }) => {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Manufacturer</label>
-          <input
-            type="text"
-            name="manufacturer"
-            value={formData.manufacturer}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-            required
-          />
-        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Price</label>

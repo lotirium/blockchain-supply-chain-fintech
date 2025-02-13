@@ -9,3 +9,4 @@ web/node_modules/*
 blockchain/node_modules/*
 image-service/src/__pycache__
 image-service/venv
+.clinerules

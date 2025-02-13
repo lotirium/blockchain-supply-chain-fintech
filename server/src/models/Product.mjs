@@ -60,9 +60,6 @@ Product.init({
       min: 0
     }
   },
-  manufacturer: {
-    type: DataTypes.STRING
-  },
   category: {
     type: DataTypes.STRING
   },
