@@ -60,14 +60,20 @@ router.post('/', auth(), async (req, res) => {
         status: 'pending',
         shipping_address,
         billing_address,
-        payment_method: payment_info?.method || 'credit_card',
+        payment_method: payment_info?.method || 'crypto',
         payment_status: 'pending',
         payment_details: {
+          paymentType: payment_info?.method,
           last_four: payment_info?.card_number?.slice(-4),
           expiry: payment_info?.expiry,
-          card_type: 'credit'
+          card_type: payment_info?.method === 'credit_card' ? 'credit' : null,
+          blockchain_tx: payment_info?.blockchain_tx || null,
+          block_number: payment_info?.block_number || null
         },
         total_fiat_amount: total,
+        total_crypto_amount: payment_info?.crypto_amount || null,
+        transaction_hash: payment_info?.blockchain_tx || null,
+        block_number: payment_info?.block_number || null,
         shipping_method: 'standard',
         shipping_cost: 0
       }, { transaction });

@@ -3,15 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearCart } from '../store/slices/cartSlice';
 import { createOrder } from '../services/api';
+import { blockchainService } from '../services/blockchain';
+import WalletButton from '../components/WalletButton';
+import TransactionStatus from '../components/TransactionStatus';
 
 function Checkout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { items, total } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
+  
   const [loading, setLoading] = useState(false);
+  const [blockchainLoading, setBlockchainLoading] = useState(false);
   const [sameAsShipping, setSameAsShipping] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [walletAddress, setWalletAddress] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [transactionError, setTransactionError] = useState(null);
+
   const [formData, setFormData] = useState({
     // Shipping Info
     shippingFirstName: '',
@@ -37,7 +46,6 @@ function Checkout() {
     cardCvc: '',
   });
 
-  // All useEffect hooks must be called together
   useEffect(() => {
     if (items.length === 0 && !isCheckingOut) {
       navigate('/cart');
@@ -62,12 +70,13 @@ function Checkout() {
       formData.shippingEmail, formData.shippingPhone, formData.shippingAddress,
       formData.shippingCity, formData.shippingState, formData.shippingZip]);
 
-  // Return early if cart is empty - after all hooks are called
-  if (items.length === 0) {
-    return null;
-  }
+  const handleWalletConnect = (address) => {
+    setWalletAddress(address);
+    setTransactionError(null);
+  };
 
   const generateRandomData = () => {
+    // Keep the original random data generation function
     const firstNames = ['John', 'Emma', 'Michael', 'Sarah', 'David', 'Lisa'];
     const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia'];
     const domains = ['gmail.com', 'yahoo.com', 'outlook.com'];
@@ -132,6 +141,9 @@ function Checkout() {
     e.preventDefault();
     setLoading(true);
     setIsCheckingOut(true);
+    setTransactionError(null);
+    setTransactions([]);
+    let blockchainTxs = [];
 
     try {
       // Validate items have store_id
@@ -139,13 +151,50 @@ function Checkout() {
         throw new Error('Some items are missing store information');
       }
 
+      // Verify wallet is connected
+      if (!walletAddress) {
+        throw new Error('Please connect your wallet to continue');
+      }
+
+      // Process blockchain payments first
+      setBlockchainLoading(true);
+      for (const item of items) {
+        try {
+          const paymentResult = await blockchainService.payForProduct(item.id);
+          if (!paymentResult.success) {
+            throw new Error(`Failed to process blockchain payment for item ${item.id}`);
+          }
+
+          setTransactions(prev => [...prev, {
+            id: item.id,
+            hash: paymentResult.transaction,
+            status: 'success'
+          }]);
+
+          blockchainTxs.push({
+            product_id: item.id,
+            transaction: paymentResult.transaction,
+            amount: paymentResult.price,
+            block_number: paymentResult.blockNumber
+          });
+        } catch (error) {
+          console.error('Blockchain payment failed:', error);
+          setTransactionError(error.message);
+          throw new Error(`Blockchain payment failed: ${error.message}`);
+        }
+      }
+      setBlockchainLoading(false);
+
+      // Create order
       const orderData = {
-        items: items.map(item => ({
+        items: items.map((item, index) => ({
           product_id: item.id,
           quantity: item.quantity,
           unit_price: item.price,
-          store_id: item.store_id || item.store?.id, // Handle both formats
-          total_price: item.price * item.quantity
+          store_id: item.store_id || item.store?.id,
+          total_price: item.price * item.quantity,
+          blockchain_tx: blockchainTxs[index]?.transaction,
+          block_number: blockchainTxs[index]?.block_number
         })),
         shipping_address: {
           full_name: `${formData.shippingFirstName} ${formData.shippingLastName}`,
@@ -174,10 +223,8 @@ function Checkout() {
           postal_code: formData.billingZip
         },
         payment_info: {
-          method: 'credit_card',
-          card_number: formData.cardNumber.replace(/\s/g, ''),
-          expiry: formData.cardExpiry,
-          cvc: formData.cardCvc
+          method: 'crypto',
+          blockchain_txs: blockchainTxs
         }
       };
 
@@ -194,7 +241,8 @@ function Checkout() {
             },
             subtotal: total.toFixed(2),
             total: total.toFixed(2),
-            shippingAddress: `${formData.shippingFirstName} ${formData.shippingLastName}, ${formData.shippingAddress}, ${formData.shippingCity}, ${formData.shippingState} ${formData.shippingZip}`
+            shippingAddress: `${formData.shippingFirstName} ${formData.shippingLastName}, ${formData.shippingAddress}, ${formData.shippingCity}, ${formData.shippingState} ${formData.shippingZip}`,
+            blockchainTxs
           }
         });
         dispatch(clearCart());
@@ -204,16 +252,51 @@ function Checkout() {
       }
     } catch (error) {
       console.error('Checkout failed:', error);
-      alert(error.message || 'Failed to create order. Please try again.');
+      alert(error.message || 'Failed to process checkout. Please try again.');
       setIsCheckingOut(false);
     } finally {
+      setBlockchainLoading(false);
       setLoading(false);
     }
   };
 
+  // Return early if cart is empty - after all hooks are called
+  if (items.length === 0) {
+    return null;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+
+      {/* Wallet Connection */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold mb-4">Connect Wallet</h2>
+        <WalletButton onConnect={handleWalletConnect} />
+      </div>
+
+      {/* Transaction Status */}
+      {transactions.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4">Transaction Status</h2>
+          {transactions.map((tx) => (
+            <TransactionStatus
+              key={tx.id}
+              transaction={tx.hash}
+              status={tx.status}
+            />
+          ))}
+        </div>
+      )}
+
+      {transactionError && (
+        <div className="mb-8">
+          <TransactionStatus
+            error={transactionError}
+            status="error"
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Checkout Form */}
@@ -231,6 +314,7 @@ function Checkout() {
                 <span>Fill Sample Data</span>
               </button>
             </div>
+
             {/* Shipping Information */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex justify-between items-center mb-4">
@@ -521,68 +605,17 @@ function Checkout() {
               )}
             </div>
 
-            {/* Payment Information */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-bold mb-4">Payment Information</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Card Number
-                  </label>
-                  <input
-                    type="text"
-                    name="cardNumber"
-                    value={formData.cardNumber}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="1234 5678 9012 3456"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Expiry Date
-                    </label>
-                    <input
-                      type="text"
-                      name="cardExpiry"
-                      value={formData.cardExpiry}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="MM/YY"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      CVC
-                    </label>
-                    <input
-                      type="text"
-                      name="cardCvc"
-                      value={formData.cardCvc}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="123"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || blockchainLoading || !walletAddress}
               className={`w-full bg-blue-600 text-white px-6 py-3 rounded-md ${
-                loading
+                loading || blockchainLoading || !walletAddress
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:bg-blue-700 transition-colors'
               }`}
             >
-              {loading ? (
+              {loading || blockchainLoading ? (
                 <span className="flex items-center justify-center">
                   <svg
                     className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -604,7 +637,7 @@ function Checkout() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Processing...
+                  {blockchainLoading ? 'Processing Blockchain Payment...' : 'Processing Order...'}
                 </span>
               ) : (
                 `Place Order - $${total.toFixed(2)}`

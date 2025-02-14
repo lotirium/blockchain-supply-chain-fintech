@@ -3,21 +3,12 @@ import { body } from 'express-validator';
 import validateRequest from '../middleware/validateRequest.mjs';
 import auth from '../middleware/auth.mjs';
 import { User, Store } from '../models/index.mjs';
+import blockchainController from '../controllers/blockchain.mjs';
 import { ethers } from 'ethers';
 import { promises as fs } from 'fs';
-import supplyChainArtifact from '../contracts/SupplyChain.json' assert { type: "json" };
 import { setupStoreWallet } from '../utils/blockchainUtils.mjs';
 
 const router = express.Router();
-
-// Initialize blockchain connection
-const provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_NODE_URL || 'http://127.0.0.1:8545');
-const deployerWallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
-const supplyChain = new ethers.Contract(
-  process.env.SUPPLY_CHAIN_ADDRESS || '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-  supplyChainArtifact.abi,
-  deployerWallet
-);
 
 // Validation middleware
 const registerValidation = [
@@ -126,26 +117,18 @@ router.post('/register', registerValidation, async (req, res) => {
           });
 
           // Get current nonce
-          const nonce = await provider.getTransactionCount(deployerWallet.address);
-
-          // Fund the wallet first
-          const fundingTx = await deployerWallet.sendTransaction({
-            to: newWallet.address,
-            value: ethers.parseEther('100.0'),
-            nonce: nonce
+          const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY;
+          const deployer = new ethers.Wallet(deployerPrivateKey, blockchainController.provider);
+          
+          // Fund the store wallet
+          const fundingTx = await deployer.sendTransaction({
+            to: newWallet.address, 
+            value: ethers.parseEther('100.0')
           });
           await fundingTx.wait();
 
-          // Then grant retailer role
-          // Use grantRole from AccessControl instead of a custom grantRetailerRole function
-          const RETAILER_ROLE = await supplyChain.RETAILER_ROLE();
-          const grantTx = await supplyChain.grantRole(
-            RETAILER_ROLE,
-            newWallet.address,
-            {
-            nonce: nonce + 1
-          });
-          await grantTx.wait();
+          // Grant retailer role using blockchain controller
+          await blockchainController.grantRetailerRole(newWallet.address);
           
           // Save wallet credentials
           await setupStoreWallet(newWallet.address, newWallet.privateKey.slice(2));

@@ -19,6 +19,15 @@ class BlockchainController {
         const requiredChainId = parseInt(process.env.REQUIRED_CHAIN_ID || '31337');
         const nodeUrl = process.env.ETHEREUM_NODE_URL || 'http://127.0.0.1:8545';
         
+        // Include AccessControl ABI for role management
+        const accessControlAbi = [
+            "function grantRole(bytes32 role, address account)",
+            "function revokeRole(bytes32 role, address account)",
+            "function renounceRole(bytes32 role, address account)",
+            "function hasRole(bytes32 role, address account) view returns (bool)",
+            "function getRoleAdmin(bytes32 role) view returns (bytes32)"
+        ];
+
         console.log('Initializing blockchain controller:', {
             nodeUrl,
             requiredChainId,
@@ -40,6 +49,8 @@ class BlockchainController {
         this._supplyChain = null;
         this.initialized = null;
         this._signer = null;
+        this._accessControlAbi = accessControlAbi;
+        this._supplyChainAbi = null;
         this._requiredChainId = requiredChainId;
     }
 
@@ -86,6 +97,84 @@ class BlockchainController {
                 this._signer = new ethers.Wallet(deployerPrivateKey, this.provider);
             }
             return this._signer;
+        }
+    }
+
+    async payForProduct(tokenId, buyerWallet) {
+        try {
+            await this.initialize();
+
+            if (!this._supplyChain) {
+                throw new Error('SupplyChain contract not initialized');
+            }
+
+            // Get product price
+            const contract = this._supplyChain.connect(buyerWallet);
+            const price = await contract.getProductPrice(tokenId);
+
+            // Execute payment transaction
+            const tx = await contract.payForProduct(tokenId, { value: price });
+            const receipt = await tx.wait();
+
+            // Get block number for the transaction
+            const blockNumber = receipt.blockNumber;
+
+            return {
+                success: true,
+                transaction: tx.hash,
+                price: price.toString(),
+                blockNumber
+            };
+        } catch (error) {
+            console.error('Failed to pay for product:', error);
+            throw new Error(`Payment failed: ${error.message}`);
+        }
+    }
+
+    async getReleasePaymentStatus(tokenId) {
+        try {
+            await this.initialize();
+
+            if (!this._supplyChain) {
+                throw new Error('SupplyChain contract not initialized');
+            }
+
+            const escrowBalance = await this._supplyChain.escrowBalances(tokenId);
+            const beneficiary = await this._supplyChain.escrowBeneficiary(tokenId);
+
+            return {
+                hasPayment: escrowBalance > 0,
+                escrowBalance: escrowBalance.toString(),
+                beneficiary
+            };
+        } catch (error) {
+            console.error('Failed to get payment status:', error);
+            throw new Error(`Failed to get payment status: ${error.message}`);
+        }
+    }
+
+    async releasePayment(tokenId) {
+        try {
+            await this.initialize();
+
+            if (!this._supplyChain) {
+                throw new Error('SupplyChain contract not initialized');
+            }
+
+            const signer = await this.getSigner();
+            const contract = this._supplyChain.connect(signer);
+
+            const tx = await contract.releasePayment(tokenId);
+            const receipt = await tx.wait();
+
+            return {
+                success: true,
+                transaction: tx.hash,
+                blockNumber: receipt.blockNumber
+            };
+        } catch (error) {
+            console.error('Failed to release payment:', error);
+            throw new Error(`Payment release failed: ${error.message}`);
         }
     }
 
@@ -193,6 +282,9 @@ class BlockchainController {
             ProductNFT = JSON.parse(productNFTJson);
             SupplyChain = JSON.parse(supplyChainJson);
 
+            // Combine contract ABI with AccessControl ABI
+            this._supplyChainAbi = [...SupplyChain.abi, ...this._accessControlAbi];
+
             if (!ProductNFT?.abi || !SupplyChain?.abi) {
                 throw new Error('Contract artifacts are missing ABI');
             }
@@ -285,7 +377,7 @@ class BlockchainController {
 
                 this._supplyChain = new ethers.Contract(
                     this.addresses.supplyChain,
-                    SupplyChain.abi,
+                    this._supplyChainAbi,
                     this.provider
                 );
 
@@ -380,6 +472,131 @@ class BlockchainController {
         } catch (error) {
             console.error('Contract verification failed:', error);
             throw new Error('Contract verification failed - please check contract addresses and ABIs');
+        }
+    }
+
+    async getProduct(tokenId) {
+        try {
+            await this.initialize();
+
+            if (!this._productNFT) {
+                throw new Error('ProductNFT contract not initialized');
+            }
+
+            // First get the properties we know work
+            const [tokenURI, currentOwner] = await Promise.all([
+                this._productNFT.tokenURI(tokenId),
+                this._productNFT.ownerOf(tokenId)
+            ]);
+
+            // Build function signature and encode parameters
+            const functionSignature = 'getProduct(uint256)';
+            const functionSelector = ethers.id(functionSignature).slice(0, 10);
+            const encodedParams = ethers.zeroPadValue(ethers.toBeHex(tokenId), 32);
+            const data = functionSelector + encodedParams.slice(2);
+
+            // Make the call
+            const result = await this.provider.call({
+                to: this.addresses.productNFT,
+                data
+            });
+
+            // Manual decode based on the known return structure
+            const decodedStrings = ethers.AbiCoder.defaultAbiCoder().decode(
+                ['string', 'string', 'uint256', 'string', 'address'],
+                '0x' + result.slice(2)
+            );
+
+            return {
+                id: tokenId,
+                name: decodedStrings[0],
+                seller: decodedStrings[1], 
+                creationDate: decodedStrings[2].toString(),
+                status: decodedStrings[3],
+                owner: currentOwner,
+                tokenURI,
+            };
+        } catch (error) {
+            console.error('Failed to get product:', error);
+            // Return minimal product info if full decode fails
+            return {
+                id: tokenId,
+                owner: currentOwner,
+                tokenURI,
+                status: 'Unknown'
+            };
+        }
+    }
+
+    async getProductNFT() {
+        await this.initialize();
+        if (!this._productNFT) {
+            throw new Error('ProductNFT contract not initialized');
+        }
+        return this._productNFT;
+    }
+
+    async getSupplyChain() {
+        await this.initialize();
+        if (!this._supplyChain) {
+            throw new Error('SupplyChain contract not initialized');
+        }
+        return this._supplyChain;
+    }
+
+    async getShipmentHistory(tokenId) {
+        try {
+            await this.initialize();
+
+            if (!this._supplyChain) {
+                throw new Error('SupplyChain contract not initialized');
+            }
+
+            // Stage enum mapping
+            const stages = [
+                'Created',
+                'InProduction', 
+                'InTransit',
+                'Delivered',
+                'ForSale',
+                'Sold',
+                'Returned',
+                'Recalled'
+            ];
+
+            // Create interface for just the event we need
+            const iface = new ethers.Interface([
+                "event StageUpdated(uint256 indexed productId, uint8 newStage)"
+            ]);
+
+            // Get event logs
+            const logs = await this.provider.getLogs({
+                address: this.addresses.supplyChain,
+                topics: [
+                    iface.getEvent("StageUpdated").topicHash,
+                    ethers.zeroPadValue(ethers.toBeHex(tokenId), 32)
+                ],
+                fromBlock: 0
+            });
+
+            // Map logs to history entries
+            const entries = await Promise.all(logs.map(async log => {
+                const parsed = iface.parseLog(log);
+                if (!parsed) return null;
+
+                const block = await this.provider.getBlock(log.blockHash);
+                return {
+                    stage: stages[Number(parsed.args.newStage)] || 'Unknown',
+                    timestamp: block?.timestamp ? new Date(Number(block.timestamp) * 1000).toISOString() : new Date().toISOString(),
+                    blockNumber: log.blockNumber
+                };
+            }));
+
+            return entries.filter(Boolean).sort((a, b) => a.blockNumber - b.blockNumber);
+
+        } catch (error) {
+            console.error('Failed to get shipment history:', error);
+            throw new Error(`Failed to get shipment history: ${error.message}`);
         }
     }
 }

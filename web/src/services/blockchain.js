@@ -4,6 +4,38 @@ class BlockchainService {
         this.networkDetails = null;
         this.eventSource = null;
     }
+    // Payment Management
+    async payForProduct(productId) {
+        const response = await fetch(`/api/blockchain/payments/${productId}`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return response.json();
+    }
+
+    async getReleasePaymentStatus(productId) {
+        const response = await fetch(`/api/blockchain/payments/${productId}/status`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return response.json();
+    }
+
+    async releasePayment(productId) {
+        const response = await fetch(`/api/blockchain/payments/${productId}/release`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return response.json();
+    }
+
 
     async initialize() {
         try {
