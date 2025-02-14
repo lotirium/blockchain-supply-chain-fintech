@@ -10,10 +10,26 @@ const __dirname = dirname(__filename);
 let ProductNFT;
 let SupplyChain;
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000; // 2 seconds
+
 class BlockchainController {
     constructor() {
+        // Get network configuration from environment variables
+        const requiredChainId = parseInt(process.env.REQUIRED_CHAIN_ID || '31337');
         const nodeUrl = process.env.ETHEREUM_NODE_URL || 'http://127.0.0.1:8545';
-        this.provider = new ethers.JsonRpcProvider(nodeUrl);
+        
+        console.log('Initializing blockchain controller:', {
+            nodeUrl,
+            requiredChainId,
+        });
+
+        // Create provider with network configuration
+        this.provider = new ethers.JsonRpcProvider(nodeUrl, {
+            chainId: requiredChainId,
+            name: process.env.REQUIRED_NETWORK_NAME || 'Hardhat Network',
+            ensAddress: null
+        });
         
         this.addresses = {
             productNFT: process.env.PRODUCT_NFT_ADDRESS,
@@ -24,6 +40,7 @@ class BlockchainController {
         this._supplyChain = null;
         this.initialized = null;
         this._signer = null;
+        this._requiredChainId = requiredChainId;
     }
 
     async getSigner(storeWalletAddress = null) {
@@ -42,20 +59,13 @@ class BlockchainController {
                 }
             }
 
-            console.log('Looking up store wallet:', {
-                address: storeWalletAddress,
-                normalizedAddress: normalizedAddress,
-                hasPrivateKey: !!privateKey,
-                availableKeys: storeKeys
-            });
-
             if (!privateKey) {
                 throw new Error(`Private key not found for store wallet ${storeWalletAddress}`);
             }
 
+            // Create wallet with correct network
             const wallet = new ethers.Wallet(privateKey, this.provider);
             const walletAddress = await wallet.getAddress();
-            console.log('Created wallet with address:', walletAddress);
             
             if (walletAddress.toLowerCase() !== storeWalletAddress.toLowerCase()) {
                 console.error('Wallet address mismatch:', {
@@ -82,58 +92,58 @@ class BlockchainController {
     async createProduct(storeWalletAddress, name, storeName, tokenURI) {
         try {
             await this.initialize(); // Ensure initialized
-            // Use deployer wallet since createProduct is onlyOwner
-            const signer = await this.getSigner();
+            
+            // Use store wallet to create product since it needs RETAILER_ROLE
+            const signer = await this.getSigner(storeWalletAddress);
             
             if (!ProductNFT?.abi || !SupplyChain?.abi) {
                 await this.loadArtifacts();
             }
 
-            // First get ProductNFT contract
-            const productNFTContract = new ethers.Contract(
-                this.addresses.productNFT,
-                ProductNFT.abi,
-                signer
-            );
-            
-            // Format tokenURI if it's an object
-            const formattedTokenURI = typeof tokenURI === 'object' ? JSON.stringify(tokenURI) : tokenURI;
+            // Format tokenURI - if it's already a string, use it as is
+            const formattedTokenURI = typeof tokenURI === 'string' ? tokenURI : JSON.stringify(tokenURI);
 
-            console.log('Creating NFT with params:', {
-                deployer: await signer.getAddress(),
-                recipient: storeWalletAddress,
+            // Create default selling price (0.01 ETH) as BigInt
+            const defaultPrice = BigInt('10000000000000000'); // 0.01 ETH in wei
+
+            console.log('Creating product with params:', {
+                wallet: await signer.getAddress(),
                 name: name,
                 seller: storeName, 
-                tokenURI: tokenURI
+                tokenURI: formattedTokenURI,
+                sellingPrice: defaultPrice.toString()
             });
-            
-            // Verify owner
-            try {
-                const owner = await productNFTContract.owner();
-                if (owner.toLowerCase() !== (await signer.getAddress()).toLowerCase()) {
-                    throw new Error('Deployer wallet is not the contract owner');
-                }
-            } catch (error) {
-                throw new Error('Failed to verify contract owner: ' + error.message);
+
+            const supplyChainContract = new ethers.Contract(
+                this.addresses.supplyChain,
+                SupplyChain.abi,
+                signer
+            );
+
+            // Verify chain ID before proceeding
+            const network = await this.provider.getNetwork();
+            if (network.chainId !== BigInt(this._requiredChainId)) {
+                throw new Error(`Wrong network - expected chainId ${this._requiredChainId}, got ${network.chainId}`);
             }
 
-            // Create NFT first
-            const createNFTTx = await productNFTContract.createProduct(
-                storeWalletAddress,
-                name,
-                storeName,
-                formattedTokenURI
+            // Call createProduct with all required parameters
+            const createProductTx = await supplyChainContract.createProduct(
+                name,             // Product name
+                storeName,        // Seller name
+                0n,              // Unused price parameter as BigInt
+                formattedTokenURI,    // Token URI
+                defaultPrice     // Required selling price as BigInt
             );
-            const createNFTReceipt = await createNFTTx.wait();
+            const createProductReceipt = await createProductTx.wait();
 
-            // Get token ID from the ProductCreated event
-            const iface = new ethers.Interface(ProductNFT.abi);
-            let tokenId;
-            for (const log of createNFTReceipt.logs) {
+            // Get productId from the ProductCreated event
+            const iface = new ethers.Interface(SupplyChain.abi);
+            let productId;
+            for (const log of createProductReceipt.logs) {
                 try {
                     const parsedLog = iface.parseLog(log);
                     if (parsedLog && parsedLog.name === 'ProductCreated') {
-                        tokenId = parsedLog.args.tokenId.toString();
+                        productId = parsedLog.args.productId.toString();
                         break;
                     }
                 } catch (e) {
@@ -142,28 +152,24 @@ class BlockchainController {
                 }
             }
 
-            if (!tokenId) {
-                console.error('Create NFT transaction successful but no token ID in logs:', createNFTReceipt);
-                throw new Error('Failed to get token ID from event');
+            if (!productId) {
+                console.error('Create product transaction successful but no product ID in logs:', createProductReceipt);
+                throw new Error('Failed to get product ID from event');
             }
 
             return {
                 success: true,
-                tokenId: tokenId,
-                transaction: createNFTReceipt.hash
+                tokenId: productId,
+                transaction: createProductReceipt.hash
             };
         } catch (error) {
-            console.error('Failed to create product NFT:', {
+            console.error('Failed to create product:', {
                 error: error.message,
                 code: error.code,
                 details: error.details || 'No additional details',
                 transaction: error.transaction || 'No transaction data'
             });
 
-            if (error.message.includes('not the contract owner')) {
-                throw new Error('Permission denied: deployer wallet is not the contract owner');
-            }
-            
             if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
                 throw new Error('Contract call failed - check parameters and permissions');
             }
@@ -198,14 +204,152 @@ class BlockchainController {
         }
     }
 
-    async testConnection() {
-        console.log('Testing provider connection...');
-        const network = await this.provider.getNetwork();
-        console.log('Connected to network:', {
-            name: network.name,
-            chainId: network.chainId
-        });
-        return network;
+    async getNetworkStatus() {
+        try {
+            const network = await this.provider.getNetwork();
+            return {
+                name: network.name,
+                chainId: network.chainId.toString(),
+                isConnected: true,
+                requiredChainId: this._requiredChainId.toString()
+            };
+        } catch (error) {
+            console.error('Failed to get network status:', error);
+            throw new Error('Failed to connect to blockchain network');
+        }
+    }
+
+    async testConnection(retryCount = 0) {
+        console.log(`Testing provider connection (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
+        try {
+            // Test basic RPC connection
+            const blockNumber = await this.provider.getBlockNumber();
+            console.log('Current block number:', blockNumber);
+
+            // Verify network
+            const network = await this.provider.getNetwork();
+            console.log('Connected to network:', {
+                name: network.name,
+                chainId: network.chainId.toString(),
+                requiredChainId: this._requiredChainId
+            });
+
+            // Verify chainId matches required
+            if (network.chainId !== BigInt(this._requiredChainId)) {
+                throw new Error(`Wrong network - expected chainId ${this._requiredChainId}, got ${network.chainId}`);
+            }
+
+            return network;
+        } catch (error) {
+            console.error(`Connection attempt ${retryCount + 1} failed:`, error);
+            
+            if (retryCount < MAX_RETRIES - 1) {
+                console.log(`Retrying in ${RETRY_DELAY}ms...`);
+                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                return this.testConnection(retryCount + 1);
+            }
+
+            if (error.message.includes('Wrong network')) {
+                throw error;
+            }
+            
+            throw new Error('Failed to connect to blockchain network - please check if the node is running');
+        }
+    }
+
+    async initialize() {
+        const TIMEOUT = 30000; // 30 seconds timeout
+
+        // Use a promise to handle initialization state
+        if (this.initialized) {
+            return this.initialized;
+        }
+
+        // Create initialization promise
+        this.initialized = (async () => {
+            try {
+                console.log('Starting blockchain controller initialization...');
+
+                // Run validation first
+                await this.validateConfig();
+
+                // Test RPC connection with retries
+                await this.testConnection();
+
+                // Create contract instances
+                this._productNFT = new ethers.Contract(
+                    this.addresses.productNFT,
+                    ProductNFT.abi,
+                    this.provider
+                );
+
+                this._supplyChain = new ethers.Contract(
+                    this.addresses.supplyChain,
+                    SupplyChain.abi,
+                    this.provider
+                );
+
+                console.log('Blockchain initialization completed successfully');
+                return true;
+            } catch (error) {
+                console.error('Blockchain initialization failed:', error);
+                this.initialized = null; // Reset initialization state
+                throw error;
+            }
+        })();
+
+        // Add timeout to initialization
+        return Promise.race([
+            this.initialized,
+            new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Initialization timeout')), TIMEOUT)
+            )
+        ]);
+    }
+
+    async validateConfig() {
+        try {
+            console.log('Starting blockchain configuration validation...');
+            
+            // Check environment variables first
+            const missingConfig = [];
+            if (!process.env.ETHEREUM_NODE_URL) {
+                missingConfig.push('ETHEREUM_NODE_URL');
+            }
+            if (!process.env.REQUIRED_CHAIN_ID) {
+                missingConfig.push('REQUIRED_CHAIN_ID');
+            }
+            if (!this.addresses.productNFT) {
+                missingConfig.push('PRODUCT_NFT_ADDRESS');
+            }
+            if (!this.addresses.supplyChain) {
+                missingConfig.push('SUPPLY_CHAIN_ADDRESS');
+            }
+
+            if (missingConfig.length > 0) {
+                throw new Error(`Missing required configuration: ${missingConfig.join(', ')}`);
+            }
+
+            // Load artifacts first
+            await this.loadArtifacts();
+            console.log('Contract artifacts loaded successfully');
+
+            // Test network connection with retries
+            const network = await this.testConnection();
+            console.log('Network connection successful:', network);
+
+            // Verify contract accessibility
+            await this.checkContracts();
+            console.log('Contract verification successful');
+
+            return true;
+        } catch (error) {
+            console.error('Configuration validation failed:', error);
+            if (error.message.includes('ENOENT')) {
+                throw new Error('Contract artifacts not found - please check if JSON files exist in src/contracts/');
+            }
+            throw new Error(`Configuration validation failed: ${error.message}`);
+        }
     }
 
     async checkContracts() {
@@ -229,111 +373,13 @@ class BlockchainController {
             // Try to access contract methods to verify they're working
             await Promise.all([
                 productNFT.getProduct(0).catch(() => {}),  // Ignore errors from non-existent tokens
-                supplyChain.getCurrentShipment(0).catch(() => {})
+                supplyChain.isRetailer(this.addresses.supplyChain).catch(() => {})
             ]);
 
             console.log('Contract instances verified successfully');
         } catch (error) {
             console.error('Contract verification failed:', error);
             throw new Error('Contract verification failed - please check contract addresses and ABIs');
-        }
-    }
-
-    async initialize() {
-        const TIMEOUT = 30000; // 30 seconds timeout
-
-        // Use a promise to handle initialization state
-        if (this.initialized) {
-            return this.initialized;
-        }
-
-        // Create initialization promise
-        this.initialized = (async () => {
-            try {
-                console.log('Starting blockchain controller initialization...');
-
-                // Run validation first
-                await this.validateConfig();
-
-                // Create contract instances
-                this._productNFT = new ethers.Contract(
-                    this.addresses.productNFT,
-                    ProductNFT.abi,
-                    this.provider
-                );
-
-                this._supplyChain = new ethers.Contract(
-                    this.addresses.supplyChain,
-                    SupplyChain.abi,
-                    this.provider
-                );
-
-                console.log('Blockchain initialization completed successfully');
-                return true;
-            } catch (error) {
-                console.error('Blockchain initialization failed:', error);
-                this.initialized = null; // Reset initialization state
-                
-                if (error.message.includes('Network connection timeout')) {
-                    throw new Error('Failed to connect to blockchain network - please check if the node is running');
-                }
-                
-                if (error.message.includes('Contract artifacts')) {
-                    throw new Error('Failed to load contract artifacts - please check contract JSON files');
-                }
-                
-                throw error;
-            }
-        })();
-
-        // Add timeout to initialization
-        return Promise.race([
-            this.initialized,
-            new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Initialization timeout')), TIMEOUT)
-            )
-        ]);
-    }
-
-    async validateConfig() {
-        try {
-            console.log('Starting blockchain configuration validation...');
-            
-            // Check environment variables first
-            const missingConfig = [];
-            if (!process.env.ETHEREUM_NODE_URL) {
-                missingConfig.push('ETHEREUM_NODE_URL');
-            }
-            if (!this.addresses.productNFT) {
-                missingConfig.push('PRODUCT_NFT_ADDRESS');
-            }
-            if (!this.addresses.supplyChain) {
-                missingConfig.push('SUPPLY_CHAIN_ADDRESS');
-            }
-
-            if (missingConfig.length > 0) {
-                throw new Error(`Missing required configuration: ${missingConfig.join(', ')}`);
-            }
-
-            // Load artifacts first
-            await this.loadArtifacts();
-            console.log('Contract artifacts loaded successfully');
-
-            // Test network connection
-            const network = await this.testConnection();
-            console.log('Network connection successful:', network);
-
-            // Verify contract accessibility
-            await this.checkContracts();
-            console.log('Contract verification successful');
-
-            return true;
-        } catch (error) {
-            console.error('Configuration validation failed:', error);
-            if (error.message.includes('ENOENT')) {
-                throw new Error('Contract artifacts not found - please check if JSON files exist in src/contracts/');
-            }
-            throw new Error(`Configuration validation failed: ${error.message}`);
         }
     }
 }

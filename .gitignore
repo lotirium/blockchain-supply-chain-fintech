@@ -10,3 +10,5 @@ blockchain/node_modules/*
 image-service/src/__pycache__
 image-service/venv
 .clinerules
+server/uploads/
+server/.env
