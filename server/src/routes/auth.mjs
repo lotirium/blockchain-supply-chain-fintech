@@ -6,6 +6,7 @@ import { User, Store } from '../models/index.mjs';
 import { ethers } from 'ethers';
 import { promises as fs } from 'fs';
 import supplyChainArtifact from '../contracts/SupplyChain.json' assert { type: "json" };
+import { setupStoreWallet } from '../utils/blockchainUtils.mjs';
 
 const router = express.Router();
 
@@ -145,10 +146,9 @@ router.post('/register', registerValidation, async (req, res) => {
             nonce: nonce + 1
           });
           await grantTx.wait();
-
-          // Add to environment variables
-          const envVarName = `STORE_${newWallet.address.slice(2).toUpperCase()}_KEY`;
-          process.env[envVarName] = newWallet.privateKey;
+          
+          // Save wallet credentials
+          await setupStoreWallet(newWallet.address, newWallet.privateKey.slice(2));
 
           console.log(`Store wallet ${newWallet.address} created, granted retailer role and funded with 100 ETH`);
 

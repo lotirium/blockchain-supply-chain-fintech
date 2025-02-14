@@ -79,59 +79,95 @@ class BlockchainController {
         }
     }
 
-    async createProduct(storeWalletAddress, name, tokenURI) {
+    async createProduct(storeWalletAddress, name, storeName, tokenURI) {
         try {
             await this.initialize(); // Ensure initialized
-            const signer = await this.getSigner(storeWalletAddress);
+            // Use deployer wallet since createProduct is onlyOwner
+            const signer = await this.getSigner();
             
-            // Get contract instances
-            if (!SupplyChain?.abi) {
+            if (!ProductNFT?.abi || !SupplyChain?.abi) {
                 await this.loadArtifacts();
             }
 
-            const supplyChainContract = new ethers.Contract(
-                this.addresses.supplyChain,
-                SupplyChain.abi,
+            // First get ProductNFT contract
+            const productNFTContract = new ethers.Contract(
+                this.addresses.productNFT,
+                ProductNFT.abi,
                 signer
             );
+            
+            // Format tokenURI if it's an object
+            const formattedTokenURI = typeof tokenURI === 'object' ? JSON.stringify(tokenURI) : tokenURI;
 
-            console.log('SupplyChain address:', this.addresses.supplyChain);
-            console.log('Signer address:', await signer.getAddress());
-            console.log('Creating product with params:', {
-                name,
-                price: 0,
-                tokenURI
+            console.log('Creating NFT with params:', {
+                deployer: await signer.getAddress(),
+                recipient: storeWalletAddress,
+                name: name,
+                seller: storeName, 
+                tokenURI: tokenURI
             });
+            
+            // Verify owner
+            try {
+                const owner = await productNFTContract.owner();
+                if (owner.toLowerCase() !== (await signer.getAddress()).toLowerCase()) {
+                    throw new Error('Deployer wallet is not the contract owner');
+                }
+            } catch (error) {
+                throw new Error('Failed to verify contract owner: ' + error.message);
+            }
 
-            // Create product through SupplyChain contract
-            const createTx = await supplyChainContract.createProduct(
+            // Create NFT first
+            const createNFTTx = await productNFTContract.createProduct(
+                storeWalletAddress,
                 name,
-                ethers.parseEther('0'), // Price as wei (0 ETH)
-                tokenURI
+                storeName,
+                formattedTokenURI
             );
-            const createReceipt = await createTx.wait();
+            const createNFTReceipt = await createNFTTx.wait();
 
-            // Get token ID from event
-            // The SupplyChain contract emits its own ProductCreated event
-            // We need to parse the transaction receipt logs to find the event
-            const iface = new ethers.Interface(SupplyChain.abi);
-            for (const log of createReceipt.logs) {
+            // Get token ID from the ProductCreated event
+            const iface = new ethers.Interface(ProductNFT.abi);
+            let tokenId;
+            for (const log of createNFTReceipt.logs) {
                 try {
                     const parsedLog = iface.parseLog(log);
                     if (parsedLog && parsedLog.name === 'ProductCreated') {
-                        return {
-                            tokenId: parsedLog.args.productId.toString(),
-                            transaction: createReceipt.hash
-                        };
+                        tokenId = parsedLog.args.tokenId.toString();
+                        break;
                     }
                 } catch (e) {
                     // Skip logs that can't be parsed
                     continue;
                 }
             }
-            throw new Error('ProductCreated event not found in transaction');
+
+            if (!tokenId) {
+                console.error('Create NFT transaction successful but no token ID in logs:', createNFTReceipt);
+                throw new Error('Failed to get token ID from event');
+            }
+
+            return {
+                success: true,
+                tokenId: tokenId,
+                transaction: createNFTReceipt.hash
+            };
         } catch (error) {
-            console.error('Failed to create product NFT:', error);
+            console.error('Failed to create product NFT:', {
+                error: error.message,
+                code: error.code,
+                details: error.details || 'No additional details',
+                transaction: error.transaction || 'No transaction data'
+            });
+
+            if (error.message.includes('not the contract owner')) {
+                throw new Error('Permission denied: deployer wallet is not the contract owner');
+            }
+            
+            if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
+                throw new Error('Contract call failed - check parameters and permissions');
+            }
+            
             throw error;
         }
     }
@@ -183,6 +219,7 @@ class BlockchainController {
                 ProductNFT.abi,
                 this.provider
             );
+
             const supplyChain = new ethers.Contract(
                 this.addresses.supplyChain,
                 SupplyChain.abi,
@@ -258,225 +295,6 @@ class BlockchainController {
         ]);
     }
 
-    async getNetworkStatus() {
-        try {
-            const network = await this.provider.getNetwork();
-            
-            try {
-                const [blockNumber, feeData] = await Promise.all([
-                    this.provider.getBlockNumber(),
-                    this.provider.getFeeData()
-                ]);
-
-                // Set network name to "Hardhat" if chainId is 31337
-                const networkName = network.chainId === 31337n ? "Hardhat" : network.name;
-                return {
-                    name: networkName,
-                    chainId: network.chainId.toString(),
-                    blockNumber: blockNumber.toString(),
-                    gasPrice: feeData.gasPrice ? ethers.formatUnits(feeData.gasPrice, 'gwei') : 'N/A',
-                    isConnected: true
-                };
-            } catch (innerError) {
-                console.warn('Connected to network but failed to get full details:', innerError);
-                const networkName = network.chainId === 31337n ? "Hardhat" : network.name;
-                return {
-                    name: networkName,
-                    chainId: network.chainId.toString(),
-                    isConnected: true,
-                    blockNumber: 'N/A',
-                    gasPrice: 'N/A'
-                };
-            }
-        } catch (error) {
-            console.error('Failed to get network status:', error);
-            return {
-                name: 'Not Connected',
-                chainId: 'N/A',
-                blockNumber: 'N/A',
-                gasPrice: 'N/A',
-                isConnected: false,
-                error: error.message
-            };
-        }
-    }
-
-    async getProductNFT() {
-        if (!this._productNFT) {
-            await this.initialize();
-        }
-        return this._productNFT;
-    }
-
-    async getSupplyChain() {
-        if (!this._supplyChain) {
-            await this.initialize();
-        }
-        return this._supplyChain;
-    }
-
-    async getShipmentHistory(productId) {
-        try {
-            const supplyChain = await this.getSupplyChain();
-            const history = await supplyChain.getShipmentHistory(productId);
-            
-            // Convert BigInt timestamp to number for JSON serialization
-            return history.map(shipment => ({
-                sender: shipment.sender,
-                receiver: shipment.receiver,
-                stage: Number(shipment.stage),
-                location: shipment.location,
-                timestamp: Number(shipment.timestamp)
-            }));
-        } catch (error) {
-            console.error('Failed to get shipment history:', error);
-            throw new Error(`Failed to get shipment history: ${error.message}`);
-        }
-    }
-
-    async getProduct(tokenId) {
-        try {
-            // Convert tokenId to a number and validate
-            const numericTokenId = Number(tokenId);
-            if (isNaN(numericTokenId)) {
-                throw new Error('Invalid token ID format - must be a number');
-            }
-
-            const productNFT = await this.getProductNFT();
-            const supplyChain = await this.getSupplyChain();
-
-            const product = await productNFT.getProduct(numericTokenId);
-            if (!product || !product.name) {
-                throw new Error('No product found with this Token ID');
-            }
-
-            const shipment = await supplyChain.getShipmentHistory(numericTokenId);
-
-            // Convert shipment history BigInt values
-            const formattedShipment = shipment.map(s => ({
-                sender: s.sender,
-                receiver: s.receiver,
-                stage: Number(s.stage),
-                location: s.location,
-                timestamp: Number(s.timestamp)
-            }));
-
-            return {
-                id: numericTokenId,
-                name: product.name,
-                manufactureDate: Number(product.manufactureDate),
-                status: Number(product.status),
-                currentOwner: product.currentOwner,
-                shipmentHistory: formattedShipment
-            };
-        } catch (error) {
-            console.error(`Failed to get product ${tokenId}:`, error);
-            if (error.message.includes('Invalid token ID format')) {
-                throw new Error(error.message);
-            }
-            throw new Error('No product found with this Token ID');
-        }
-    }
-
-    async getAllProducts() {
-        try {
-            const [productNFT, supplyChain] = await Promise.all([
-                this.getProductNFT(),
-                this.getSupplyChain()
-            ]);
-            
-            const maxTokenId = Number(await productNFT.getCurrentTokenId());
-            const products = [];
-    
-            // Get all products up to the current token ID
-            for (let id = 1; id <= maxTokenId; id++) {
-                try {
-                    const product = await productNFT.getProduct(id);
-                    const shipment = await supplyChain.getShipmentHistory(id);
-                    
-                    // Convert shipment history BigInt values
-                    const formattedShipment = shipment.map(s => ({
-                        sender: s.sender,
-                        receiver: s.receiver,
-                        stage: Number(s.stage),
-                        location: s.location,
-                        timestamp: Number(s.timestamp)
-                    }));
-
-                    products.push({
-                        id: id,
-                        name: product.name,
-                        manufactureDate: Number(product.manufactureDate),
-                        status: Number(product.status),
-                        currentOwner: product.currentOwner,
-                        shipmentHistory: formattedShipment
-                    });
-                } catch (error) {
-                    // Skip if product doesn't exist (might have been burned)
-                    if (!error.message.includes("Product does not exist")) {
-                        console.error(`Error fetching product ${id}:`, error);
-                    }
-                    continue;
-                }
-            }
-            
-            return products;
-        } catch (error) {
-            console.error('Failed to get all products:', error);
-            throw new Error(`Failed to get all products: ${error.message}`);
-        }
-    }
-
-    async pauseContract() {
-        try {
-            const supplyChain = await this.getSupplyChain();
-            const signer = await this.getSigner();
-            const contract = supplyChain.connect(signer);
-
-            // Check if contract is already paused
-            const isPaused = await contract.paused();
-            if (isPaused) {
-                return { success: false, message: 'Contract is already paused' };
-            }
-
-            const tx = await contract.pause();
-            await tx.wait();
-            
-            return { success: true, transaction: tx.hash };
-        } catch (error) {
-            console.error('Failed to pause contract:', error);
-            if (error.message.includes('Pausable: paused')) {
-                return { success: false, message: 'Contract is already paused' };
-            }
-            throw new Error(`Failed to pause contract: ${error.message}`);
-        }
-    }
-
-    async unpauseContract() {
-        try {
-            const supplyChain = await this.getSupplyChain();
-            const signer = await this.getSigner();
-            const contract = supplyChain.connect(signer);
-
-            // Check if contract is already unpaused
-            const isPaused = await contract.paused();
-            if (!isPaused) {
-                return { success: false, message: 'Contract is not paused' };
-            }
-
-            const tx = await contract.unpause();
-            await tx.wait();
-            
-            return { success: true, transaction: tx.hash };
-        } catch (error) {
-            console.error('Failed to unpause contract:', error);
-            if (error.message.includes('Pausable: not paused')) {
-                return { success: false, message: 'Contract is not paused' };
-            }
-            throw new Error(`Failed to unpause contract: ${error.message}`);
-        }
-    }
-
     async validateConfig() {
         try {
             console.log('Starting blockchain configuration validation...');
@@ -496,12 +314,6 @@ class BlockchainController {
             if (missingConfig.length > 0) {
                 throw new Error(`Missing required configuration: ${missingConfig.join(', ')}`);
             }
-
-            console.log('Current blockchain configuration:', {
-                nodeUrl: process.env.ETHEREUM_NODE_URL,
-                productNFTAddress: this.addresses.productNFT,
-                supplyChainAddress: this.addresses.supplyChain
-            });
 
             // Load artifacts first
             await this.loadArtifacts();

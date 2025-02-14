@@ -5,9 +5,10 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { Store, Product } from '../models/index.mjs';
 import { requireSeller } from '../middleware/auth.mjs';
+import blockchainController from '../controllers/blockchain.mjs';
+import mintPendingNFTs from '../jobs/mintPendingNFTs.mjs';
 
 const router = express.Router();
-import blockchainController from '../controllers/blockchain.mjs';
 
 // Get current directory
 const __filename = fileURLToPath(import.meta.url);
@@ -213,7 +214,7 @@ router.post('/', requireSeller, validateStore, handleUpload, async (req, res) =>
 
     console.log('Creating NFT for product...');
     try {
-      // Create NFT for the product
+      // Create NFT metadata
       const tokenURI = JSON.stringify({
         name: product.name,
         description: product.description,
@@ -222,10 +223,10 @@ router.post('/', requireSeller, validateStore, handleUpload, async (req, res) =>
       });
 
       const result = await blockchainController.createProduct(
-          req.store.wallet_address,
-          product.name,
-          req.store.name,
-          tokenURI
+        req.store.wallet_address,
+        product.name,
+        req.store.name,
+        tokenURI
       );
 
       // Try to update with retry/increment logic for token_id conflicts
@@ -234,22 +235,22 @@ router.post('/', requireSeller, validateStore, handleUpload, async (req, res) =>
       let currentTokenId = result.tokenId;
       
       while (retryCount < maxRetries) {
-          try {
-              await product.update({
-                  token_id: currentTokenId.toString(),
-                  blockchain_status: 'minted'
-              });
-              break; // Success - exit loop
-          } catch (updateError) {
-              if (updateError.name === 'SequelizeUniqueConstraintError' && retryCount < maxRetries - 1) {
-                  // Increment token ID and try again
-                  currentTokenId = (parseInt(currentTokenId) + 1).toString();
-                  console.log(`Token ID conflict, trying with ID ${currentTokenId}...`);
-                  retryCount++;
-                  continue;
-              }
-              throw updateError;
+        try {
+          await product.update({
+            token_id: currentTokenId.toString(),
+            blockchain_status: 'minted'
+          });
+          break; // Success - exit loop
+        } catch (updateError) {
+          if (updateError.name === 'SequelizeUniqueConstraintError' && retryCount < maxRetries - 1) {
+            // Increment token ID and try again
+            currentTokenId = (parseInt(currentTokenId) + 1).toString();
+            console.log(`Token ID conflict, trying with ID ${currentTokenId}...`);
+            retryCount++;
+            continue;
           }
+          throw updateError;
+        }
       }
 
       console.log('Product and NFT created successfully:', {
@@ -263,6 +264,15 @@ router.post('/', requireSeller, validateStore, handleUpload, async (req, res) =>
       await product.update({
         blockchain_status: 'pending'
       });
+      
+      // Immediately attempt to mint again using the job
+      try {
+        console.log('Attempting immediate NFT minting retry...');
+        await mintPendingNFTs();
+      } catch (retryError) {
+        console.error('Immediate NFT minting retry failed:', retryError);
+        // Don't fail the request, just log the error
+      }
     }
 
     clearTimeout(timeout);

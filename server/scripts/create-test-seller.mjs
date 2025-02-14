@@ -1,5 +1,6 @@
 import { User, Store } from '../src/models/index.mjs';
 import { testConnection } from '../src/config/database.mjs';
+import { generateWalletCredentials, setupStoreWallet } from '../src/utils/blockchainUtils.mjs';
 
 async function createTestSeller() {
   try {
@@ -37,6 +38,9 @@ async function createTestSeller() {
       status: 'active'
     });
 
+    // Generate wallet credentials
+    const { address, privateKey } = generateWalletCredentials();
+
     // Create store for the seller
     const store = await Store.create({
       name: 'Test Store',
@@ -47,14 +51,21 @@ async function createTestSeller() {
       business_address: '123 Test St',
       status: 'active',
       is_verified: true,
-      type: 'retailer'
+      type: 'retailer',
+      wallet_address: address,
+      private_key: privateKey
     });
+
+    // Setup wallet in environment for blockchain operations
+    await setupStoreWallet(address, privateKey);
+    console.log('Store wallet credentials saved');
 
     console.log('Test seller account created successfully');
     console.log('User ID:', seller.id);
     console.log('Store ID:', store.id);
     console.log('Email: seller@test.com');
     console.log('Password: Seller123!');
+    console.log('Store wallet address:', address);
     
     process.exit(0);
   } catch (error) {

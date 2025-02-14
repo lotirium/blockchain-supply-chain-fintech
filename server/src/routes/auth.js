@@ -165,42 +165,8 @@ router.post('/register', async (req, res) => {
       const user = await User.create(userData, { transaction: t });
 
       if (role === 'seller' && storeData) {
-        // Create store with careful logging
-        console.log('Store data before formatting:', storeData);
-        
-        // Ensure business_phone and business_address are strings
-        const storeToCreate = {
-          user_id: user.id,
-          status: 'pending',
-          name: storeData.name,
-          description: storeData.description || '',
-          business_email: storeData.business_email,
-          business_phone: String(storeData.business_phone || '').trim(),
-          business_address: String(storeData.business_address || '').trim()
-        };
-        
-        console.log('Attempting to create store with data:', JSON.stringify(storeToCreate, null, 2));
-        
-        try {
-          const createdStore = await Store.create(storeToCreate, { transaction: t });
-          console.log('Created store raw:', createdStore);
-          console.log('Created store JSON:', JSON.stringify(createdStore.toJSON(), null, 2));
-          
-          // Verify the fields were saved
-          const verifyStore = await Store.findOne({
-            where: { id: createdStore.id },
-            transaction: t
-          });
-          
-          console.log('Verified store data:', {
-            id: verifyStore.id,
-            business_phone: verifyStore.business_phone,
-            business_address: verifyStore.business_address
-          });
-        } catch (err) {
-          console.error('Failed to create store:', err);
-          throw err;
-        }
+        // Return error - use auth.mjs instead which properly handles wallet creation
+        throw new Error('Store creation through CommonJS auth.js is deprecated. Please use auth.mjs which properly handles wallet creation.');
       }
 
       return user;

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { blockchainService } from '../services/blockchain';
 import ProductNFTTracker from '../components/blockchain/ProductNFTTracker';
-import NFTMintingControls from '../components/blockchain/NFTMintingControls';
 import ProductStatusControls from '../components/blockchain/ProductStatusControls';
 import TransactionMonitor from '../components/blockchain/TransactionMonitor';
 
@@ -53,51 +52,6 @@ const NetworkStatus = ({ networkDetails }) => (
     )}
   </div>
 );
-
-// Role Management Component
-const RoleManagement = ({ onGrantRole }) => {
-  const [address, setAddress] = useState('');
-  const [role, setRole] = useState('retailer');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onGrantRole(address, role);
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow p-4 mb-6">
-      <h2 className="text-xl font-semibold mb-4">Role Management</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Address</label>
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-            placeholder="0x..."
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Role</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-          >
-            <option value="retailer">Retailer</option>
-          </select>
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-        >
-          Grant Role
-        </button>
-      </form>
-    </div>
-  );
-};
 
 // Contract Controls Component
 const ContractControls = ({ isPaused, onPauseContract, onUnpauseContract }) => (
@@ -158,20 +112,6 @@ const AdminBlockchainDashboard = () => {
     initializeBlockchain();
   }, []);
 
-  const handleGrantRole = async (address, role) => {
-    try {
-      switch (role) {
-        case 'retailer':
-          await blockchainService.grantRetailerRole(address);
-          break;
-        default:
-          throw new Error('Invalid role');
-      }
-    } catch (error) {
-      console.error('Failed to grant role:', error);
-    }
-  };
-
   const handlePauseContract = async () => {
     try {
       await blockchainService.pauseContract();
@@ -188,10 +128,6 @@ const AdminBlockchainDashboard = () => {
     } catch (error) {
       console.error('Failed to unpause contract:', error);
     }
-  };
-
-  const handleMintSuccess = (product) => {
-    setSelectedProduct(product);
   };
 
   const handleStatusUpdate = async (status) => {
@@ -238,8 +174,6 @@ const AdminBlockchainDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div>
             <NetworkStatus networkDetails={networkDetails} />
-            <RoleManagement onGrantRole={handleGrantRole} />
-            <NFTMintingControls onMintSuccess={handleMintSuccess} />
           </div>
           <div>
             <ContractControls

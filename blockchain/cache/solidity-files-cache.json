@@ -662,8 +662,8 @@
       "artifacts": []
     },
     "/home/tteokl/WORK/shipment_project/blockchain/contracts/SupplyChain.sol": {
-      "lastModificationDate": 1739428633240,
-      "contentHash": "df472ff9c1c2c7093640377eb03aeaeb",
+      "lastModificationDate": 1739495361703,
+      "contentHash": "0d4bfaa499e18cee5f91aed5e97dc5ea",
       "sourceName": "contracts/SupplyChain.sol",
       "solcConfig": {
         "version": "0.8.19",

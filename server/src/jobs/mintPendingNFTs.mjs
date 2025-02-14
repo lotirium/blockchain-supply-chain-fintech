@@ -12,7 +12,8 @@ async function mintPendingNFTs() {
       include: [{
         model: Store,
         as: 'store',  // Specify the alias for the association
-        attributes: ['wallet_address', 'name']
+        attributes: ['wallet_address', 'name'],
+        required: true
       }]
     });
 
@@ -28,7 +29,7 @@ async function mintPendingNFTs() {
         // Create NFT metadata
         const tokenURI = JSON.stringify({
           name: product.name,
-          description: product.description,
+          description: product.description || 'No description available',
           image: product.images[0], // Use first image as NFT image
           attributes: product.attributes
         });

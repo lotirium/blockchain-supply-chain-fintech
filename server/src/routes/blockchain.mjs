@@ -62,41 +62,6 @@ router.get('/status', async (req, res) => {
   }
 });
 
-// Role Management Routes
-
-router.post('/roles/retailer', requireAdmin, async (req, res) => {
-  try {
-    const supplyChain = await blockchainController.getSupplyChain();
-    const RETAILER_ROLE = await supplyChain.RETAILER_ROLE();
-    const signer = await blockchainController.getSigner();
-    const tx = await supplyChain.connect(signer).grantRole(RETAILER_ROLE, req.body.address);
-    await tx.wait();
-    const result = {
-      transaction: tx.hash
-    };
-    res.json(result);
-  } catch (error) {
-    console.error('Failed to grant retailer role:', error);
-    res.status(500).json({
-      error: 'Failed to grant retailer role',
-      details: error.message
-    });
-  }
-});
-
-router.get('/roles/:address', async (req, res) => {
-  try {
-    const roles = await blockchainController.checkRoles(req.params.address);
-    res.json(roles);
-  } catch (error) {
-    console.error('Failed to check roles:', error);
-    res.status(500).json({
-      error: 'Failed to check roles',
-      details: error.message
-    });
-  }
-});
-
 // Contract Management Routes
 router.post('/contract/pause', requireAdmin, async (req, res) => {
   try {

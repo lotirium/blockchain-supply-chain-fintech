@@ -46,41 +46,6 @@ class BlockchainService {
         return this.networkDetails;
     }
 
-    // Role Management
-    async grantRetailerRole(address) {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/blockchain/roles/retailer', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ address })
-        });
-        
-        if (response.status === 401) {
-            throw new Error('Unauthorized. Please make sure you are logged in as an admin.');
-        }
-        
-        return response.json();
-    }
-
-    async checkRole(address) {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/blockchain/roles/${address}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.status === 401) {
-            throw new Error('Unauthorized. Please make sure you are logged in.');
-        }
-        
-        return response.json();
-    }
-
     // Product Management
     async createProduct(name, price, tokenURI) {
         const response = await fetch('/api/blockchain/products', {

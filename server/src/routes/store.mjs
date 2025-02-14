@@ -2,6 +2,7 @@ import express from 'express';
 import { Store } from '../models/index.mjs';
 import auth, { requireSeller } from '../middleware/auth.mjs';
 import { generateHologramLabel } from '../services/imageService.mjs';
+import { generateWalletCredentials, setupStoreWallet } from '../utils/blockchainUtils.mjs';
 
 const router = express.Router();
 
@@ -76,9 +77,18 @@ router.put('/', requireSeller, async (req, res) => {
     let store = await Store.findOne({ where: { user_id: req.user.id } });
     
     if (!store) {
+      // Generate wallet credentials for new store
+      const { address, privateKey } = generateWalletCredentials();
+      
+      // Setup wallet first to ensure credentials are saved
+      await setupStoreWallet(address, privateKey);
+      console.log('Store wallet credentials saved');
+      
       store = await Store.create({
         user_id: req.user.id,
-        status: 'active'
+        status: 'active',
+        wallet_address: address,
+        private_key: privateKey
       });
     }
 
