@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 const WalletButton = ({ onConnect }) => {
   const [connecting, setConnecting] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [balance, setBalance] = useState(null);
   const [error, setError] = useState(null);
   const { user } = useSelector((state) => state.auth);
 
@@ -11,12 +12,27 @@ const WalletButton = ({ onConnect }) => {
     // Check if user has a wallet address
     if (user?.walletAddress) {
       setConnected(true);
+      fetchBalance(user.walletAddress);
       if (onConnect) {
         onConnect(user.walletAddress);
       }
     }
   }, [user, onConnect]);
 
+  const fetchBalance = async (address) => {
+    try {
+      const response = await fetch('/api/blockchain/wallet/balance', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch balance');
+      const data = await response.json();
+      setBalance(data.balance);
+    } catch (error) {
+      console.error('Failed to fetch balance:', error);
+    }
+  };
   const createWallet = async () => {
     try {
       setConnecting(true);
@@ -35,9 +51,15 @@ const WalletButton = ({ onConnect }) => {
         throw new Error('Failed to create wallet');
       }
 
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create wallet');
+      }
+
       const data = await response.json();
       if (data.walletAddress) {
         setConnected(true);
+        await fetchBalance(data.walletAddress);
         if (onConnect) {
           onConnect(data.walletAddress);
         }
@@ -84,12 +106,17 @@ const WalletButton = ({ onConnect }) => {
           <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
-          <span className="font-medium">Wallet Ready: {user?.walletAddress?.slice(0, 6)}...{user?.walletAddress?.slice(-4)}</span>
+          <div className="flex flex-col">
+            <span className="font-medium">Wallet: {user?.walletAddress?.slice(0, 6)}...{user?.walletAddress?.slice(-4)}</span>
+            {balance !== null && (
+              <span className="text-sm text-gray-600">Balance: {parseFloat(balance).toFixed(4)} ETH</span>
+            )}
+          </div>
         </div>
       )}
 
       {error && (
-        <div className="mt-2 text-sm text-red-600">
+        <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
           {error}
         </div>
       )}

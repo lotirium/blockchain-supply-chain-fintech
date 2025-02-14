@@ -4,13 +4,34 @@ class BlockchainService {
         this.networkDetails = null;
         this.eventSource = null;
     }
+    // Wallet management
+    async createWallet() {
+        const response = await fetch('/api/blockchain/wallet', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.json();
+    }
+
+    async getWalletBalance() {
+        const response = await fetch('/api/blockchain/wallet/balance', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return response.json();
+    }
+
     // Payment Management
     async payForProduct(productId) {
         const response = await fetch(`/api/blockchain/payments/${productId}`, {
             method: 'POST',
             headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
             }
         });
         return response.json();

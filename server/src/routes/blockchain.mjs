@@ -4,13 +4,45 @@ import auth from '../middleware/auth.mjs';
 
 const router = express.Router();
 
+// Wallet management endpoints
+router.post('/wallet', auth(), async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const result = await blockchainController.createUserWallet(userId);
+        res.json(result);
+    } catch (error) {
+        console.error('Failed to create wallet:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/wallet/balance', auth(), async (req, res) => {
+    try {
+        const walletAddress = req.user.walletAddress;
+        if (!walletAddress) {
+            return res.status(400).json({ error: 'No wallet associated with user' });
+        }
+        const balance = await blockchainController.getWalletBalance(walletAddress);
+        res.json({ balance });
+    } catch (error) {
+        console.error('Failed to get wallet balance:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Payment endpoints
 router.post('/payments/:productId', auth(), async (req, res) => {
     try {
         const { productId } = req.params;
-        const buyerAddress = req.user.walletAddress;
+        const userId = req.user.id;
 
-        const result = await blockchainController.payForProduct(productId, buyerAddress);
+        if (!req.user.walletAddress) {
+            return res.status(400).json({ 
+                error: 'No wallet associated with user. Please create a wallet first.' 
+            });
+        }
+
+        const result = await blockchainController.payForProduct(productId, userId);
         res.json(result);
     } catch (error) {
         console.error('Payment failed:', error);
@@ -21,6 +53,13 @@ router.post('/payments/:productId', auth(), async (req, res) => {
 router.get('/payments/:productId/status', auth(), async (req, res) => {
     try {
         const { productId } = req.params;
+        
+        if (!req.user.walletAddress) {
+            return res.status(400).json({ 
+                error: 'No wallet associated with user. Please create a wallet first.' 
+            });
+        }
+
         const result = await blockchainController.getReleasePaymentStatus(productId);
         res.json(result);
     } catch (error) {

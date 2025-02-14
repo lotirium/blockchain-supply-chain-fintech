@@ -54,53 +54,102 @@ class BlockchainController {
         this._requiredChainId = requiredChainId;
     }
 
-    async getSigner(storeWalletAddress = null) {
-        if (storeWalletAddress) {
-            // Look up store's private key from environment variables, case-insensitive
-            const normalizedAddress = storeWalletAddress.slice(2).toLowerCase();
-            const storeKeys = Object.keys(process.env)
-                .filter(key => key.startsWith('STORE_') && key.endsWith('_KEY'));
+    async createUserWallet(userId) {
+        try {
+            // Check if user already has a wallet
+            const User = (await import('../models/User.mjs')).default;
+            const user = await User.findByPk(userId);
+            if (user?.walletAddress) {
+                throw new Error('User already has a wallet');
+            }
+
+            // Generate new wallet with ethers
+            const wallet = ethers.Wallet.createRandom();
             
-            let privateKey = null;
-            for (const key of storeKeys) {
-                const keyAddress = key.replace('STORE_', '').replace('_KEY', '').toLowerCase();
-                if (keyAddress === normalizedAddress) {
-                    privateKey = process.env[key];
-                    break;
-                }
+            // Verify wallet was created successfully
+            if (!wallet.address || !wallet.privateKey) {
+                throw new Error('Failed to generate wallet');
             }
 
-            if (!privateKey) {
-                throw new Error(`Private key not found for store wallet ${storeWalletAddress}`);
+            // Store private key securely (you should encrypt this)
+            const walletKey = `USER_${userId}_KEY`;
+            process.env[walletKey] = wallet.privateKey;
+
+            // Update user's wallet address in database
+            const [updated] = await User.update(
+                { walletAddress: wallet.address },
+                { where: { id: userId } }
+            );
+
+            if (!updated) {
+                throw new Error('Failed to update user with wallet address');
             }
 
-            // Create wallet with correct network
-            const wallet = new ethers.Wallet(privateKey, this.provider);
-            const walletAddress = await wallet.getAddress();
-            
-            if (walletAddress.toLowerCase() !== storeWalletAddress.toLowerCase()) {
-                console.error('Wallet address mismatch:', {
-                    expected: storeWalletAddress,
-                    actual: walletAddress
-                });
-                throw new Error('Wallet address mismatch');
-            }
-
-            return wallet;
-        } else {
-            // Use deployer wallet for admin operations
-            if (!this._signer) {
+            // Fund the new wallet with some test ETH if in development
+            if (process.env.NODE_ENV === 'development') {
                 const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY;
                 if (!deployerPrivateKey) {
                     throw new Error('Deployer private key not found in environment variables');
                 }
-                this._signer = new ethers.Wallet(deployerPrivateKey, this.provider);
+
+                if (!/^0x[0-9a-fA-F]{64}$/.test(deployerPrivateKey)) {
+                    throw new Error('Invalid deployer private key format');
+                }
+
+                const deployer = new ethers.Wallet(deployerPrivateKey, this.provider);
+                const fundTx = await deployer.sendTransaction({
+                    to: wallet.address,
+                    value: ethers.parseEther("1.0") // Send 1 ETH for testing
+                });
+                await fundTx.wait(1); // Wait for 1 confirmation
             }
-            return this._signer;
+
+            return {
+                success: true,
+                walletAddress: wallet.address,
+                balance: process.env.NODE_ENV === 'development' ? "1.0" : "0.0"
+            };
+        } catch (error) {
+            console.error('Failed to create user wallet:', error);
+            // Clean up if wallet was created but not properly saved
+            if (process.env[`USER_${userId}_KEY`]) {
+                delete process.env[`USER_${userId}_KEY`];
+            }
+            throw new Error(`Failed to create wallet: ${error.message}`);
         }
     }
 
-    async payForProduct(tokenId, buyerWallet) {
+    async getWalletBalance(address) {
+        try {
+            if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
+                throw new Error('Invalid wallet address');
+            }
+
+            const balance = await this.provider.getBalance(address);
+            return ethers.formatEther(balance);
+        } catch (error) {
+            console.error('Failed to get wallet balance:', error);
+            throw new Error(`Failed to get balance: ${error.message}`);
+        }
+    }
+
+    async getUserWallet(userId) {
+        try {
+            const walletKey = `USER_${userId}_KEY`;
+            const privateKey = process.env[walletKey];
+
+            if (!privateKey) {
+                throw new Error('No wallet found for user');
+            }
+
+            return new ethers.Wallet(privateKey, this.provider);
+        } catch (error) {
+            console.error('Failed to get user wallet:', error);
+            throw new Error(`Failed to get wallet: ${error.message}`);
+        }
+    }
+
+    async payForProduct(tokenId, userId) {
         try {
             await this.initialize();
 
@@ -108,25 +157,32 @@ class BlockchainController {
                 throw new Error('SupplyChain contract not initialized');
             }
 
+            // Get user's private key
+            const walletKey = `USER_${userId}_KEY`;
+            const privateKey = process.env[walletKey];
+
+            if (!privateKey) {
+                throw new Error('No wallet found for user');
+            }
+
+            const wallet = new ethers.Wallet(privateKey, this.provider);
+            const contract = this._supplyChain.connect(wallet);
+            
             // Get product price
-            const contract = this._supplyChain.connect(buyerWallet);
             const price = await contract.getProductPrice(tokenId);
 
             // Execute payment transaction
             const tx = await contract.payForProduct(tokenId, { value: price });
-            const receipt = await tx.wait();
-
-            // Get block number for the transaction
-            const blockNumber = receipt.blockNumber;
+            const receipt = await tx.wait(1); // Wait for 1 confirmation
 
             return {
                 success: true,
                 transaction: tx.hash,
                 price: price.toString(),
-                blockNumber
+                blockNumber: receipt.blockNumber
             };
         } catch (error) {
-            console.error('Failed to pay for product:', error);
+            console.error('Failed to pay for product:', error.message);
             throw new Error(`Payment failed: ${error.message}`);
         }
     }
