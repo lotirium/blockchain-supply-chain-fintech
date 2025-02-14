@@ -95,10 +95,6 @@ const ProductVerification = () => {
                     <dd className="mt-1 text-sm text-gray-900">{verificationResult.product.name}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm text-gray-500">Manufacturer</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{verificationResult.product.manufacturer}</dd>
-                  </div>
-                  <div>
                     <dt className="text-sm text-gray-500">Store</dt>
                     <dd className="mt-1 text-sm text-gray-900">{verificationResult.store}</dd>
                   </div>

@@ -24,7 +24,7 @@ function StoreSettings() {
     wallet_address: user?.store?.wallet_address || '',
     shipping_policy: user?.store?.shipping_policy || '',
     return_policy: user?.store?.return_policy || '',
-    type: user?.store?.type || 'manufacturer',
+    type: user?.store?.type || 'retailer',
     logo: user?.store?.logo || '',
     banner: user?.store?.banner || '',
     hologram_label: user?.store?.hologram_label || '',

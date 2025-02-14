@@ -19,7 +19,7 @@ const sellerAuth = async (req, res, next) => {
       where: {
         user_id: req.user.id
       },
-      attributes: ['id', 'status', 'type', 'is_verified', 'wallet_address']
+      attributes: ['id', 'status', 'is_verified', 'wallet_address']
     });
 
     if (!store) {
@@ -47,14 +47,6 @@ const sellerAuth = async (req, res, next) => {
 
     // Add store to request object for use in controllers
     req.store = store;
-
-    // Check specific seller type permissions if needed
-    if (req.path.includes('/manufacturer') && store.type !== 'manufacturer') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Manufacturer privileges required.'
-      });
-    }
 
     if (req.path.includes('/retailer') && store.type !== 'retailer') {
       return res.status(403).json({

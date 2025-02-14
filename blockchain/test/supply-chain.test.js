@@ -70,7 +70,6 @@ describe("Supply Chain Full Test Suite", function () {
             // Step 3: Update stages
             console.log("\nStep 3: Updating stages...");
             await supplyChain.connect(seller).updateStage(productId, 1); // InProduction
-            await supplyChain.connect(seller).updateStage(productId, 2); // Manufactured
             console.log("Stages updated");
 
             // Step 4: Transfer ownership
@@ -153,12 +152,12 @@ describe("Supply Chain Full Test Suite", function () {
             );
 
             // Update batch stage
-            await supplyChain.connect(seller).updateBatchStage(batchId, 2); // Manufactured
+            await supplyChain.connect(seller).updateBatchStage(batchId, 1); // InProduction
 
             // Verify all products updated
             for (const productId of productIds) {
                 const shipment = await supplyChain.getCurrentShipment(productId);
-                expect(shipment.stage).to.equal(2);
+                expect(shipment.stage).to.equal(1);
             }
         });
     });

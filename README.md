@@ -99,7 +99,7 @@ The database includes the following tables:
    - Foreign key: user_id → users(id)
    - Referenced by: products
    - Status types: pending, pending_verification, active, suspended
-   - Store types: manufacturer, retailer
+   - Store types: retailer
 
 3. products
    - Primary key: id (UUID)

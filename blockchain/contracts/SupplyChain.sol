@@ -20,7 +20,7 @@ contract SupplyChain is AccessControl, Pausable, ReentrancyGuard {
     ProductNFT private productNFT;
 
     // Supply Chain stages
-    enum Stage { Created, InProduction, Manufactured, InTransit, Delivered, ForSale, Sold, Returned, Recalled }
+    enum Stage { Created, InProduction, InTransit, Delivered, ForSale, Sold, Returned, Recalled }
 
     struct ReturnRequest {
         address requestedBy;
@@ -117,7 +117,7 @@ contract SupplyChain is AccessControl, Pausable, ReentrancyGuard {
             receiver: msg.sender, // Initially, sender and receiver are the same
             currentStage: Stage.Created,
             timestamp: block.timestamp,
-            location: "Manufacturing Facility" // Default initial location
+            location: "Retail Facility" // Default initial location
         });
         
         productPrices[productId] = sellingPrice;

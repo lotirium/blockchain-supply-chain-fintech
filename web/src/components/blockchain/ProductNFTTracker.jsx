@@ -41,8 +41,8 @@ const ProductNFTTracker = () => {
 
       setProduct({
         name: productData.name,
-        manufacturer: productData.manufacturer,
-        manufactureDate: new Date(productData.manufactureDate * 1000).toLocaleString(),
+        seller: productData.seller,
+        creationDate: new Date(productData.creationDate * 1000).toLocaleString(),
         status: productData.status,
         currentOwner: productData.currentOwner
       });
@@ -81,7 +81,6 @@ const ProductNFTTracker = () => {
     const stages = [
       'Created',
       'In Production',
-      'Manufactured',
       'In Transit',
       'Delivered',
       'For Sale',
@@ -119,8 +118,8 @@ const ProductNFTTracker = () => {
                       .then(productData => {
                         setProduct({
                           name: productData.name,
-                          manufacturer: productData.manufacturer,
-                          manufactureDate: new Date(productData.manufactureDate * 1000).toLocaleString(),
+                          seller: productData.seller,
+                          creationDate: new Date(productData.creationDate * 1000).toLocaleString(),
                           status: productData.status,
                           currentOwner: productData.currentOwner
                         });
@@ -145,7 +144,7 @@ const ProductNFTTracker = () => {
                   }}
                 >
                   <p className="font-medium">{product.name}</p>
-                  <p className="text-sm text-gray-600">{product.manufacturer}</p>
+                  <p className="text-sm text-gray-600">{product.seller}</p>
                   <p className="text-sm text-gray-500">Status: {product.status}</p>
                   {product.token_id ? (
                     <p className="text-sm text-blue-600">NFT Token ID: {product.token_id}</p>
@@ -205,8 +204,8 @@ const ProductNFTTracker = () => {
                 <p className="font-medium">{product.name}</p>
               </div>
               <div>
-                <p className="text-gray-600">Manufacturer</p>
-                <p className="font-medium">{product.manufacturer}</p>
+                <p className="text-gray-600">Seller</p>
+                <p className="font-medium">{product.seller}</p>
               </div>
               <div>
                 <p className="text-gray-600">Status</p>
@@ -219,8 +218,8 @@ const ProductNFTTracker = () => {
                 </p>
               </div>
               <div className="col-span-2">
-                <p className="text-gray-600">Manufacture Date</p>
-                <p className="font-medium">{product.manufactureDate}</p>
+                <p className="text-gray-600">Creation Date</p>
+                <p className="font-medium">{product.creationDate}</p>
               </div>
             </div>
           </div>

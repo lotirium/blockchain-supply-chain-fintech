@@ -14,7 +14,7 @@ const TransactionMonitor = () => {
         action: 'Created',
         details: {
           productId: event.productId,
-          manufacturer: event.manufacturer,
+          seller: event.seller,
           timestamp: new Date().toISOString()
         }
       });

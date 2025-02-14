@@ -21,7 +21,7 @@ export const generateOrderQR = async (req, res) => {
         include: [{
           model: Product,
           as: 'product',
-          attributes: ['id', 'name', 'token_id', 'manufacturer']
+          attributes: ['id', 'name', 'token_id']
         }]
       }, {
         model: Store,
@@ -203,7 +203,6 @@ export const verifyOrderQR = async (req, res) => {
           store: order.merchantStore.name,
           product: {
             name: product.name,
-            manufacturer: product.manufacturer,
             tokenId: product.token_id
           },
           nftData,

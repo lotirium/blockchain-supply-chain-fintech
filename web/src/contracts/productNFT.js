@@ -19,7 +19,7 @@ export const ProductNFTContract = {
         },
         {
           "internalType": "string",
-          "name": "manufacturer",
+          "name": "seller",
           "type": "string"
         },
         {
@@ -56,12 +56,12 @@ export const ProductNFTContract = {
         },
         {
           "internalType": "string",
-          "name": "manufacturer",
+          "name": "seller",
           "type": "string"
         },
         {
           "internalType": "uint256",
-          "name": "manufactureDate",
+          "name": "creationDate",
           "type": "uint256"
         },
         {

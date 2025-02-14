@@ -99,7 +99,6 @@ router.post('/', auth(), async (req, res) => {
           name: product.name,
           description: product.description,
           price: product.price,
-          manufacturer: product.manufacturer,
           category: product.category,
           images: product.images,
           attributes: product.attributes

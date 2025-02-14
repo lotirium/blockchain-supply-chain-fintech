@@ -58,7 +58,7 @@
         {
           "indexed": true,
           "internalType": "address",
-          "name": "manufacturer",
+          "name": "seller",
           "type": "address"
         },
         {
@@ -238,7 +238,7 @@
         },
         {
           "internalType": "string",
-          "name": "manufacturer",
+          "name": "seller",
           "type": "string"
         },
         {
