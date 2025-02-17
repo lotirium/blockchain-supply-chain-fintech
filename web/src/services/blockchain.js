@@ -26,8 +26,19 @@ class BlockchainService {
     }
 
     // Payment Management
-    async payForProduct(productId) {
-        const response = await fetch(`/api/blockchain/payments/${productId}`, {
+    async payForProduct(uuid) {
+        // First fetch the product to get its tokenId
+        const productResponse = await fetch(`/api/products/detail/${uuid}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        const product = await productResponse.json();
+        
+        if (!product.token_id) {
+            throw new Error('Product not found or has no token ID');
+        }
+        const response = await fetch(`/api/blockchain/payments/${product.token_id}`, {
             method: 'POST',
             headers: { 
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,

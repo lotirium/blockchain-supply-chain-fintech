@@ -1,4 +1,5 @@
  import { ethers } from 'ethers';
+import crypto from 'crypto';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
@@ -71,15 +72,25 @@ class BlockchainController {
                 throw new Error('Failed to generate wallet');
             }
 
-            // Store private key securely (you should encrypt this)
-            const walletKey = `USER_${userId}_KEY`;
-            process.env[walletKey] = wallet.privateKey;
+            // Encrypt private key
+            const algorithm = 'aes-256-cbc';
+            const key = crypto.scryptSync(process.env.JWT_SECRET, 'salt', 32);
+            const iv = crypto.randomBytes(16);
+            const cipher = crypto.createCipheriv(algorithm, key, iv);
 
-            // Update user's wallet address in database
-            const [updated] = await User.update(
-                { walletAddress: wallet.address },
-                { where: { id: userId } }
-            );
+            let encrypted = cipher.update(wallet.privateKey, 'utf8', 'hex');
+            encrypted += cipher.final('hex');
+
+            // Update user with wallet address and encrypted key
+            const [updated] = await User.update({
+                wallet_address: wallet.address,
+                encrypted_private_key: encrypted,
+                iv: iv.toString('hex')
+            }, {
+                where: { id: userId }
+            });
+
+            // Verify the update was successful
 
             if (!updated) {
                 throw new Error('Failed to update user with wallet address');
@@ -110,11 +121,7 @@ class BlockchainController {
                 balance: process.env.NODE_ENV === 'development' ? "1.0" : "0.0"
             };
         } catch (error) {
-            console.error('Failed to create user wallet:', error);
-            // Clean up if wallet was created but not properly saved
-            if (process.env[`USER_${userId}_KEY`]) {
-                delete process.env[`USER_${userId}_KEY`];
-            }
+            console.error('Failed to create wallet:', error);
             throw new Error(`Failed to create wallet: ${error.message}`);
         }
     }
@@ -135,15 +142,34 @@ class BlockchainController {
 
     async getUserWallet(userId) {
         try {
-            const walletKey = `USER_${userId}_KEY`;
-            const privateKey = process.env[walletKey];
+            const User = (await import('../models/User.mjs')).default;
+            const user = await User.findByPk(userId);
 
-            if (!privateKey) {
+            if (!user?.encrypted_private_key || !user?.iv) {
                 throw new Error('No wallet found for user');
             }
 
-            return new ethers.Wallet(privateKey, this.provider);
+            // Decrypt private key
+            const algorithm = 'aes-256-cbc';
+            const key = crypto.scryptSync(process.env.JWT_SECRET, 'salt', 32);
+            const iv = Buffer.from(user.iv, 'hex');
+            const decipher = crypto.createDecipheriv(algorithm, key, iv);
+
+            let decrypted;
+            try {
+                decrypted = decipher.update(user.encrypted_private_key, 'hex', 'utf8');
+                decrypted += decipher.final('utf8');
+            } catch (error) {
+                console.error('Failed to decrypt private key:', error);
+                throw new Error('Failed to decrypt wallet credentials');
+            }
+
+            // Create and return wallet with provider
+            return new ethers.Wallet(decrypted, this.provider);
         } catch (error) {
+            if (error.message.includes('decrypt')) {
+                throw new Error('Failed to access wallet. Please check your credentials.');
+            }
             console.error('Failed to get user wallet:', error);
             throw new Error(`Failed to get wallet: ${error.message}`);
         }

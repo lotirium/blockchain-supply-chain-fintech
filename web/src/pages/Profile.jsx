@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateProfile, updateStore, getProfile } from '../store/slices/authSlice';
+import WalletButton from '../components/WalletButton';
+import { Navigate } from 'react-router-dom';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -223,6 +225,23 @@ const Profile = () => {
                 />
                 {validationErrors.username && (
                   <p className="mt-1 text-sm text-red-600">{validationErrors.username}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Wallet Section */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Blockchain Wallet</h3>
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-4">
+                    A blockchain wallet is required to make purchases and receive payments. 
+                    {!user.wallet_address && " Please create one to continue using our platform."}
+                  </p>
+                  <WalletButton />
+                </div>
+                {user.wallet_address && (
+                  <p className="text-sm text-green-600">✓ Your wallet is ready for transactions</p>
                 )}
               </div>
             </div>

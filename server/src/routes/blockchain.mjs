@@ -18,7 +18,7 @@ router.post('/wallet', auth(), async (req, res) => {
 
 router.get('/wallet/balance', auth(), async (req, res) => {
     try {
-        const walletAddress = req.user.walletAddress;
+        const walletAddress = req.user.wallet_address;
         if (!walletAddress) {
             return res.status(400).json({ error: 'No wallet associated with user' });
         }

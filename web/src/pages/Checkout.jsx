@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearCart } from '../store/slices/cartSlice';
 import { createOrder } from '../services/api';
 import { blockchainService } from '../services/blockchain';
-import WalletButton from '../components/WalletButton';
 import TransactionStatus from '../components/TransactionStatus';
 
 function Checkout() {
@@ -17,7 +16,6 @@ function Checkout() {
   const [blockchainLoading, setBlockchainLoading] = useState(false);
   const [sameAsShipping, setSameAsShipping] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [walletAddress, setWalletAddress] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [transactionError, setTransactionError] = useState(null);
 
@@ -52,6 +50,21 @@ function Checkout() {
     }
   }, [items.length, navigate, isCheckingOut]);
 
+  // Redirect to profile if user has no wallet
+  useEffect(() => {
+    // Don't redirect if state is not yet loaded
+    if (!user) {
+      return;
+    }
+
+    if (!user?.wallet_address) {
+      navigate('/profile', { 
+        state: { message: 'Please set up your wallet in your profile before proceeding with checkout.' },
+        replace: false // Don't replace history so "back" works properly
+      });
+    }
+  }, [user, navigate]);
+
   useEffect(() => {
     if (sameAsShipping && formData.shippingFirstName) {
       setFormData(prev => ({
@@ -69,11 +82,6 @@ function Checkout() {
   }, [sameAsShipping, formData.shippingFirstName, formData.shippingLastName, 
       formData.shippingEmail, formData.shippingPhone, formData.shippingAddress,
       formData.shippingCity, formData.shippingState, formData.shippingZip]);
-
-  const handleWalletConnect = (address) => {
-    setWalletAddress(address);
-    setTransactionError(null);
-  };
 
   const generateRandomData = () => {
     // Keep the original random data generation function
@@ -151,10 +159,6 @@ function Checkout() {
         throw new Error('Some items are missing store information');
       }
 
-      // Verify wallet is connected
-      if (!walletAddress) {
-        throw new Error('Please connect your wallet to continue');
-      }
 
       // Process blockchain payments first
       setBlockchainLoading(true);
@@ -268,12 +272,6 @@ function Checkout() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-
-      {/* Wallet Connection */}
-      <div className="mb-8">
-        <h2 className="text-xl font-bold mb-4">Connect Wallet</h2>
-        <WalletButton onConnect={handleWalletConnect} />
-      </div>
 
       {/* Transaction Status */}
       {transactions.length > 0 && (
@@ -608,9 +606,9 @@ function Checkout() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || blockchainLoading || !walletAddress}
+              disabled={loading || blockchainLoading || !user?.wallet_address}
               className={`w-full bg-blue-600 text-white px-6 py-3 rounded-md ${
-                loading || blockchainLoading || !walletAddress
+                loading || blockchainLoading || !user?.wallet_address
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:bg-blue-700 transition-colors'
               }`}
