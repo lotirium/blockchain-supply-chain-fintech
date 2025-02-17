@@ -212,7 +212,7 @@ export const authService = {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${API_URL}/api/profile`, {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
@@ -271,7 +271,7 @@ export const authService = {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${API_URL}/api/profile`, {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
