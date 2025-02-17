@@ -229,22 +229,41 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Wallet Section */}
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Blockchain Wallet</h3>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-4">
-                    A blockchain wallet is required to make purchases and receive payments. 
-                    {!user.wallet_address && " Please create one to continue using our platform."}
-                  </p>
-                  <WalletButton />
+            {/* Wallet Section - Only for buyers */}
+            {user.role === 'user' && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Blockchain Wallet</h3>
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 mb-4">
+                      A blockchain wallet is required to make purchases on our platform. 
+                      {!user.wallet_address && " Please create one to continue shopping."}
+                    </p>
+                    <WalletButton />
+                  </div>
+                  {user.wallet_address && (
+                    <p className="text-sm text-green-600">✓ Your wallet is ready for purchases</p>
+                  )}
                 </div>
-                {user.wallet_address && (
-                  <p className="text-sm text-green-600">✓ Your wallet is ready for transactions</p>
-                )}
               </div>
-            </div>
+            )}
+            
+            {/* Store Wallet Info - Only for sellers */}
+            {user.role === 'seller' && user.store && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Store Wallet</h3>
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 mb-4">
+                      Your store's blockchain wallet is used to receive payments from purchases.
+                    </p>
+                    <p className="text-sm font-medium">
+                      Store Wallet Address: <span className="font-mono">{user.store.wallet_address?.slice(0, 6)}...{user.store.wallet_address?.slice(-4)}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Store Information (Only for sellers) */}
             {user.role === 'seller' && (
