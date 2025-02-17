@@ -183,19 +183,19 @@ class BlockchainController {
                 throw new Error('SupplyChain contract not initialized');
             }
 
-            // Get user's private key
-            const walletKey = `USER_${userId}_KEY`;
-            const privateKey = process.env[walletKey];
-
-            if (!privateKey) {
-                throw new Error('No wallet found for user');
+            // Get user's wallet using secure decryption
+            const wallet = await this.getUserWallet(userId);
+            if (!wallet) {
+                throw new Error('Failed to get user wallet');
             }
 
-            const wallet = new ethers.Wallet(privateKey, this.provider);
+            console.log('Processing payment with wallet:', {
+                walletAddress: await wallet.getAddress()
+            });
             const contract = this._supplyChain.connect(wallet);
             
             // Get product price
-            const price = await contract.getProductPrice(tokenId);
+            const price = await contract.productPrices(tokenId);
 
             // Execute payment transaction
             const tx = await contract.payForProduct(tokenId, { value: price });

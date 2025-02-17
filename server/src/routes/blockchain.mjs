@@ -36,7 +36,7 @@ router.post('/payments/:productId', auth(), async (req, res) => {
         const { productId } = req.params;
         const userId = req.user.id;
 
-        if (!req.user.walletAddress) {
+        if (!req.user.wallet_address) {
             return res.status(400).json({ 
                 error: 'No wallet associated with user. Please create a wallet first.' 
             });
@@ -54,7 +54,7 @@ router.get('/payments/:productId/status', auth(), async (req, res) => {
     try {
         const { productId } = req.params;
         
-        if (!req.user.walletAddress) {
+        if (!req.user.wallet_address) {
             return res.status(400).json({ 
                 error: 'No wallet associated with user. Please create a wallet first.' 
             });
@@ -97,7 +97,7 @@ router.get('/status', auth(), async (req, res) => {
 router.post('/products', auth(['seller']), async (req, res) => {
     try {
         const { name, price, tokenURI } = req.body;
-        const result = await blockchainController.createProduct(req.user.walletAddress, name, req.user.storeName, tokenURI);
+        const result = await blockchainController.createProduct(req.user.wallet_address, name, req.user.storeName, tokenURI);
         res.json(result);
     } catch (error) {
         console.error('Failed to create product:', error);

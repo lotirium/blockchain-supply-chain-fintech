@@ -60,7 +60,7 @@ class User extends Model {
     delete values.password;
     delete values.encrypted_private_key;
     delete values.iv;
-
+    
     // Ensure store data is properly included if it exists
     if (this.ownedStore) {
       values.ownedStore = this.ownedStore.get();
@@ -178,9 +178,18 @@ User.init({
   },
   defaultScope: {
     attributes: {
-      exclude: ['password', 'encrypted_private_key', 'iv']
+      exclude: ['password']
     }
   }
 });
+
+// Create an unscoped getter for internal use
+User.withWalletData = function() {
+  return this.unscoped().scope({
+    attributes: {
+      exclude: ['password']
+    }
+  });
+};
 
 export default User;

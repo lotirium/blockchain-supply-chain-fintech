@@ -97,8 +97,33 @@ router.post('/register', registerValidation, async (req, res) => {
       
       // Save encrypted private key after user creation for buyers
       if (userType === 'buyer' && privateKey) {
-        await user.setEncryptedPrivateKey(privateKey);
+        console.log('Setting up buyer wallet...', {
+          userId: user.id,
+          hasWalletAddress: !!walletAddress,
+          hasPrivateKey: !!privateKey
+        });
+
+        // Set encrypted private key in a single save operation
+        const algorithm = 'aes-256-cbc';
+        const key = crypto.scryptSync(process.env.JWT_SECRET, 'salt', 32);
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv(algorithm, key, iv);
+        
+        let encrypted = cipher.update(privateKey, 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+
+        // Update user with all wallet info at once
+        user.wallet_address = walletAddress;
+        user.encrypted_private_key = encrypted;
+        user.iv = iv.toString('hex');
         await user.save();
+
+        console.log('Buyer wallet setup completed', {
+          userId: user.id,
+          hasWalletAddress: !!user.wallet_address,
+          hasEncryptedKey: !!user.encrypted_private_key,
+          hasIv: !!user.iv
+        });
       }
     } catch (error) {
       console.error('Failed to create user account:', error);
