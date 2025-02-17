@@ -63,6 +63,25 @@ router.post('/register', registerValidation, async (req, res) => {
     // Create user with strict role and type assignment
     let user;
     try {
+      // Create wallet for buyer
+      let walletAddress = null;
+      let privateKey = null;
+      if (userType === 'buyer') {
+        const newWallet = ethers.Wallet.createRandom();
+        walletAddress = newWallet.address;
+        privateKey = newWallet.privateKey;
+        
+        // Fund the buyer wallet
+        const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY;
+        const deployer = new ethers.Wallet(deployerPrivateKey, blockchainController.provider);
+        
+        const fundingTx = await deployer.sendTransaction({
+          to: walletAddress,
+          value: ethers.parseEther('1.0') // Fund with 1 ETH for buyers
+        });
+        await fundingTx.wait();
+      }
+
       user = await User.create({
         user_name,
         email,
@@ -71,9 +90,16 @@ router.post('/register', registerValidation, async (req, res) => {
         type: userType, // Store original user type (buyer/seller)
         first_name: firstName.trim(),
         last_name: lastName.trim(),
+        wallet_address: walletAddress,
         is_email_verified: false,
         last_login: new Date()
       });
+      
+      // Save encrypted private key after user creation for buyers
+      if (userType === 'buyer' && privateKey) {
+        await user.setEncryptedPrivateKey(privateKey);
+        await user.save();
+      }
     } catch (error) {
       console.error('Failed to create user account:', error);
       if (user) await user.destroy();
@@ -172,7 +198,7 @@ router.post('/register', registerValidation, async (req, res) => {
         firstName: userData.first_name,
         lastName: userData.last_name,
         role: userData.role,
-        walletAddress: userData.wallet_address,
+        wallet_address: userData.wallet_address,
         lastLogin: userData.lastLogin,
         store: userData.ownedStore ? {
           id: userData.ownedStore.id,
@@ -268,7 +294,7 @@ router.post('/login', loginValidation, async (req, res) => {
         firstName: userData.first_name,
         lastName: userData.last_name,
         role: userData.role,
-        walletAddress: userData.wallet_address,
+        wallet_address: userData.wallet_address,
         lastLogin: userData.lastLogin,
         store: userData.ownedStore ? {
           id: userData.ownedStore.id,
@@ -326,7 +352,7 @@ router.get('/me', auth, async (req, res) => {
         firstName: userData.first_name,
         lastName: userData.last_name,
         role: userData.role,
-        walletAddress: userData.wallet_address,
+        wallet_address: userData.wallet_address,
         lastLogin: userData.lastLogin,
         store: userData.ownedStore ? {
           id: userData.ownedStore.id,

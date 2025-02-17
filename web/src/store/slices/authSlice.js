@@ -231,8 +231,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.initialized = true;
         if (action.payload) {
-          state.user = action.payload.data;
-          state.userType = action.payload.data.role;
+          state.user = action.payload.data.user;
+          state.userType = action.payload.data.user.role;
           state.lastProfileFetch = action.payload.fetchTime;
         }
         state.error = null;
@@ -256,8 +256,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.profileFetchPending = false;
         if (!action.payload.fromCache && !action.payload.pendingFetch) {
-          state.user = action.payload.data;
-          state.userType = action.payload.data.role;
+          state.user = action.payload.data.user;
+          state.userType = action.payload.data.user.role;
           state.lastProfileFetch = action.payload.fetchTime;
         }
         state.error = null;

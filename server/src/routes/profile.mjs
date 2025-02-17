@@ -54,20 +54,22 @@ router.get('/', auth(), async (req, res) => {
     }
 
     const userData = user.toJSON();
+
     res.json({
-      id: userData.id,
-      email: userData.email,
+      user: {
+        id: userData.id,
+        email: userData.email,
+        role: userData.role,
+        wallet_address: userData.wallet_address,
       username: userData.user_name,
       firstName: userData.first_name,
       lastName: userData.last_name,
       role: userData.role,
-      type: userData.type,
       walletAddress: userData.wallet_address,
       isEmailVerified: userData.is_email_verified,
-      lastLogin: userData.last_login,
-      createdAt: userData.created_at,
-      updatedAt: userData.updated_at,
-      store: userData.ownedStore ? formatStoreData(userData.ownedStore) : null
+        lastLogin: userData.last_login,
+        store: userData.ownedStore ? formatStoreData(userData.ownedStore) : null
+      }
     });
   } catch (error) {
     console.error('Error fetching profile:', error);
