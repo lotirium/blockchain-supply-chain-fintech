@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+ import { ethers } from 'ethers';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
@@ -352,6 +352,72 @@ class BlockchainController {
         }
     }
 
+    async grantRetailerRole(address) {
+        try {
+            await this.initialize();
+
+            if (!this._supplyChain) {
+                throw new Error('SupplyChain contract not initialized');
+            }
+
+            // Get deployer signer for granting roles
+            const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY;
+            if (!deployerPrivateKey) {
+                throw new Error('Deployer private key not found in environment variables');
+            }
+
+            const deployer = new ethers.Wallet(deployerPrivateKey, this.provider);
+            const contract = this._supplyChain.connect(deployer);
+
+            // Get RETAILER_ROLE bytes32 value
+            const RETAILER_ROLE = ethers.id('RETAILER_ROLE');
+
+            // Grant RETAILER_ROLE to the address
+            const tx = await contract.grantRole(RETAILER_ROLE, address);
+            await tx.wait();
+
+            return {
+                success: true,
+                transaction: tx.hash
+            };
+        } catch (error) {
+            console.error('Failed to grant retailer role:', error);
+            throw new Error(`Failed to grant retailer role: ${error.message}`);
+        }
+    }
+
+    async getSigner(walletAddress) {
+        try {
+            if (walletAddress) {
+                // Format key name to match setupStoreWallet format
+                const storeKey = `STORE_${walletAddress.slice(2).toUpperCase()}_KEY`;
+                const privateKey = process.env[storeKey];
+                
+                if (!privateKey) {
+                    throw new Error(`No private key found for wallet address ${walletAddress}`);
+                }
+                
+                // Add 0x prefix to private key since we store it without prefix
+                return new ethers.Wallet(`0x${privateKey}`, this.provider);
+            }
+
+            // If no wallet address provided, use deployer as default signer
+            const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY;
+            if (!deployerPrivateKey) {
+                throw new Error('Deployer private key not found in environment variables');
+            }
+
+            if (!this._signer) {
+                this._signer = new ethers.Wallet(deployerPrivateKey, this.provider);
+            }
+
+            return this._signer;
+        } catch (error) {
+            console.error('Failed to get signer:', error);
+            throw new Error(`Failed to get signer: ${error.message}`);
+        }
+    }
+
     async getNetworkStatus() {
         try {
             const network = await this.provider.getNetwork();
@@ -535,9 +601,11 @@ class BlockchainController {
         try {
             await this.initialize();
 
+
             if (!this._productNFT) {
                 throw new Error('ProductNFT contract not initialized');
             }
+
 
             // First get the properties we know work
             const [tokenURI, currentOwner] = await Promise.all([
@@ -545,11 +613,13 @@ class BlockchainController {
                 this._productNFT.ownerOf(tokenId)
             ]);
 
+
             // Build function signature and encode parameters
             const functionSignature = 'getProduct(uint256)';
             const functionSelector = ethers.id(functionSignature).slice(0, 10);
             const encodedParams = ethers.zeroPadValue(ethers.toBeHex(tokenId), 32);
             const data = functionSelector + encodedParams.slice(2);
+
 
             // Make the call
             const result = await this.provider.call({
@@ -557,11 +627,13 @@ class BlockchainController {
                 data
             });
 
+
             // Manual decode based on the known return structure
             const decodedStrings = ethers.AbiCoder.defaultAbiCoder().decode(
                 ['string', 'string', 'uint256', 'string', 'address'],
                 '0x' + result.slice(2)
             );
+
 
             return {
                 id: tokenId,
@@ -604,9 +676,11 @@ class BlockchainController {
         try {
             await this.initialize();
 
+
             if (!this._supplyChain) {
                 throw new Error('SupplyChain contract not initialized');
             }
+
 
             // Stage enum mapping
             const stages = [
@@ -620,10 +694,12 @@ class BlockchainController {
                 'Recalled'
             ];
 
+
             // Create interface for just the event we need
             const iface = new ethers.Interface([
                 "event StageUpdated(uint256 indexed productId, uint8 newStage)"
             ]);
+
 
             // Get event logs
             const logs = await this.provider.getLogs({
@@ -635,10 +711,12 @@ class BlockchainController {
                 fromBlock: 0
             });
 
+
             // Map logs to history entries
             const entries = await Promise.all(logs.map(async log => {
                 const parsed = iface.parseLog(log);
                 if (!parsed) return null;
+
 
                 const block = await this.provider.getBlock(log.blockHash);
                 return {
@@ -648,14 +726,54 @@ class BlockchainController {
                 };
             }));
 
-            return entries.filter(Boolean).sort((a, b) => a.blockNumber - b.blockNumber);
+
+                return entries.filter(Boolean).sort((a, b) => a.blockNumber - b.blockNumber);
+    
+            } catch (error) {
+                console.error('Failed to get shipment history:', error);
+                throw new Error(`Failed to get shipment history: ${error.message}`);
+            }
+        }
+
+    async getAllProducts() {
+        try {
+            await this.initialize();
+
+            if (!this._productNFT) {
+                throw new Error('ProductNFT contract not initialized');
+            }
+
+            // Get total supply of tokens
+            const totalSupply = await this._productNFT.totalSupply();
+
+            // Get all products in parallel
+            const tokenIds = Array.from({ length: Number(totalSupply) }, (_, i) => i);
+            const products = await Promise.all(
+                tokenIds.map(async (id) => {
+                    try {
+                        return await this.getProduct(id);
+                    } catch (error) {
+                        console.error(`Failed to get product ${id}:`, error);
+                        return null;
+                    }
+                })
+            );
+
+            // Filter out failed or burned tokens
+            return products.filter(product => 
+                product && 
+                product.owner && 
+                product.owner !== ethers.ZeroAddress
+            );
 
         } catch (error) {
-            console.error('Failed to get shipment history:', error);
-            throw new Error(`Failed to get shipment history: ${error.message}`);
+            console.error('Failed to get all products:', error);
+            throw new Error(`Failed to get all products: ${error.message}`);
         }
     }
-}
+
+    }
+
 
 const blockchainController = new BlockchainController();
 export default blockchainController;

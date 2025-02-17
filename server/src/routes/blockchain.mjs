@@ -105,6 +105,17 @@ router.post('/products', auth(['seller']), async (req, res) => {
     }
 });
 
+// Get all NFT products
+router.get('/products', async (req, res) => {
+    try {
+        const products = await blockchainController.getAllProducts();
+        res.json(products);
+    } catch (error) {
+        console.error('Failed to get all products:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.get('/products/:tokenId', async (req, res) => {
     try {
         const product = await blockchainController.getProduct(req.params.tokenId);
