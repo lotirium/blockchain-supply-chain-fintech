@@ -102,7 +102,7 @@ function Checkout() {
       // Then the contract will multiply by 100 for LogiCoin conversion
       const result = await blockchainService.convertUSDToLogiCoin(Math.ceil(total));
       if (result.success) {
-        setLogiCoinBalance((prev) => (BigInt(prev) + BigInt(result.logiCoins)).toString());
+        await updateLogiCoinBalance();
         setTransactions(prev => [...prev, {
           id: 'convert',
           hash: result.transaction,
@@ -117,6 +117,24 @@ function Checkout() {
       setIsConverting(false);
     }
   };
+
+  const updateLogiCoinBalance = async () => {
+    try {
+      const result = await blockchainService.getLogiCoinBalance();
+      setLogiCoinBalance(result.logiCoinBalance);
+    } catch (error) {
+      console.error('Failed to update LogiCoin balance:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.wallet_address) {
+      updateLogiCoinBalance().catch(error => 
+        console.error('Failed to get initial LogiCoin balance:', error)
+      );
+    }
+  }, [user]);
+
   const generateRandomData = () => {
     // Keep the original random data generation function
     const firstNames = ['John', 'Emma', 'Michael', 'Sarah', 'David', 'Lisa'];
@@ -195,6 +213,12 @@ function Checkout() {
 
         // Convert total to BigInt explicitly
         const totalInCents = BigInt(Math.ceil(total)) * 100n;
+
+        // Refresh LogiCoin balance before checking
+        await updateLogiCoinBalance();
+
+        // Log balances for debugging
+        console.log('Payment attempt:', { required: totalInCents.toString(), available: logiCoinBalance });
 
         // Check LogiCoin balance
         if (BigInt(logiCoinBalance) < totalInCents) {

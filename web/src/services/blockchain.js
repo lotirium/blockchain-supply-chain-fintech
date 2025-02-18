@@ -66,22 +66,34 @@ class BlockchainService {
     }
 
     // Payment Management
-    async payForProduct(uuid) {
+    async payForProduct(productUuid) {
         // First fetch the product to get its tokenId
-        const productResponse = await fetch(`/api/products/detail/${uuid}`, {
+        const productResponse = await fetch(`/api/products/detail/${productUuid}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
+        if (!productResponse.ok) {
+            throw new Error('Failed to fetch product details');
+        }
         const product = await productResponse.json();
         
         if (!product.token_id) {
             throw new Error('Product not found or has no token ID');
         }
-
+        
         // First approve LogiCoin spending
-        const price = await this.getProductPrice(product.token_id);
-        console.log('Product price:', price, 'LogiCoins'); // Debug log
+        let price;
+        try {
+            const priceResponse = await this.getProductPrice(product.token_id);
+            price = priceResponse.price;
+            console.log('Product payment details:', {
+                tokenId: product.token_id,
+                price
+            });
+        } catch (error) {
+            throw new Error(`Failed to get product price: ${error.message}`);
+        }
         const approveResult = await this.approveLogiCoinSpending(price);
         
         const response = await fetch(`/api/blockchain/payments/${product.token_id}`, {

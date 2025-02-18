@@ -171,22 +171,48 @@ class BlockchainController {
         }
     }
     
+    async getProductPrice(tokenId) {
+        try {
+            await this.initialize();
+    
+            if (!this._supplyChain) {
+                throw new Error('SupplyChain contract not initialized');
+            }
+    
+            // Get product price in USD (assuming price is stored in cents)
+            const priceInCents = await this._supplyChain.getProductPrice(tokenId);
+    
+            // Convert USD to LogiCoin tokens
+            const logiCoinContract = this._logiCoin.connect(this.provider);
+            const priceInLogiCoins = await logiCoinContract.usdToTokens(priceInCents);
+    
+            return {
+                success: true,
+                tokenId,
+                price: priceInLogiCoins.toString() // Price in LogiCoin tokens
+            };
+        } catch (error) {
+            console.error('Failed to get product price:', error);
+            throw new Error(`Failed to get product price: ${error.message}`);
+        }
+    }
+
     async getWalletBalance(address) {
         try {
             await this.initialize();
-            
+    
             if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
                 throw new Error('Invalid wallet address');
             }
-
+    
             const [ethBalance, logiCoinBalance] = await Promise.all([
                 this.provider.getBalance(address),
                 this._logiCoin.balanceOf(address)
             ]);
-
+    
             return {
-                eth: ethers.formatEther(ethBalance),
-                logiCoin: logiCoinBalance.toString()
+                eth: ethers.formatEther(ethBalance), // Formatted ETH balance for display
+                logiCoin: logiCoinBalance.toString() // Raw LogiCoin balance in smallest unit
             };
         } catch (error) {
             console.error('Failed to get wallet balance:', error);
@@ -197,21 +223,30 @@ class BlockchainController {
     async convertUSDToLogiCoin(usdAmount, userId) {
         try {
             await this.initialize();
-            const wallet = await this.getUserWallet(userId);
+            const wallet = await this.getUserWallet(userId);            
+            
+            // Convert USD amount to cents (89.99 -> 8999)
+            const usdInCents = Math.round(usdAmount * 100);
+            console.log('Converting USD to LogiCoin:', {
+                usdAmount,
+                usdInCents,
+                walletAddress: wallet.address
+            });
             
             // Get admin signer to mint tokens
             const adminSigner = await this.getSigner();
             const logiCoinContract = this._logiCoin.connect(adminSigner);
             
             // Mint tokens to user's wallet
-            const tx = await logiCoinContract.mintFromUSD(wallet.address, usdAmount);
+            // Amount is in cents, which LogiCoin contract will multiply by 100
+            const tx = await logiCoinContract.mintFromUSD(wallet.address, usdInCents);
             await tx.wait();
 
             return {
                 success: true,
                 transaction: tx.hash,
                 amount: usdAmount,
-                logiCoins: (usdAmount * 100).toString() // 1 USD = 100 LogiCoin
+                logiCoins: (usdInCents * 100).toString() // Convert amount to LogiCoins
             };
         } catch (error) {
             console.error('Failed to convert USD to LogiCoin:', error);
@@ -241,43 +276,55 @@ class BlockchainController {
     async payForProduct(tokenId, userId) {
         try {
             await this.initialize();
-
+    
             if (!this._supplyChain) {
                 throw new Error('SupplyChain contract not initialized');
             }
-
+    
             // Get user's wallet
             const wallet = await this.getUserWallet(userId);
             if (!wallet) {
                 throw new Error('Failed to get user wallet');
             }
-
+    
             console.log('Processing payment with wallet:', {
                 walletAddress: await wallet.getAddress()
             });
-
+    
             const contract = this._supplyChain.connect(wallet);
-            
-            // Get product price
+    
+            // Get product price in LogiCoin tokens
             let price;
-        try {
-            price = await contract.getProductPrice(tokenId);
-            console.log('Product price from contract:', {
-                tokenId,
-                price: price.toString()
-            });
-        } catch (error) {
-            throw new Error(`Failed to get product price: ${error.message}`);
-        }
-            // First approve LogiCoin spending
+            try {
+                const priceResponse = await this.getProductPrice(tokenId);
+                price = BigInt(priceResponse.price); // Convert to BigInt for precision
+                console.log('Product price from contract:', {
+                    tokenId,
+                    price: price.toString()
+                });
+            } catch (error) {
+                throw new Error(`Failed to get product price: ${error.message}`);
+            }
+    
+            // Check user's LogiCoin balance
+            const logiCoinBalanceRaw = await this._logiCoin.balanceOf(wallet.address);
+            const logiCoinBalance = BigInt(logiCoinBalanceRaw); // Ensure balance is treated as BigInt
+    
+            if (logiCoinBalance < price) {
+                const formattedBalance = ethers.formatUnits(logiCoinBalance, 18); // Convert to whole tokens
+                const formattedPrice = ethers.formatUnits(price, 18); // Convert to whole tokens
+                throw new Error(`Insufficient LogiCoin balance: ${formattedBalance} < ${formattedPrice}`);
+            }
+    
+            // Approve LogiCoin spending
             const logiCoinContract = this._logiCoin.connect(wallet);
             const approveTx = await logiCoinContract.approve(this.addresses.supplyChain, price);
             await approveTx.wait();
-
+    
             // Execute payment transaction
             const tx = await contract.payForProduct(tokenId);
             const receipt = await tx.wait(1);
-
+    
             return {
                 success: true,
                 transaction: tx.hash,

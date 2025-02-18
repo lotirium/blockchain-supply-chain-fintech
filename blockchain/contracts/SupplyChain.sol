@@ -80,12 +80,12 @@ contract SupplyChain is AccessControl, Pausable, ReentrancyGuard {
     function createProduct(
         string memory name,
         string memory seller,
-        uint256 /*,  // Unused price parameter */,
+        uint256 /* unused */,
         string memory tokenURI,
-        uint256 sellingPrice
+        uint256 sellingPriceInCents
     ) public whenNotPaused returns (uint256) {
         require(hasRole(RETAILER_ROLE, msg.sender), "Caller must be retailer");
-        require(sellingPrice > 0, "Price must be greater than 0");
+        require(sellingPriceInCents > 0, "Price must be greater than 0");
 
         uint256 productId = productNFT.createProduct(
             msg.sender,
@@ -94,21 +94,8 @@ contract SupplyChain is AccessControl, Pausable, ReentrancyGuard {
             tokenURI
         );
 
-        Shipment memory initialShipment = Shipment({
-            productId: productId,
-            sender: msg.sender,
-            receiver: msg.sender,
-            currentStage: Stage.Created,
-            timestamp: block.timestamp,
-            location: "Retail Facility"
-        });
-        
-        productPrices[productId] = sellingPrice;
-        shipmentHistory[productId].push(initialShipment);
-        
-        emit ProductCreated(productId, msg.sender, name, sellingPrice);
-        emit StageUpdated(productId, Stage.ForSale);
-        
+        productPrices[productId] = sellingPriceInCents;
+        emit ProductCreated(productId, msg.sender, name, sellingPriceInCents);
         return productId;
     }
 

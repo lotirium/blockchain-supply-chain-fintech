@@ -60,7 +60,7 @@ router.get('/logicoin/balance', auth(), async (req, res) => {
             return res.status(400).json({ error: 'No wallet associated with user' });
         }
         const balance = await blockchainController.getWalletBalance(walletAddress);
-        res.json({ logiCoinBalance: balance.logiCoin });
+        res.json({ logiCoinBalance: balance.logiCoin }); // Already formatted in whole tokens
     } catch (error) {
         console.error('Failed to get LogiCoin balance:', error);
         res.status(500).json({ error: error.message });
@@ -174,6 +174,18 @@ router.get('/products', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// Get product price
+router.get('/products/:tokenId/price', async (req, res) => {
+    try {
+        const price = await blockchainController.getProductPrice(req.params.tokenId);
+        res.json({ price: price.toString() });
+    } catch (error) {
+        console.error('Failed to get product price:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 router.get('/products/:tokenId', async (req, res) => {
     try {
