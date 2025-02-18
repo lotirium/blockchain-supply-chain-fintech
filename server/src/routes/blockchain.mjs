@@ -186,6 +186,23 @@ router.get('/products/:tokenId/price', async (req, res) => {
     }
 });
 
+// Update product stage endpoint
+router.put('/products/:productId/stage', auth(['seller']), async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const { stage } = req.body;
+        
+        if (!stage) {
+            return res.status(400).json({ error: 'Stage is required' });
+        }
+
+        await blockchainController.updateStage(productId, stage);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Failed to update product stage:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 router.get('/products/:tokenId', async (req, res) => {
     try {

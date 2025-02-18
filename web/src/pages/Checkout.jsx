@@ -352,7 +352,7 @@ function Checkout() {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-xl font-bold mb-2">Your LogiCoin Balance</h2>
-            <p className="text-gray-600">{(BigInt(logiCoinBalance) / 100n).toString()} USD ({logiCoinBalance} LogiCoin)</p>
+            <p className="text-gray-600">{(BigInt(logiCoinBalance) / 10000n).toString()} USD ({logiCoinBalance} LogiCoin)</p>
           </div>
           <button
             onClick={handleConvertToLogiCoin}

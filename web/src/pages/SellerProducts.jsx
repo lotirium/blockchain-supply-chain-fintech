@@ -6,6 +6,7 @@ import {
   PlusIcon,
   FunnelIcon 
 } from '@heroicons/react/24/outline';
+import { blockchainService } from '../services/blockchain';
 
 // Utility function to safely format price
 const formatPrice = (price) => {
@@ -98,11 +99,22 @@ function SellerProducts() {
         body: JSON.stringify({
           status: newStatus,
           quantity: currentStock // Use the passed stock value
-        })
+        }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to update product status');
+      }
+
+      // If setting to active, update blockchain stage to ForSale
+      if (newStatus === 'active') {
+        try {
+          await blockchainService.updateStage(productId, 'ForSale');
+        } catch (error) {
+          console.error('Failed to update blockchain stage:', error);
+          setError('Product status updated but blockchain update failed. Product may not be available for purchase.');
+          return;
+        }
       }
 
       // Refresh products list

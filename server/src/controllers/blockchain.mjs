@@ -944,8 +944,34 @@ class BlockchainController {
         }
     }
 
-    }
+    async updateStage(productId, stage) {
+        try {
+            await this.initialize();
 
+            if (!this._supplyChain) {
+                throw new Error('SupplyChain contract not initialized');
+            }
+
+            // Get deployer signer for updating stage (since we need RETAILER_ROLE)
+            const signer = await this.getSigner();
+            const contract = this._supplyChain.connect(signer);
+
+            // Map string stage to enum value
+            const stages = ['Created', 'InProduction', 'InTransit', 'Delivered', 'ForSale', 'Sold', 'Returned', 'Recalled'];
+            const stageIndex = stages.indexOf(stage);
+            if (stageIndex === -1) {
+                throw new Error('Invalid stage value');
+            }
+
+            const tx = await contract.updateStage(productId, stageIndex);
+            await tx.wait();
+            return { success: true, transaction: tx.hash };
+        } catch (error) {
+            console.error('Failed to update product stage:', error);
+            throw new Error(`Failed to update product stage: ${error.message}`);
+        }
+    }
+}
 
 const blockchainController = new BlockchainController();
 export default blockchainController;
