@@ -18,6 +18,8 @@ function Checkout() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [transactionError, setTransactionError] = useState(null);
+  const [logiCoinBalance, setLogiCoinBalance] = useState('0');
+  const [isConverting, setIsConverting] = useState(false);
 
   const [formData, setFormData] = useState({
     // Shipping Info
@@ -50,9 +52,17 @@ function Checkout() {
     }
   }, [items.length, navigate, isCheckingOut]);
 
+  // Load LogiCoin balance
+  useEffect(() => {
+    if (user?.wallet_address) {
+      blockchainService.getLogiCoinBalance()
+        .then(result => setLogiCoinBalance(result.logiCoinBalance))
+        .catch(error => console.error('Failed to get LogiCoin balance:', error));
+    }
+  }, [user]);
+
   // Redirect to profile if user has no wallet
   useEffect(() => {
-    // Don't redirect if state is not yet loaded
     if (!user) {
       return;
     }
@@ -60,7 +70,7 @@ function Checkout() {
     if (!user?.wallet_address) {
       navigate('/profile', { 
         state: { message: 'Please set up your wallet in your profile before proceeding with checkout.' },
-        replace: false // Don't replace history so "back" works properly
+        replace: false
       });
     }
   }, [user, navigate]);
@@ -83,6 +93,30 @@ function Checkout() {
       formData.shippingEmail, formData.shippingPhone, formData.shippingAddress,
       formData.shippingCity, formData.shippingState, formData.shippingZip]);
 
+  const handleConvertToLogiCoin = async () => {
+    try {
+      setIsConverting(true);
+      setTransactionError(null);
+
+      // Convert USD to cents first (e.g. $10.99 -> 1099)
+      // Then the contract will multiply by 100 for LogiCoin conversion
+      const result = await blockchainService.convertUSDToLogiCoin(Math.ceil(total));
+      if (result.success) {
+        setLogiCoinBalance((prev) => (BigInt(prev) + BigInt(result.logiCoins)).toString());
+        setTransactions(prev => [...prev, {
+          id: 'convert',
+          hash: result.transaction,
+          status: 'success',
+          type: 'conversion'
+        }]);
+      }
+    } catch (error) {
+      console.error('Failed to convert to LogiCoin:', error);
+      setTransactionError(error.message);
+    } finally {
+      setIsConverting(false);
+    }
+  };
   const generateRandomData = () => {
     // Keep the original random data generation function
     const firstNames = ['John', 'Emma', 'Michael', 'Sarah', 'David', 'Lisa'];
@@ -154,117 +188,133 @@ function Checkout() {
     let blockchainTxs = [];
 
     try {
-      // Validate items have store_id
-      if (items.some(item => !item.store_id)) {
-        throw new Error('Some items are missing store information');
-      }
-
-
-      // Process blockchain payments first
-      setBlockchainLoading(true);
-      for (const item of items) {
-        try {
-          const paymentResult = await blockchainService.payForProduct(item.id);
-          if (!paymentResult.success) {
-            throw new Error(`Failed to process blockchain payment for item ${item.id}`);
-          }
-
-          setTransactions(prev => [...prev, {
-            id: item.id,
-            hash: paymentResult.transaction,
-            status: 'success'
-          }]);
-
-          blockchainTxs.push({
-            product_id: item.id,
-            transaction: paymentResult.transaction,
-            amount: paymentResult.price,
-            block_number: paymentResult.blockNumber
-          });
-        } catch (error) {
-          console.error('Blockchain payment failed:', error);
-          setTransactionError(error.message);
-          throw new Error(`Blockchain payment failed: ${error.message}`);
+        // Validate items have store_id
+        if (items.some(item => !item.store_id)) {
+            throw new Error('Some items are missing store information');
         }
-      }
-      setBlockchainLoading(false);
 
-      // Create order
-      const orderData = {
-        items: items.map((item, index) => ({
-          product_id: item.id,
-          quantity: item.quantity,
-          unit_price: item.price,
-          store_id: item.store_id || item.store?.id,
-          total_price: item.price * item.quantity,
-          blockchain_tx: blockchainTxs[index]?.transaction,
-          block_number: blockchainTxs[index]?.block_number
-        })),
-        shipping_address: {
-          full_name: `${formData.shippingFirstName} ${formData.shippingLastName}`,
-          email: formData.shippingEmail,
-          phone: formData.shippingPhone,
-          address_line: formData.shippingAddress,
-          city: formData.shippingCity,
-          state: formData.shippingState,
-          postal_code: formData.shippingZip
-        },
-        billing_address: sameAsShipping ? {
-          full_name: `${formData.shippingFirstName} ${formData.shippingLastName}`,
-          email: formData.shippingEmail,
-          phone: formData.shippingPhone,
-          address_line: formData.shippingAddress,
-          city: formData.shippingCity,
-          state: formData.shippingState,
-          postal_code: formData.shippingZip
-        } : {
-          full_name: `${formData.billingFirstName} ${formData.billingLastName}`,
-          email: formData.billingEmail,
-          phone: formData.billingPhone,
-          address_line: formData.billingAddress,
-          city: formData.billingCity,
-          state: formData.billingState,
-          postal_code: formData.billingZip
-        },
-        payment_info: {
-          method: 'crypto',
-          blockchain_txs: blockchainTxs
+        // Convert total to BigInt explicitly
+        const totalInCents = BigInt(Math.ceil(total)) * 100n;
+
+        // Check LogiCoin balance
+        if (BigInt(logiCoinBalance) < totalInCents) {
+            throw new Error('Insufficient LogiCoin balance. Please convert USD to LogiCoin first.');
         }
-      };
 
-      const result = await createOrder(orderData);
-      
-      if (result.success) {
-        navigate('/checkout/success', { 
-          replace: true,
-          state: {
-            orderDetails: {
-              orderId: result.orderId,
-              date: new Date().toISOString(),
-              estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
+        // Process blockchain payments first
+        setBlockchainLoading(true);
+        for (const item of items) {
+            try {
+                // First approve LogiCoin spending
+                // Convert price to cents first (e.g. $89.99 -> 8999)
+                // Contract will multiply by EXCHANGE_RATE (100) for final LogiCoin amount
+                const logiCoinAmount = Math.round(item.price * 100);
+                const approveResult = await blockchainService.approveLogiCoinSpending(logiCoinAmount);
+                if (!approveResult.success) {
+                    throw new Error(`Failed to approve LogiCoin spending for item ${item.id}`);
+                }
+
+                // Then pay for product
+                const paymentResult = await blockchainService.payForProduct(item.id);
+                if (!paymentResult.success) {
+                    throw new Error(`Failed to process blockchain payment for item ${item.id}`);
+                }
+
+                setTransactions(prev => [...prev, {
+                    id: item.id,
+                    hash: paymentResult.transaction,
+                    status: 'success'
+                }]);
+
+                blockchainTxs.push({
+                    product_id: item.id,
+                    transaction: paymentResult.transaction,
+                    amount: paymentResult.price,
+                    block_number: paymentResult.blockNumber
+                });
+            } catch (error) {
+                console.error('Blockchain payment failed:', error);
+                setTransactionError(error.message);
+                throw new Error(`Blockchain payment failed: ${error.message}`);
+            }
+        }
+        setBlockchainLoading(false);
+
+        // Create order
+        const orderData = {
+            items: items.map((item, index) => ({
+                product_id: item.id,
+                quantity: item.quantity,
+                unit_price: item.price,
+                store_id: item.store_id || item.store?.id,
+                total_price: item.price * item.quantity,
+                blockchain_tx: blockchainTxs[index]?.transaction,
+                block_number: blockchainTxs[index]?.block_number
+            })),
+            shipping_address: {
+                full_name: `${formData.shippingFirstName} ${formData.shippingLastName}`,
+                email: formData.shippingEmail,
+                phone: formData.shippingPhone,
+                address_line: formData.shippingAddress,
+                city: formData.shippingCity,
+                state: formData.shippingState,
+                postal_code: formData.shippingZip
             },
-            subtotal: total.toFixed(2),
-            total: total.toFixed(2),
-            shippingAddress: `${formData.shippingFirstName} ${formData.shippingLastName}, ${formData.shippingAddress}, ${formData.shippingCity}, ${formData.shippingState} ${formData.shippingZip}`,
-            blockchainTxs
-          }
-        });
-        dispatch(clearCart());
-        return;
-      } else {
-        throw new Error(result.message || 'Failed to create order');
-      }
-    } catch (error) {
-      console.error('Checkout failed:', error);
-      alert(error.message || 'Failed to process checkout. Please try again.');
-      setIsCheckingOut(false);
-    } finally {
-      setBlockchainLoading(false);
-      setLoading(false);
-    }
-  };
+            billing_address: sameAsShipping ? {
+                full_name: `${formData.shippingFirstName} ${formData.shippingLastName}`,
+                email: formData.shippingEmail,
+                phone: formData.shippingPhone,
+                address_line: formData.shippingAddress,
+                city: formData.shippingCity,
+                state: formData.shippingState,
+                postal_code: formData.shippingZip
+            } : {
+                full_name: `${formData.billingFirstName} ${formData.billingLastName}`,
+                email: formData.billingEmail,
+                phone: formData.billingPhone,
+                address_line: formData.billingAddress,
+                city: formData.billingCity,
+                state: formData.billingState,
+                postal_code: formData.billingZip
+            },
+            payment_info: {
+                method: 'logicoin',
+                blockchain_txs: blockchainTxs
+            }
+        };
 
-  // Return early if cart is empty - after all hooks are called
+        const result = await createOrder(orderData);
+
+        if (result.success) {
+            navigate('/checkout/success', {
+                replace: true,
+                state: {
+                    orderDetails: {
+                        orderId: result.orderId,
+                        date: new Date().toISOString(),
+                        estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
+                    },
+                    subtotal: total.toFixed(2),
+                    total: total.toFixed(2),
+                    shippingAddress: `${formData.shippingFirstName} ${formData.shippingLastName}, ${formData.shippingAddress}, ${formData.shippingCity}, ${formData.shippingState} ${formData.shippingZip}`,
+                    blockchainTxs
+                }
+            });
+            dispatch(clearCart());
+            return;
+        } else {
+            throw new Error(result.message || 'Failed to create order');
+        }
+    } catch (error) {
+        console.error('Checkout failed:', error);
+        setTransactionError(error.message);
+        setIsCheckingOut(false);
+    } finally {
+        setBlockchainLoading(false);
+        setLoading(false);
+    }
+};
+
   if (items.length === 0) {
     return null;
   }
@@ -272,6 +322,27 @@ function Checkout() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+
+      {/* LogiCoin Balance */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-bold mb-2">Your LogiCoin Balance</h2>
+            <p className="text-gray-600">{(BigInt(logiCoinBalance) / 100n).toString()} USD ({logiCoinBalance} LogiCoin)</p>
+          </div>
+          <button
+            onClick={handleConvertToLogiCoin}
+            disabled={isConverting || !user?.wallet_address}
+            className={`px-6 py-2 rounded-md ${
+              isConverting || !user?.wallet_address
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            {isConverting ? 'Converting...' : `Convert ${Math.ceil(total)} USD to LogiCoin`}
+          </button>
+        </div>
+      </div>
 
       {/* Transaction Status */}
       {transactions.length > 0 && (
@@ -282,6 +353,7 @@ function Checkout() {
               key={tx.id}
               transaction={tx.hash}
               status={tx.status}
+              type={tx.type}
             />
           ))}
         </div>

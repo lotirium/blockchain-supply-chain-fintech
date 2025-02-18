@@ -7,6 +7,7 @@ import blockchainController from '../controllers/blockchain.mjs';
 import { ethers } from 'ethers';
 import { promises as fs } from 'fs';
 import { setupStoreWallet } from '../utils/blockchainUtils.mjs';
+import crypto from 'crypto';
 
 const router = express.Router();
 

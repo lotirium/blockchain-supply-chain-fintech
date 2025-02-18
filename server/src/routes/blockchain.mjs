@@ -30,6 +30,65 @@ router.get('/wallet/balance', auth(), async (req, res) => {
     }
 });
 
+// LogiCoin endpoints
+router.post('/logicoin/convert', auth(), async (req, res) => {
+    try {
+        const { usdAmount } = req.body;
+        if (!usdAmount || usdAmount <= 0) {
+            return res.status(400).json({ error: 'Invalid USD amount' });
+        }
+
+        const userId = req.user.id;
+        if (!req.user.wallet_address) {
+            return res.status(400).json({ 
+                error: 'No wallet associated with user. Please create a wallet first.' 
+            });
+        }
+
+        const result = await blockchainController.convertUSDToLogiCoin(usdAmount, userId);
+        res.json(result);
+    } catch (error) {
+        console.error('Failed to convert USD to LogiCoin:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/logicoin/balance', auth(), async (req, res) => {
+    try {
+        const walletAddress = req.user.wallet_address;
+        if (!walletAddress) {
+            return res.status(400).json({ error: 'No wallet associated with user' });
+        }
+        const balance = await blockchainController.getWalletBalance(walletAddress);
+        res.json({ logiCoinBalance: balance.logiCoin });
+    } catch (error) {
+        console.error('Failed to get LogiCoin balance:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/logicoin/approve', auth(), async (req, res) => {
+    try {
+        const { amount } = req.body;
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ error: 'Invalid amount' });
+        }
+
+        const userId = req.user.id;
+        if (!req.user.wallet_address) {
+            return res.status(400).json({ 
+                error: 'No wallet associated with user. Please create a wallet first.' 
+            });
+        }
+
+        const result = await blockchainController.approveLogiCoinSpending(amount, userId);
+        res.json(result);
+    } catch (error) {
+        console.error('Failed to approve LogiCoin spending:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Payment endpoints
 router.post('/payments/:productId', auth(), async (req, res) => {
     try {

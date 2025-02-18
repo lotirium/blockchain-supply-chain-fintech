@@ -4,6 +4,41 @@ class BlockchainService {
         this.networkDetails = null;
         this.eventSource = null;
     }
+
+    // LogiCoin Management
+    async convertUSDToLogiCoin(usdAmount) {
+        const response = await fetch('/api/blockchain/logicoin/convert', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ usdAmount })
+        });
+        return response.json();
+    }
+
+    async getLogiCoinBalance() {
+        const response = await fetch('/api/blockchain/logicoin/balance', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return response.json();
+    }
+
+    async approveLogiCoinSpending(amount) {
+        const response = await fetch('/api/blockchain/logicoin/approve', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ amount })
+        });
+        return response.json();
+    }
+
     // Wallet management
     async createWallet() {
         const response = await fetch('/api/blockchain/wallet', {
@@ -13,6 +48,11 @@ class BlockchainService {
                 'Content-Type': 'application/json'
             }
         });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Payment failed');
+        }
         return response.json();
     }
 
@@ -38,6 +78,12 @@ class BlockchainService {
         if (!product.token_id) {
             throw new Error('Product not found or has no token ID');
         }
+
+        // First approve LogiCoin spending
+        const price = await this.getProductPrice(product.token_id);
+        console.log('Product price:', price, 'LogiCoins'); // Debug log
+        const approveResult = await this.approveLogiCoinSpending(price);
+        
         const response = await fetch(`/api/blockchain/payments/${product.token_id}`, {
             method: 'POST',
             headers: { 
@@ -68,6 +114,15 @@ class BlockchainService {
         return response.json();
     }
 
+    async getProductPrice(tokenId) {
+        const response = await fetch(`/api/blockchain/products/${tokenId}/price`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        const data = await response.json();
+        return data.price;
+    }
 
     async initialize() {
         try {
@@ -238,6 +293,9 @@ class BlockchainService {
             case 'StageUpdated':
                 this.stageUpdateEventCallback?.(event.data);
                 break;
+            case 'LogiCoinPurchased':
+                this.logiCoinEventCallback?.(event.data);
+                break;
         }
     }
 
@@ -251,6 +309,10 @@ class BlockchainService {
 
     addStageUpdateEventListener(callback) {
         this.stageUpdateEventCallback = callback;
+    }
+
+    addLogiCoinEventListener(callback) {
+        this.logiCoinEventCallback = callback;
     }
 
     // Cleanup

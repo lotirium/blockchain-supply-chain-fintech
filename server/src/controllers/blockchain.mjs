@@ -1,4 +1,4 @@
- import { ethers } from 'ethers';
+import { ethers } from 'ethers';
 import crypto from 'crypto';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
@@ -10,17 +10,16 @@ const __dirname = dirname(__filename);
 
 let ProductNFT;
 let SupplyChain;
+let LogiCoin;
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000; // 2 seconds
 
 class BlockchainController {
     constructor() {
-        // Get network configuration from environment variables
         const requiredChainId = parseInt(process.env.REQUIRED_CHAIN_ID || '31337');
         const nodeUrl = process.env.ETHEREUM_NODE_URL || 'http://127.0.0.1:8545';
         
-        // Include AccessControl ABI for role management
         const accessControlAbi = [
             "function grantRole(bytes32 role, address account)",
             "function revokeRole(bytes32 role, address account)",
@@ -34,7 +33,6 @@ class BlockchainController {
             requiredChainId,
         });
 
-        // Create provider with network configuration
         this.provider = new ethers.JsonRpcProvider(nodeUrl, {
             chainId: requiredChainId,
             name: process.env.REQUIRED_NETWORK_NAME || 'Hardhat Network',
@@ -43,11 +41,15 @@ class BlockchainController {
         
         this.addresses = {
             productNFT: process.env.PRODUCT_NFT_ADDRESS,
-            supplyChain: process.env.SUPPLY_CHAIN_ADDRESS
+            supplyChain: process.env.SUPPLY_CHAIN_ADDRESS,
+            logiCoin: process.env.LOGICOIN_ADDRESS
         };
+
+        console.log('Contract addresses:', this.addresses);
 
         this._productNFT = null;
         this._supplyChain = null;
+        this._logiCoin = null;
         this.initialized = null;
         this._signer = null;
         this._accessControlAbi = accessControlAbi;
@@ -57,13 +59,16 @@ class BlockchainController {
 
     async createUserWallet(userId) {
         try {
+            // Ensure blockchain controller is fully initialized
+            await this.initialize();
+    
             // Check if user already has a wallet
             const User = (await import('../models/User.mjs')).default;
             const user = await User.findByPk(userId);
             if (user?.walletAddress) {
                 throw new Error('User already has a wallet');
             }
-
+    
             // Generate new wallet with ethers
             const wallet = ethers.Wallet.createRandom();
             
@@ -71,17 +76,17 @@ class BlockchainController {
             if (!wallet.address || !wallet.privateKey) {
                 throw new Error('Failed to generate wallet');
             }
-
+    
             // Encrypt private key
             const algorithm = 'aes-256-cbc';
             const key = crypto.scryptSync(process.env.JWT_SECRET, 'salt', 32);
             const iv = crypto.randomBytes(16);
             const cipher = crypto.createCipheriv(algorithm, key, iv);
-
+    
             let encrypted = cipher.update(wallet.privateKey, 'utf8', 'hex');
             encrypted += cipher.final('hex');
-
-            // Update user with wallet address and encrypted key
+    
+            // Update user with wallet address and encrypted key 
             const [updated] = await User.update({
                 wallet_address: wallet.address,
                 encrypted_private_key: encrypted,
@@ -89,36 +94,43 @@ class BlockchainController {
             }, {
                 where: { id: userId }
             });
-
-            // Verify the update was successful
-
+    
             if (!updated) {
                 throw new Error('Failed to update user with wallet address');
             }
-
+    
             // Fund the new wallet with some test ETH if in development
             if (process.env.NODE_ENV === 'development') {
                 const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY;
                 if (!deployerPrivateKey) {
                     throw new Error('Deployer private key not found in environment variables');
                 }
-
+    
                 if (!/^0x[0-9a-fA-F]{64}$/.test(deployerPrivateKey)) {
                     throw new Error('Invalid deployer private key format');
                 }
-
+    
                 const deployer = new ethers.Wallet(deployerPrivateKey, this.provider);
+                
+                // Fund with ETH for gas
                 const fundTx = await deployer.sendTransaction({
                     to: wallet.address,
-                    value: ethers.parseEther("1.0") // Send 1 ETH for testing
+                    value: ethers.parseEther("5.0") // Increased ETH for plenty of gas fees
                 });
-                await fundTx.wait(1); // Wait for 1 confirmation
+                await fundTx.wait(1);
+                
+                // Initial LogiCoin balance - Ensure _logiCoin is initialized
+                // For $1000.00, pass 100000 (includes 2 decimals)
+                await this._logiCoin.connect(deployer).mintFromUSD(wallet.address, 1000_00);
             }
-
+    
             return {
                 success: true,
                 walletAddress: wallet.address,
-                balance: process.env.NODE_ENV === 'development' ? "1.0" : "0.0"
+                balance: {
+                    eth: process.env.NODE_ENV === 'development' ? "5.0" : "0.0",
+                    logiCoin: process.env.NODE_ENV === 'development' ? "100000" : "0" // Will show 1000.00 USD worth
+                }
             };
         } catch (error) {
             console.error('Failed to create wallet:', error);
@@ -126,52 +138,103 @@ class BlockchainController {
         }
     }
 
+    async getUserWallet(userId) {
+        try {
+            // Import the User model
+            const User = (await import('../models/User.mjs')).default;
+    
+            // Fetch the user record by ID
+            const user = await User.findByPk(userId);
+            if (!user || !user.wallet_address) {
+                throw new Error('User wallet not found');
+            }
+    
+            // Validate encrypted private key and IV
+            const { encrypted_private_key: encryptedPrivateKey, iv } = user;
+            if (!encryptedPrivateKey || !iv) {
+                throw new Error('Encrypted private key or IV missing');
+            }
+    
+            // Decrypt the private key
+            const algorithm = 'aes-256-cbc';
+            const key = crypto.scryptSync(process.env.JWT_SECRET, 'salt', 32);
+            const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(iv, 'hex'));
+    
+            let decrypted = decipher.update(encryptedPrivateKey, 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+    
+            // Create and return the ethers Wallet instance
+            return new ethers.Wallet(decrypted, this.provider);
+        } catch (error) {
+            console.error('Failed to get user wallet:', error);
+            throw new Error(`Failed to get user wallet: ${error.message}`);
+        }
+    }
+    
     async getWalletBalance(address) {
         try {
+            await this.initialize();
+            
             if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
                 throw new Error('Invalid wallet address');
             }
 
-            const balance = await this.provider.getBalance(address);
-            return ethers.formatEther(balance);
+            const [ethBalance, logiCoinBalance] = await Promise.all([
+                this.provider.getBalance(address),
+                this._logiCoin.balanceOf(address)
+            ]);
+
+            return {
+                eth: ethers.formatEther(ethBalance),
+                logiCoin: logiCoinBalance.toString()
+            };
         } catch (error) {
             console.error('Failed to get wallet balance:', error);
             throw new Error(`Failed to get balance: ${error.message}`);
         }
     }
 
-    async getUserWallet(userId) {
+    async convertUSDToLogiCoin(usdAmount, userId) {
         try {
-            const User = (await import('../models/User.mjs')).default;
-            const user = await User.findByPk(userId);
+            await this.initialize();
+            const wallet = await this.getUserWallet(userId);
+            
+            // Get admin signer to mint tokens
+            const adminSigner = await this.getSigner();
+            const logiCoinContract = this._logiCoin.connect(adminSigner);
+            
+            // Mint tokens to user's wallet
+            const tx = await logiCoinContract.mintFromUSD(wallet.address, usdAmount);
+            await tx.wait();
 
-            if (!user?.encrypted_private_key || !user?.iv) {
-                throw new Error('No wallet found for user');
-            }
-
-            // Decrypt private key
-            const algorithm = 'aes-256-cbc';
-            const key = crypto.scryptSync(process.env.JWT_SECRET, 'salt', 32);
-            const iv = Buffer.from(user.iv, 'hex');
-            const decipher = crypto.createDecipheriv(algorithm, key, iv);
-
-            let decrypted;
-            try {
-                decrypted = decipher.update(user.encrypted_private_key, 'hex', 'utf8');
-                decrypted += decipher.final('utf8');
-            } catch (error) {
-                console.error('Failed to decrypt private key:', error);
-                throw new Error('Failed to decrypt wallet credentials');
-            }
-
-            // Create and return wallet with provider
-            return new ethers.Wallet(decrypted, this.provider);
+            return {
+                success: true,
+                transaction: tx.hash,
+                amount: usdAmount,
+                logiCoins: (usdAmount * 100).toString() // 1 USD = 100 LogiCoin
+            };
         } catch (error) {
-            if (error.message.includes('decrypt')) {
-                throw new Error('Failed to access wallet. Please check your credentials.');
-            }
-            console.error('Failed to get user wallet:', error);
-            throw new Error(`Failed to get wallet: ${error.message}`);
+            console.error('Failed to convert USD to LogiCoin:', error);
+            throw new Error(`USD to LogiCoin conversion failed: ${error.message}`);
+        }
+    }
+
+    async approveLogiCoinSpending(amount, userId) {
+        try {
+            await this.initialize();
+            const wallet = await this.getUserWallet(userId);
+            const logiCoinContract = this._logiCoin.connect(wallet);
+            
+            const tx = await logiCoinContract.approve(this.addresses.supplyChain, amount);
+            await tx.wait();
+
+            return {
+                success: true,
+                transaction: tx.hash
+            };
+        } catch (error) {
+            console.error('Failed to approve LogiCoin spending:', error);
+            throw new Error(`LogiCoin approval failed: ${error.message}`);
         }
     }
 
@@ -183,7 +246,7 @@ class BlockchainController {
                 throw new Error('SupplyChain contract not initialized');
             }
 
-            // Get user's wallet using secure decryption
+            // Get user's wallet
             const wallet = await this.getUserWallet(userId);
             if (!wallet) {
                 throw new Error('Failed to get user wallet');
@@ -192,14 +255,28 @@ class BlockchainController {
             console.log('Processing payment with wallet:', {
                 walletAddress: await wallet.getAddress()
             });
+
             const contract = this._supplyChain.connect(wallet);
             
             // Get product price
-            const price = await contract.productPrices(tokenId);
+            let price;
+        try {
+            price = await contract.getProductPrice(tokenId);
+            console.log('Product price from contract:', {
+                tokenId,
+                price: price.toString()
+            });
+        } catch (error) {
+            throw new Error(`Failed to get product price: ${error.message}`);
+        }
+            // First approve LogiCoin spending
+            const logiCoinContract = this._logiCoin.connect(wallet);
+            const approveTx = await logiCoinContract.approve(this.addresses.supplyChain, price);
+            await approveTx.wait();
 
             // Execute payment transaction
-            const tx = await contract.payForProduct(tokenId, { value: price });
-            const receipt = await tx.wait(1); // Wait for 1 confirmation
+            const tx = await contract.payForProduct(tokenId);
+            const receipt = await tx.wait(1);
 
             return {
                 success: true,
@@ -355,19 +432,27 @@ class BlockchainController {
         try {
             const productNFTPath = join(__dirname, '../contracts/ProductNFT.json');
             const supplyChainPath = join(__dirname, '../contracts/SupplyChain.json');
+            const logiCoinPath = join(__dirname, '../contracts/LogiCoin.json');
 
-            const [productNFTJson, supplyChainJson] = await Promise.all([
+            console.log('Loading artifacts from:', {
+                productNFTPath,
+                supplyChainPath,
+                logiCoinPath
+            });
+
+            const [productNFTJson, supplyChainJson, logiCoinJson] = await Promise.all([
                 readFile(productNFTPath, 'utf8'),
-                readFile(supplyChainPath, 'utf8')
+                readFile(supplyChainPath, 'utf8'),
+                readFile(logiCoinPath, 'utf8')
             ]);
 
             ProductNFT = JSON.parse(productNFTJson);
             SupplyChain = JSON.parse(supplyChainJson);
+            LogiCoin = JSON.parse(logiCoinJson);
 
-            // Combine contract ABI with AccessControl ABI
             this._supplyChainAbi = [...SupplyChain.abi, ...this._accessControlAbi];
 
-            if (!ProductNFT?.abi || !SupplyChain?.abi) {
+            if (!ProductNFT?.abi || !SupplyChain?.abi || !LogiCoin?.abi) {
                 throw new Error('Contract artifacts are missing ABI');
             }
 
@@ -498,23 +583,23 @@ class BlockchainController {
     }
 
     async initialize() {
-        const TIMEOUT = 30000; // 30 seconds timeout
+        const TIMEOUT = 30000;
 
-        // Use a promise to handle initialization state
         if (this.initialized) {
             return this.initialized;
         }
 
-        // Create initialization promise
         this.initialized = (async () => {
             try {
                 console.log('Starting blockchain controller initialization...');
 
-                // Run validation first
                 await this.validateConfig();
-
-                // Test RPC connection with retries
                 await this.testConnection();
+
+                // Load artifacts if not loaded
+                if (!ProductNFT?.abi || !SupplyChain?.abi || !LogiCoin?.abi) {
+                    await this.loadArtifacts();
+                }
 
                 // Create contract instances
                 this._productNFT = new ethers.Contract(
@@ -529,16 +614,34 @@ class BlockchainController {
                     this.provider
                 );
 
+                this._logiCoin = new ethers.Contract(
+                    this.addresses.logiCoin,
+                    LogiCoin.abi,
+                    this.provider
+                );
+
+                // Verify contracts are properly initialized
+                console.log('Verifying contract instances:', {
+                    productNFT: !!this._productNFT,
+                    supplyChain: !!this._supplyChain,
+                    logiCoin: !!this._logiCoin
+                });
+
+                // Test contract access
+                await Promise.all([
+                    this._logiCoin.name(),
+                    this._logiCoin.symbol()
+                ]);
+
                 console.log('Blockchain initialization completed successfully');
                 return true;
             } catch (error) {
                 console.error('Blockchain initialization failed:', error);
-                this.initialized = null; // Reset initialization state
+                this.initialized = null;
                 throw error;
             }
         })();
 
-        // Add timeout to initialization
         return Promise.race([
             this.initialized,
             new Promise((_, reject) =>
@@ -551,34 +654,23 @@ class BlockchainController {
         try {
             console.log('Starting blockchain configuration validation...');
             
-            // Check environment variables first
             const missingConfig = [];
-            if (!process.env.ETHEREUM_NODE_URL) {
-                missingConfig.push('ETHEREUM_NODE_URL');
-            }
-            if (!process.env.REQUIRED_CHAIN_ID) {
-                missingConfig.push('REQUIRED_CHAIN_ID');
-            }
-            if (!this.addresses.productNFT) {
-                missingConfig.push('PRODUCT_NFT_ADDRESS');
-            }
-            if (!this.addresses.supplyChain) {
-                missingConfig.push('SUPPLY_CHAIN_ADDRESS');
-            }
+            if (!process.env.ETHEREUM_NODE_URL) missingConfig.push('ETHEREUM_NODE_URL');
+            if (!process.env.REQUIRED_CHAIN_ID) missingConfig.push('REQUIRED_CHAIN_ID');
+            if (!this.addresses.productNFT) missingConfig.push('PRODUCT_NFT_ADDRESS');
+            if (!this.addresses.supplyChain) missingConfig.push('SUPPLY_CHAIN_ADDRESS');
+            if (!this.addresses.logiCoin) missingConfig.push('LOGICOIN_ADDRESS');
 
             if (missingConfig.length > 0) {
                 throw new Error(`Missing required configuration: ${missingConfig.join(', ')}`);
             }
 
-            // Load artifacts first
             await this.loadArtifacts();
             console.log('Contract artifacts loaded successfully');
 
-            // Test network connection with retries
             const network = await this.testConnection();
             console.log('Network connection successful:', network);
 
-            // Verify contract accessibility
             await this.checkContracts();
             console.log('Contract verification successful');
 
@@ -594,7 +686,7 @@ class BlockchainController {
 
     async checkContracts() {
         try {
-            if (!ProductNFT?.abi || !SupplyChain?.abi) {
+            if (!ProductNFT?.abi || !SupplyChain?.abi || !LogiCoin?.abi) {
                 await this.loadArtifacts();
             }
 
@@ -610,10 +702,17 @@ class BlockchainController {
                 this.provider
             );
 
-            // Try to access contract methods to verify they're working
+            const logiCoin = new ethers.Contract(
+                this.addresses.logiCoin,
+                LogiCoin.abi,
+                this.provider
+            );
+
+            // Test contract methods
             await Promise.all([
-                productNFT.getProduct(0).catch(() => {}),  // Ignore errors from non-existent tokens
-                supplyChain.isRetailer(this.addresses.supplyChain).catch(() => {})
+                productNFT.getProduct(0).catch(() => {}),
+                supplyChain.isRetailer(this.addresses.supplyChain).catch(() => {}),
+                logiCoin.name().catch(() => {})
             ]);
 
             console.log('Contract instances verified successfully');
