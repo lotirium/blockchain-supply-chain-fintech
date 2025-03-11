@@ -176,7 +176,7 @@ const queue = Queue({ activeLimit: 20, queuedLimit: -1 });
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.NODE_ENV === 'development' ? true : process.env.CORS_ORIGIN || 'http://127.0.0.1:3000',
+  origin: process.env.NODE_ENV === 'development' ? true : process.env.CORS_ORIGIN || 'http://192.168.0.9:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
@@ -301,8 +301,8 @@ const initializeApp = async () => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server is running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV}`);
-      console.log(`API Server: http://127.0.0.1:${PORT}`);
-      console.log(`File Server: http://127.0.0.1:${PORT}/uploads`);
+      console.log(`API Server: http://192.168.0.9:${PORT}`);
+      console.log(`File Server: http://192.168.0.9:${PORT}/uploads`);
       
       // Start NFT minting job
       console.log('Starting periodic NFT minting job...');

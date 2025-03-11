@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.9:3001';
 
 const VerificationPending = () => {
   const { user, token } = useSelector((state) => state.auth);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.9:3001';
 
 const AdminVerification = () => {
   const [activeTab, setActiveTab] = useState('stores'); // 'stores' or 'customers'

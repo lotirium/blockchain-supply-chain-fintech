@@ -7,10 +7,12 @@ import OrderLabels from '../components/OrderLabels';
 import OrderStatusControl from '../components/OrderStatusControl';
 import OrderStatusHistory from '../components/OrderStatusHistory';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.9:3001';
 
 const OrderQRCodeSection = ({ order, onQRGenerated }) => {
   const [qrCode, setQrCode] = useState(null);
+  const [hologramPath, setHologramPath] = useState(null);
+  const [tokenId, setTokenId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -18,8 +20,12 @@ const OrderQRCodeSection = ({ order, onQRGenerated }) => {
     if (order.qr_status === 'active') {
       getOrderQRStatus(order.id)
         .then(response => {
-          if (response.success && response.data.qrCode) {
+          if (response.success) {
             setQrCode(response.data.qrCode);
+            setTokenId(response.data.tokenId);
+            if (response.data.hologramPath) {
+              setHologramPath(response.data.hologramPath);
+            }
           }
         })
         .catch(err => {
@@ -29,17 +35,33 @@ const OrderQRCodeSection = ({ order, onQRGenerated }) => {
     }
   }, [order.id, order.qr_status]);
 
-  const handleGenerateQR = async () => {
+  const handleGenerateLabels = async () => {
     try {
       setLoading(true);
       setError(null);
+      setQrCode(null);
+      setHologramPath(null);
+      
+      // Generate QR code and hologram
       const response = await generateOrderQR(order.id);
-      if (response.success) {
-        setQrCode(response.data.qrCode);
+
+      if (response.success && response.data) {
+        const { qrCode: newQrCode, hologramPath: newHologramPath, tokenId: newTokenId } = response.data;
+        
+        // Set all states at once to prevent partial renders
+        setQrCode(newQrCode);
+        setHologramPath(newHologramPath);
+        setTokenId(newTokenId);
         onQRGenerated?.();
+      } else {
+        throw new Error(response.message || 'Failed to generate labels');
       }
     } catch (err) {
       setError(err.message);
+      // Reset states on error
+      setQrCode(null);
+      setHologramPath(null);
+      setTokenId(null);
     } finally {
       setLoading(false);
     }
@@ -60,10 +82,13 @@ const OrderQRCodeSection = ({ order, onQRGenerated }) => {
     return null;
   }
 
-  if (qrCode) {
+  // Only show OrderLabels when we have both QR code and hologram
+  if (qrCode && hologramPath) {
     return (
       <OrderLabels
         qrCode={qrCode}
+        hologramPath={hologramPath}
+        tokenId={tokenId}
         onDownloadQR={handleDownloadQR}
         showQRCodeOnly={false}
       />
@@ -77,7 +102,7 @@ const OrderQRCodeSection = ({ order, onQRGenerated }) => {
         <div className="text-red-600 text-sm mb-2">{error}</div>
       )}
       <button
-        onClick={handleGenerateQR}
+        onClick={handleGenerateLabels}
         disabled={loading}
         className={`w-full px-4 py-2 rounded text-white transition-colors ${
           loading
@@ -88,7 +113,7 @@ const OrderQRCodeSection = ({ order, onQRGenerated }) => {
         {loading ? 'Generating...' : 'Generate Product Labels'}
       </button>
       <p className="mt-2 text-sm text-gray-600">
-        Generate QR code and download store hologram label for the product package.
+        Generate QR code and UV hologram labels for the product package.
       </p>
     </div>
   );

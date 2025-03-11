@@ -1,10 +1,12 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { Store, Product } from '../models/index.mjs';
 import { requireSeller } from '../middleware/auth.mjs';
+import { generateProductHologram } from '../services/imageService.mjs';
 
 const router = express.Router();
 import blockchainController from '../controllers/blockchain.mjs';
@@ -228,6 +230,32 @@ router.post('/', requireSeller, validateStore, handleUpload, async (req, res) =>
           tokenURI
       );
 
+      // Generate verification code for the product
+      const verificationCode = crypto
+        .createHash('sha256')
+        .update(`${product.id}-${Date.now()}-${Math.random()}`)
+        .digest('hex');
+
+      // Generate UV hologram with NFT token ID
+      console.log('Generating UV hologram with NFT token ID...');
+      const hologramPath = await generateProductHologram({
+        productId: product.id,
+        tokenId: result.tokenId,
+        productName: product.name,
+        manufacturer: req.store.name,
+        orderId: product.id,
+        verificationCode: verificationCode,
+        storeName: req.store.name,
+        uvData: {
+          productId: product.id,
+          tokenId: result.tokenId,
+          verificationCode: verificationCode,
+          timestamp: Date.now(),
+          storeName: req.store.name,
+          productName: product.name
+        }
+      });
+
       // Try to update with retry/increment logic for token_id conflicts
       let retryCount = 0;
       const maxRetries = 5;
@@ -237,7 +265,8 @@ router.post('/', requireSeller, validateStore, handleUpload, async (req, res) =>
           try {
               await product.update({
                   token_id: currentTokenId.toString(),
-                  blockchain_status: 'minted'
+                  blockchain_status: 'minted',
+                  hologram_path: hologramPath
               });
               break; // Success - exit loop
           } catch (updateError) {

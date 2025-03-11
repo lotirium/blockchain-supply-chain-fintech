@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/spacing_medium"
+    android:layout_marginVertical="@dimen/spacing_small"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/spacing_medium">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/product_image"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:scaleType="centerCrop"
+            android:background="@color/surface_variant"
+            android:contentDescription="@string/product_image"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.SmallComponent"
+            app:strokeColor="@color/card_border"
+            app:strokeWidth="1dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/placeholder_product" />
+
+        <TextView
+            android:id="@+id/product_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_medium"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="?attr/textAppearanceSubtitle1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/product_image"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Product Name" />
+
+        <TextView
+            android:id="@+id/product_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_medium"
+            android:layout_marginTop="@dimen/spacing_small"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintStart_toEndOf="@id/product_image"
+            app:layout_constraintTop_toBottomOf="@id/product_name"
+            tools:text="$99.99 × 2" />
+
+        <TextView
+            android:id="@+id/total_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceSubtitle1"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            app:layout_constraintStart_toStartOf="@id/product_price"
+            app:layout_constraintTop_toBottomOf="@id/product_price"
+            tools:text="Total: $199.98" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

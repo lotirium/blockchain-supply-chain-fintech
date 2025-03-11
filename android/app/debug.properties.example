@@ -1,0 +1,18 @@
+# API Configuration
+api.host=127.0.0.1
+api.port=3001
+api.protocol=http
+ws.protocol=ws
+
+# Blockchain Configuration
+ethereum.host=127.0.0.1
+ethereum.port=8545
+ethereum.protocol=http
+
+# Network Configuration
+network.explorer.host=127.0.0.1
+network.explorer.port=4000
+network.explorer.protocol=http
+
+# Note: For Android emulator, 127.0.0.1 will automatically be converted to 10.0.2.2
+# For physical devices, use your machine's local network IP

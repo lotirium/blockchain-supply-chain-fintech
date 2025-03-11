@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.App.CardView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:elevation="2dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/card_border">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/order_number"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.App.HeadlineSmall"
+            android:textColor="?attr/colorOnSurface"
+            android:alpha="0.9"
+            app:layout_constraintEnd_toStartOf="@id/order_total"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Order #123456" />
+
+        <TextView
+            android:id="@+id/order_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="@style/TextAppearance.App.BodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:alpha="0.7"
+            app:layout_constraintEnd_toStartOf="@id/order_total"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/order_number"
+            tools:text="February 11, 2025" />
+
+        <TextView
+            android:id="@+id/order_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.App.HeadlineSmall"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="$209.98" />
+
+        <TextView
+            android:id="@+id/items_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="@style/TextAppearance.App.BodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:alpha="0.7"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/order_total"
+            tools:text="3 items" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/status_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:cardBackgroundColor="@color/surface_variant"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/card_border"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/order_date">
+
+            <TextView
+                android:id="@+id/order_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
+                android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:alpha="0.9"
+                tools:drawableStart="@drawable/ic_processing"
+                tools:text="Processing" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/view_details_button"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/view_orders"
+            android:textAllCaps="false"
+            android:textAppearance="@style/TextAppearance.App.BodyMedium"
+            android:textColor="?attr/colorPrimary"
+            app:rippleColor="@color/ripple"
+            app:layout_constraintBottom_toBottomOf="@id/status_container"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/status_container" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

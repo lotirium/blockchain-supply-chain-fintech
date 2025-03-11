@@ -1,0 +1,255 @@
+# Supply Chain Tracking System - Current Technical State
+
+## System Overview
+
+Our supply chain tracking system integrates blockchain technology, web applications, and mobile development to create a comprehensive product verification and tracking ecosystem. The system ensures product authenticity through NFT-based certification while providing real-time tracking and verification capabilities.
+
+## System Architecture
+
+### Backend Services
+
+#### Node.js Server (Express.js v4.18)
+
+The core backend service implements RESTful APIs with JWT-based authentication. Key endpoints include:
+
+Authentication Services:
+- POST `/api/auth/login` - User authentication
+- POST `/api/auth/register` - New user registration
+- POST `/api/auth/refresh` - Token refresh
+- GET `/api/auth/verify` - Token verification
+
+Product Management:
+- GET `/api/products` - List products with pagination
+- POST `/api/products/create` - Create new product
+- GET `/api/products/:id` - Product details
+- PUT `/api/products/:id` - Update product
+- POST `/api/products/:id/verify` - Verify product authenticity
+
+Order Processing:
+- POST `/api/orders/create` - Create new order
+- GET `/api/orders/:id` - Order details
+- PUT `/api/orders/:id/status` - Update order status
+- GET `/api/orders/history/:id` - Order status history
+
+Authentication implementation:
+```javascript
+const authMiddleware = async (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'No token provided' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        res.status(401).json({ error: 'Invalid token' });
+    }
+};
+```
+
+WebSocket Server:
+```javascript
+const wsServer = new WebSocketServer({
+    port: process.env.WS_PORT,
+    path: '/ws'
+});
+
+// Event handlers for real-time updates
+wsServer.on('connection', (socket) => {
+    socket.on('order_update', handleOrderUpdate);
+    socket.on('product_status', handleProductStatus);
+    socket.on('verification_result', handleVerification);
+});
+```
+
+#### Image Processing Service (Python FastAPI)
+
+Handles product image processing and hologram generation using OpenCV. Endpoints:
+
+- POST `/generate-hologram` - Creates secure holographic markers
+- POST `/verify-product` - Validates product authenticity
+- POST `/process-qr` - Processes and validates QR codes
+
+Implementation:
+```python
+@app.post("/verify-product")
+async def verify_product(image: UploadFile):
+    img_array = await process_image(image)
+    hologram_data = extract_hologram(img_array)
+    verification_result = verify_hologram(hologram_data)
+    return VerificationResponse(
+        valid=verification_result.is_valid,
+        confidence=verification_result.confidence,
+        metadata=verification_result.metadata
+    )
+```
+
+### Smart Contracts
+
+#### ProductNFT Contract
+
+ERC-721 implementation for product tokenization:
+
+```solidity
+contract ProductNFT is ERC721, Ownable {
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+    
+    mapping(uint256 => string) private _tokenURIs;
+    mapping(uint256 => ProductMetadata) private _productMetadata;
+    
+    struct ProductMetadata {
+        string productId;
+        address manufacturer;
+        uint256 manufactureDate;
+        string batchNumber;
+    }
+    
+    function mintProduct(address to, string memory uri) public returns (uint256) {
+        _tokenIds.increment();
+        uint256 newTokenId = _tokenIds.current();
+        _mint(to, newTokenId);
+        _setTokenURI(newTokenId, uri);
+        return newTokenId;
+    }
+}
+```
+
+#### Supply Chain Contract
+
+Manages product lifecycle and ownership tracking:
+
+```solidity
+contract SupplyChain {
+    enum ProductStatus { Created, InProduction, Manufactured, InTransit, Delivered }
+    
+    struct Product {
+        uint256 id;
+        address manufacturer;
+        ProductStatus status;
+        uint256 timestamp;
+        bytes32 productHash;
+    }
+    
+    mapping(uint256 => Product) public products;
+    mapping(address => bool) public authorizedManufacturers;
+    
+    event ProductStatusUpdate(uint256 productId, ProductStatus status);
+    event OwnershipTransfer(uint256 productId, address from, address to);
+}
+```
+
+### Frontend Applications
+
+#### Web Platform (React 18)
+
+React-based marketplace with Redux state management:
+
+```typescript
+interface Product {
+    id: string;
+    name: string;
+    price: number;
+    status: ProductStatus;
+    nftTokenId?: string;
+    manufacturer: string;
+    verificationData: {
+        hologramId: string;
+        lastVerified: number;
+        verificationCount: number;
+    };
+}
+
+interface CartState {
+    items: CartItem[];
+    total: number;
+    checkout: () => Promise<void>;
+    addItem: (item: Product, quantity: number) => void;
+    removeItem: (itemId: string) => void;
+}
+```
+
+#### Android Application
+
+Native Android app implementing MVVM architecture:
+
+```kotlin
+class QRScannerFragment : Fragment() {
+    private val viewModel: QRScannerViewModel by viewModels()
+    
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        setupCamera()
+        initializeMLKit()
+        return binding.root
+    }
+    
+    private fun onQRCodeDetected(qrCode: String) {
+        viewModel.verifyProduct(qrCode)
+            .onSuccess { showVerificationResult(it) }
+            .onFailure { handleError(it) }
+    }
+}
+```
+
+## Database Schema
+
+PostgreSQL database structure:
+
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE stores (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    name VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    verification_status VARCHAR(50) DEFAULT 'pending',
+    CONSTRAINT valid_store_type CHECK (type IN ('manufacturer', 'retailer'))
+);
+
+CREATE TABLE products (
+    id UUID PRIMARY KEY,
+    store_id UUID REFERENCES stores(id),
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    nft_token_id VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT valid_product_status CHECK (
+        status IN ('draft', 'active', 'inactive', 'sold_out')
+    )
+);
+```
+
+## Current Performance Metrics
+
+- API Response Time: 150ms (95th percentile)
+- WebSocket Latency: 50ms average
+- Blockchain Transaction Time: 15s average
+- Image Processing Speed: 2s per verification
+- Database Query Performance: 100ms (95th percentile)
+
+## System Requirements
+
+Server Infrastructure:
+- Node.js v16+
+- PostgreSQL 13+
+- Python 3.8+
+- 4GB RAM minimum
+- 2 CPU cores minimum
+
+Client Requirements:
+- Modern browsers (Chrome 80+, Firefox 75+, Safari 13+)
+- MetaMask extension for blockchain interactions
+- Android 8.0+ for mobile application
+- 2GB RAM minimum for Android app

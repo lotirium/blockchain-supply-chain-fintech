@@ -12,7 +12,7 @@ let SupplyChain;
 
 class BlockchainController {
     constructor() {
-        const nodeUrl = process.env.ETHEREUM_NODE_URL || 'http://127.0.0.1:8545';
+        const nodeUrl = process.env.ETHEREUM_NODE_URL || 'http://192.168.0.9:8545';
         this.provider = new ethers.JsonRpcProvider(nodeUrl);
         
         this.addresses = {
@@ -28,44 +28,41 @@ class BlockchainController {
 
     async getSigner(storeWalletAddress = null) {
         if (storeWalletAddress) {
-            // Look up store's private key from environment variables, case-insensitive
-            const normalizedAddress = storeWalletAddress.slice(2).toLowerCase();
-            const storeKeys = Object.keys(process.env)
-                .filter(key => key.startsWith('STORE_') && key.endsWith('_KEY'));
-            
-            let privateKey = null;
-            for (const key of storeKeys) {
-                const keyAddress = key.replace('STORE_', '').replace('_KEY', '').toLowerCase();
-                if (keyAddress === normalizedAddress) {
-                    privateKey = process.env[key];
-                    break;
-                }
-            }
-
-            console.log('Looking up store wallet:', {
-                address: storeWalletAddress,
-                normalizedAddress: normalizedAddress,
-                hasPrivateKey: !!privateKey,
-                availableKeys: storeKeys
+            // Get store's private key from database
+            const { Store } = await import('../models/index.mjs');
+            const store = await Store.findOne({
+                where: { wallet_address: storeWalletAddress }
             });
 
-            if (!privateKey) {
-                throw new Error(`Private key not found for store wallet ${storeWalletAddress}`);
+            if (!store || !store.private_key) {
+                throw new Error(`No private key found for store wallet ${storeWalletAddress}`);
             }
 
-            const wallet = new ethers.Wallet(privateKey, this.provider);
-            const walletAddress = await wallet.getAddress();
-            console.log('Created wallet with address:', walletAddress);
-            
-            if (walletAddress.toLowerCase() !== storeWalletAddress.toLowerCase()) {
-                console.error('Wallet address mismatch:', {
-                    expected: storeWalletAddress,
-                    actual: walletAddress
-                });
-                throw new Error('Wallet address mismatch');
-            }
+            try {
+                // Private key is stored without '0x' prefix in database
+                const privateKey = store.private_key ? '0x' + store.private_key : null;
+                if (!privateKey) {
+                    throw new Error(`No private key found for store wallet ${storeWalletAddress}`);
+                }
+                console.log('Found store private key in database');
 
-            return wallet;
+                const wallet = new ethers.Wallet(privateKey, this.provider);
+                const walletAddress = await wallet.getAddress();
+                console.log('Created wallet with address:', walletAddress);
+                
+                if (walletAddress.toLowerCase() !== storeWalletAddress.toLowerCase()) {
+                    console.error('Wallet address mismatch:', {
+                        expected: storeWalletAddress,
+                        actual: walletAddress
+                    });
+                    throw new Error('Wallet address mismatch');
+                }
+
+                return wallet;
+            } catch (error) {
+                console.error('Failed to create wallet:', error);
+                throw new Error(`Failed to create wallet: ${error.message}`);
+            }
         } else {
             // Use deployer wallet for admin operations
             if (!this._signer) {
@@ -76,6 +73,39 @@ class BlockchainController {
                 this._signer = new ethers.Wallet(deployerPrivateKey, this.provider);
             }
             return this._signer;
+        }
+    }
+
+    async ensureMinterRole(supplyChainContract) {
+        try {
+            // Get admin signer
+            const adminSigner = await this.getSigner();
+            console.log('Got admin signer:', await adminSigner.getAddress());
+
+            // Get ProductNFT contract with admin signer
+            const productNFT = new ethers.Contract(
+                this.addresses.productNFT,
+                ProductNFT.abi,
+                adminSigner
+            );
+
+            // Get the deployer's address
+            const deployerAddress = await adminSigner.getAddress();
+            console.log('Deployer address:', deployerAddress);
+
+            // Calculate MINTER_ROLE hash the same way as the contract
+            const MINTER_ROLE = ethers.keccak256(ethers.toUtf8Bytes("MINTER_ROLE"));
+            console.log('Using MINTER_ROLE hash:', MINTER_ROLE);
+
+            // Grant minting role to SupplyChain contract using AccessControl's grantRole
+            console.log('Granting minter role to SupplyChain contract...');
+            const grantTx = await productNFT.grantRole(MINTER_ROLE, this.addresses.supplyChain);
+            await grantTx.wait();
+            console.log('Minting role granted successfully');
+            return true;
+        } catch (error) {
+            console.error('Failed to ensure minter role:', error);
+            throw new Error('Failed to initialize minting rights: ' + error.message);
         }
     }
 
@@ -95,6 +125,9 @@ class BlockchainController {
                 signer
             );
 
+            // Ensure SupplyChain contract has minting rights
+            await this.ensureMinterRole(supplyChainContract);
+
             console.log('SupplyChain address:', this.addresses.supplyChain);
             console.log('Signer address:', await signer.getAddress());
             console.log('Creating product with params:', {
@@ -105,8 +138,6 @@ class BlockchainController {
             });
 
             // Create product through SupplyChain contract
-            // The createProduct function signature is:
-            // function createProduct(string name, string manufacturer, uint256 price, string tokenURI)
             const createTx = await supplyChainContract.createProduct(
                 name,
                 manufacturer,
@@ -115,25 +146,29 @@ class BlockchainController {
             );
             const createReceipt = await createTx.wait();
 
-            // Get token ID from event
-            // The SupplyChain contract emits its own ProductCreated event
-            // We need to parse the transaction receipt logs to find the event
-            const iface = new ethers.Interface(SupplyChain.abi);
+            // Get token ID from Transfer event (NFT minting)
+            let tokenId = null;
+            const transferEventTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+            
             for (const log of createReceipt.logs) {
-                try {
-                    const parsedLog = iface.parseLog(log);
-                    if (parsedLog && parsedLog.name === 'ProductCreated') {
-                        return {
-                            tokenId: parsedLog.args.productId.toString(),
-                            transaction: createReceipt.hash
-                        };
-                    }
-                } catch (e) {
-                    // Skip logs that can't be parsed
-                    continue;
+                if (log.topics[0] === transferEventTopic && log.topics[1] === '0x0000000000000000000000000000000000000000000000000000000000000000') {
+                    // This is a Transfer from 0x0 (minting) event
+                    // Token ID is in the last topic
+                    tokenId = BigInt(log.topics[3]).toString();
+                    break;
                 }
             }
-            throw new Error('ProductCreated event not found in transaction');
+
+            if (tokenId) {
+                return {
+                    tokenId,
+                    transaction: createReceipt.hash
+                };
+            }
+            
+            // If we get here, check the raw logs for debugging
+            console.log('Transaction receipt logs:', createReceipt.logs);
+            throw new Error('ProductCreated event not found in transaction logs. Check console for raw logs.');
         } catch (error) {
             console.error('Failed to create product NFT:', error);
             throw error;
@@ -152,8 +187,36 @@ class BlockchainController {
                 readFile(supplyChainPath, 'utf8')
             ]);
 
-            ProductNFT = JSON.parse(productNFTJson);
+            // Define AccessControl interface
+            const accessControlABI = [
+                {
+                    "inputs": [
+                        {
+                            "internalType": "bytes32",
+                            "name": "role",
+                            "type": "bytes32"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "account",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "grantRole",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                }
+            ];
+
+            const productNFTBase = JSON.parse(productNFTJson);
             SupplyChain = JSON.parse(supplyChainJson);
+
+            // Merge ProductNFT ABI with AccessControl interface
+            ProductNFT = {
+                ...productNFTBase,
+                abi: [...productNFTBase.abi, ...accessControlABI]
+            };
 
             if (!ProductNFT?.abi || !SupplyChain?.abi) {
                 throw new Error('Contract artifacts are missing ABI');

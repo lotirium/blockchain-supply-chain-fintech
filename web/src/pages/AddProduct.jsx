@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createProduct, selectLoading } from '../store/slices/productsSlice';
 import { getStore } from '../services/store';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.9:3001';
 
 function AddProduct() {
   const navigate = useNavigate();

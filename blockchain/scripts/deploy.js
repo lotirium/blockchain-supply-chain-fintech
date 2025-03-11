@@ -53,9 +53,24 @@ async function main() {
     throw new Error("Failed to grant all roles to deployer");
   }
 
-  // Transfer ownership of ProductNFT to SupplyChain contract
-  await productNFT.transferOwnership(supplyChain.address);
-  console.log("ProductNFT ownership transferred to SupplyChain contract");
+  // Grant minting rights to SupplyChain contract
+  const MINTER_ROLE = await productNFT.MINTER_ROLE();
+  await productNFT.grantMinterRole(supplyChain.address);
+  
+  // Verify SupplyChain has minting rights
+  const hasMinterRole = await productNFT.hasRole(MINTER_ROLE, supplyChain.address);
+  if (!hasMinterRole) {
+    throw new Error("Failed to grant minting rights to SupplyChain contract");
+  }
+  console.log("Verified SupplyChain contract has minting rights");
+
+  // Initialize minting role (backup in case automatic setup failed)
+  try {
+    await supplyChain.initializeMinterRole();
+    console.log("Initialized minting role for SupplyChain contract");
+  } catch (error) {
+    console.log("Note: Manual minting role initialization not needed (already set up)");
+  }
 
   console.log("Deployment completed successfully!");
   

@@ -2,9 +2,10 @@ import QRCode from 'qrcode';
 import crypto from 'crypto';
 import { Order, Product, Store, User, OrderItem } from '../models/index.mjs';
 import blockchainController from '../controllers/blockchain.mjs';
+import { generateProductHologram } from '../services/imageService.mjs';
 
-// Generate QR code for an order (called after order confirmation)
-export const generateOrderQR = async (req, res) => {
+// Generate QR code and UV hologram for an order (called after order confirmation)
+export const generateOrderLabels = async (req, res) => {
   try {
     const { orderId } = req.params;
     
@@ -76,7 +77,33 @@ export const generateOrderQR = async (req, res) => {
       margin: 2
     });
 
-    // Update order with QR data
+    // Generate UV hologram with NFT token ID and verification data
+    const hologramPath = await generateProductHologram({
+      productId: product.id,
+      tokenId: product.token_id,
+      productName: product.name,
+      manufacturer: product.manufacturer,
+      orderId: order.id,
+      verificationCode,
+      storeName: order.merchantStore.name,
+      uvData: {
+        tokenId: product.token_id,
+        verificationCode,
+        timestamp
+      }
+    });
+
+    // Update product with hologram path
+    await product.update({
+      hologram_path: hologramPath,
+      hologram_data: {
+        generatedAt: timestamp,
+        verificationCode,
+        version: '1.0'
+      }
+    });
+
+    // Update order with QR and hologram data
     await order.update({
       qr_data: {
         verificationCode,
@@ -90,6 +117,7 @@ export const generateOrderQR = async (req, res) => {
       success: true,
       data: {
         qrCode: qrCodeDataUrl,
+        hologramPath: hologramPath,
         orderId: order.id,
         status: 'active',
         generatedAt: timestamp,
@@ -151,8 +179,7 @@ export const verifyOrderQR = async (req, res) => {
           model: Product,
           as: 'product',
           where: {
-            id: productId,
-            token_id: tokenId
+            id: productId
           }
         }]
       }, {
@@ -181,8 +208,18 @@ export const verifyOrderQR = async (req, res) => {
       });
     }
 
-    // Get NFT data from blockchain
-    const nftData = await blockchainController.getProduct(tokenId);
+    // Get NFT data from blockchain if token exists
+    let nftData = null;
+    const product = order.items[0].product;
+    
+    if (product.token_id) {
+      try {
+        nftData = await blockchainController.getProduct(product.token_id);
+      } catch (error) {
+        console.warn('Failed to fetch NFT data:', error);
+        // Continue without NFT data
+      }
+    }
 
     // Update verification statistics
     await order.update({
@@ -190,9 +227,7 @@ export const verifyOrderQR = async (req, res) => {
       qr_last_verified_at: new Date()
     });
 
-    const product = order.items[0].product;
-
-    // Return verification result with order and NFT details
+    // Return verification result with order details and NFT data if available
     res.json({
       success: true,
       data: {
@@ -204,9 +239,13 @@ export const verifyOrderQR = async (req, res) => {
           product: {
             name: product.name,
             manufacturer: product.manufacturer,
-            tokenId: product.token_id
+            tokenId: product.token_id,
+            blockchainStatus: product.blockchain_status || 'pending'
           },
-          nftData,
+          nftData: nftData || {
+            status: 'pending',
+            message: 'Product not yet minted on blockchain'
+          },
           order: {
             id: order.id,
             status: order.status,
@@ -243,6 +282,15 @@ export const getOrderQRStatus = async (req, res) => {
         id: orderId,
         ...(req.user.role === 'seller' ? { store_id: req.user.ownedStore?.id } : { user_id: req.user.id })
       },
+      include: [{
+        model: OrderItem,
+        as: 'items',
+        include: [{
+          model: Product,
+          as: 'product',
+          attributes: ['id', 'name', 'token_id', 'hologram_path']
+        }]
+      }],
       attributes: [
         'id',
         'qr_status',
@@ -264,7 +312,10 @@ export const getOrderQRStatus = async (req, res) => {
         orderId: order.id,
         qrStatus: order.qr_status,
         verificationCount: order.qr_verification_count,
-        lastVerifiedAt: order.qr_last_verified_at
+        lastVerifiedAt: order.qr_last_verified_at,
+        qrCode: order.qr_data?.qrCode,
+        hologramPath: order.items?.[0]?.product?.hologram_path,
+        tokenId: order.items?.[0]?.product?.token_id
       }
     });
   } catch (error) {
@@ -277,7 +328,7 @@ export const getOrderQRStatus = async (req, res) => {
 };
 
 export default {
-  generateOrderQR,
+  generateOrderLabels,
   verifyOrderQR,
   getOrderQRStatus
 };

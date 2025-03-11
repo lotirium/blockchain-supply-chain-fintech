@@ -152,18 +152,7 @@ const authSlice = createSlice({
     setUserType: (state, action) => {
       state.userType = action.payload;
       localStorage.setItem('userType', action.payload);
-    },
-    setHologramLabel: (state, action) => {
-      if (state.user && state.user.store) {
-        state.user = {
-          ...state.user,
-          store: {
-            ...state.user.store,
-            hologram_label: action.payload
-          }
-        };
-      }
-    },
+    }
   },
   extraReducers: (builder) => {
     // Register
@@ -307,6 +296,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, resetRegistration, setUserType, setHologramLabel } = authSlice.actions;
+export const { clearError, resetRegistration, setUserType } = authSlice.actions;
 
 export default authSlice.reducer;

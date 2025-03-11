@@ -1,0 +1,50 @@
+[
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/item_timeline.xml",
+        "source": "com.shipment.app-main-55:/layout/item_timeline.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/fragment_profile.xml",
+        "source": "com.shipment.app-main-55:/layout/fragment_profile.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/fragment_login.xml",
+        "source": "com.shipment.app-main-55:/layout/fragment_login.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/dialog_loading.xml",
+        "source": "com.shipment.app-main-55:/layout/dialog_loading.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/fragment_register.xml",
+        "source": "com.shipment.app-main-55:/layout/fragment_register.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/fragment_order_details.xml",
+        "source": "com.shipment.app-main-55:/layout/fragment_order_details.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/item_order_summary.xml",
+        "source": "com.shipment.app-main-55:/layout/item_order_summary.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/fragment_qr_scanner.xml",
+        "source": "com.shipment.app-main-55:/layout/fragment_qr_scanner.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/activity_main.xml",
+        "source": "com.shipment.app-main-55:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/fragment_product_verification.xml",
+        "source": "com.shipment.app-main-55:/layout/fragment_product_verification.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/fragment_orders.xml",
+        "source": "com.shipment.app-main-55:/layout/fragment_orders.xml"
+    },
+    {
+        "merged": "com.shipment.app-mergeDebugResources-52:/layout/item_order.xml",
+        "source": "com.shipment.app-main-55:/layout/item_order.xml"
+    }
+]

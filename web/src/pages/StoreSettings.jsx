@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateStore, setHologramLabel, getProfile } from '../store/slices/authSlice';
-import { generateHologram } from '../services/store';
+import { updateStore, getProfile } from '../store/slices/authSlice';
 
 function StoreSettings() {
   const navigate = useNavigate();
@@ -11,8 +10,6 @@ function StoreSettings() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [generatingHologram, setGeneratingHologram] = useState(false);
-  const [hologramError, setHologramError] = useState(null);
   
   // Initialize form data with all store fields
   const [formData, setFormData] = useState({
@@ -27,7 +24,6 @@ function StoreSettings() {
     type: user?.store?.type || 'manufacturer',
     logo: user?.store?.logo || '',
     banner: user?.store?.banner || '',
-    hologram_label: user?.store?.hologram_label || '',
     is_verified: user?.store?.is_verified || false,
     rating: user?.store?.rating || 0,
     total_sales: user?.store?.total_sales || 0,
@@ -51,7 +47,6 @@ function StoreSettings() {
         type: user.store.type || prevData.type,
         logo: user.store.logo || prevData.logo,
         banner: user.store.banner || prevData.banner,
-        hologram_label: user.store.hologram_label || prevData.hologram_label,
         is_verified: user.store.is_verified || prevData.is_verified,
         rating: user.store.rating || prevData.rating,
         total_sales: user.store.total_sales || prevData.total_sales,
@@ -97,29 +92,6 @@ function StoreSettings() {
     }
   };
 
-  const handleGenerateHologram = async () => {
-    setGeneratingHologram(true);
-    setHologramError(null);
-    // Store current form values before generating hologram
-    const currentFormData = { ...formData };
-    try {
-      const response = await generateHologram();
-      if (response.store) {
-        dispatch(setHologramLabel(response.store.hologram_label));
-      }
-      // Refresh profile to ensure store data is up to date
-      await dispatch(getProfile()).unwrap();
-      // Restore form values while keeping the new hologram_label
-      setFormData(prevData => ({
-        ...currentFormData,
-        hologram_label: response.store?.hologram_label || prevData.hologram_label
-      }));
-    } catch (err) {
-      setHologramError(err.message || 'Failed to generate hologram label');
-    } finally {
-      setGeneratingHologram(false);
-    }
-  };
 
   const handleContinue = () => {
     navigate('/add-product');
@@ -199,48 +171,19 @@ function StoreSettings() {
       )}
 
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Store Hologram Label</h2>
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm text-gray-600 mb-4">
-              Generate a unique hologram label for your store's products to verify authenticity.
-            </p>
-            {user?.store?.hologram_label ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
-                  <img
-                    src={`${import.meta.env.VITE_API_URL}${user.store.hologram_label}`}
-                    alt="Store Hologram"
-                    className="max-w-[200px] h-auto"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleGenerateHologram}
-                  disabled={generatingHologram}
-                  className={`w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md ${
-                    generatingHologram ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
-                  }`}
-                >
-                  {generatingHologram ? 'Generating...' : 'Generate New Hologram'}
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={handleGenerateHologram}
-                disabled={generatingHologram}
-                className={`w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md ${
-                  generatingHologram ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
-                }`}
-              >
-                {generatingHologram ? 'Generating...' : 'Generate Hologram Label'}
-              </button>
-            )}
-            {hologramError && (
-              <p className="mt-2 text-sm text-red-600">{hologramError}</p>
-            )}
-          </div>
+        <h2 className="text-xl font-semibold mb-4">Product Authentication</h2>
+        <div className="p-4 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-800">
+            Each product will receive its own unique UV hologram during order processing. The hologram contains:
+          </p>
+          <ul className="mt-2 space-y-1 text-sm text-blue-700 list-disc list-inside">
+            <li>Product-specific NFT token ID</li>
+            <li>AI-verifiable security patterns</li>
+            <li>Digital fingerprint visible under UV light</li>
+          </ul>
+          <p className="mt-3 text-sm text-blue-800">
+            Holograms are automatically generated when accepting orders and can be viewed using the specialized UV magnifying glass with AI verification.
+          </p>
         </div>
       </div>
 

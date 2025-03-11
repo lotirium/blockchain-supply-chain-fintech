@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.9:3001';
 const MAX_RETRIES = 3;
 const BASE_DELAY = 1000;
 
@@ -112,12 +112,6 @@ export const deleteNotification = async (notificationId) => {
   });
 };
 
-export const generateHologram = async () => {
-  return handleRequest(`${API_URL}/api/seller/store/hologram`, {
-    method: 'POST'
-  });
-};
-
 export const getStore = async () => {
   return handleRequest(`${API_URL}/api/seller/store`, {
     method: 'GET'
@@ -131,6 +125,5 @@ export default {
   markNotificationRead,
   markAllNotificationsRead,
   deleteNotification,
-  getStore,
-  generateHologram
+  getStore
 };

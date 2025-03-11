@@ -78,18 +78,31 @@ export const updateVerificationStatus = async (req, res) => {
     // Update store status and generate hologram if approved
     if (storeStatus === 'active') {
       // Import the image service
-      const { generateHologramLabel } = await import('../services/imageService.mjs');
+      const { generateProductHologram } = await import('../services/imageService.mjs');
       
       try {
-        // Generate hologram label
-        const hologramPath = await generateHologramLabel(store.name);
+        // Generate hologram with store verification data
+        const hologramPath = await generateProductHologram({
+          storeName: store.name,
+          productId: store.id,
+          tokenId: null,
+          productName: store.name,
+          manufacturer: store.name,
+          orderId: null,
+          verificationCode: store.id,
+          uvData: {
+            storeId: store.id,
+            verificationDate: new Date().toISOString(),
+            status: 'verified'
+          }
+        });
         
         // Update store with status and hologram
         await store.update({
           status: storeStatus,
           is_verified: true,
           verification_date: new Date(),
-          hologram_label: hologramPath
+          hologram_path: hologramPath
         });
       } catch (error) {
         console.error('Error generating hologram:', error);

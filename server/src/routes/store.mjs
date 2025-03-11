@@ -1,7 +1,6 @@
 import express from 'express';
 import { Store } from '../models/index.mjs';
 import auth, { requireSeller } from '../middleware/auth.mjs';
-import { generateHologramLabel } from '../services/imageService.mjs';
 
 const router = express.Router();
 
@@ -59,7 +58,6 @@ router.put('/', requireSeller, async (req, res) => {
       type,
       logo,
       banner,
-      hologram_label,
       wallet_address,
       is_verified,
       rating,
@@ -98,7 +96,6 @@ router.put('/', requireSeller, async (req, res) => {
       type: type || currentData.type,
       logo: logo !== undefined ? logo : currentData.logo,
       banner: banner !== undefined ? banner : currentData.banner,
-      hologram_label: hologram_label !== undefined ? hologram_label : currentData.hologram_label,
       is_verified: is_verified !== undefined ? is_verified : currentData.is_verified,
       wallet_address: wallet_address || currentData.wallet_address,
       rating: rating !== undefined ? rating : currentData.rating,
@@ -127,37 +124,6 @@ router.put('/', requireSeller, async (req, res) => {
   }
 });
 
-// Generate hologram label
-router.post('/hologram', requireSeller, async (req, res) => {
-  try {
-    const store = await Store.findOne({ where: { user_id: req.user.id } });
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
-    }
-
-    // Generate hologram using the image service
-    const hologramPath = await generateHologramLabel(store.name);
-    
-    await store.update({
-      hologram_label: hologramPath
-    });
-    
-    // Fetch the updated store to ensure we have all fields
-    const updatedStore = await Store.findOne({
-      where: { user_id: req.user.id },
-      attributes: { exclude: ['payment_details', 'private_key'] }
-    });
-
-    console.log('Sending updated store after hologram:', updatedStore.toJSON());
-    res.json({
-      message: 'Hologram label generated successfully',
-      store: updatedStore
-    });
-  } catch (error) {
-    console.error('Generate hologram error:', error);
-    res.status(500).json({ error: 'Failed to generate hologram label' });
-  }
-});
 
 router.put('/setup', auth, async (req, res) => {
   try {

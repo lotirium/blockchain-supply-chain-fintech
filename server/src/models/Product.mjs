@@ -86,8 +86,20 @@ Product.init({
     type: DataTypes.ENUM('pending', 'minted', 'failed'),
     defaultValue: 'pending'
   },
+  hologram_path: {
+    type: DataTypes.STRING,
+    validate: {
+      isValidPath(value) {
+        if (value && !value.startsWith('/uploads/holograms/')) {
+          throw new Error('Invalid hologram path format');
+        }
+      }
+    }
+  },
   hologram_data: {
-    type: DataTypes.JSONB
+    type: DataTypes.JSONB,
+    defaultValue: {},
+    comment: 'Additional metadata for the UV hologram including verification data'
   },
   // Supply chain fields
   shipment_stage: {

@@ -5,9 +5,18 @@ import auth from '../middleware/auth.mjs';
 import { User, Store } from '../models/index.mjs';
 import { ethers } from 'ethers';
 import { promises as fs } from 'fs';
-import supplyChainArtifact from '../contracts/SupplyChain.json' assert { type: "json" };
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const router = express.Router();
+
+// Load SupplyChain artifact
+const supplyChainArtifact = JSON.parse(
+  await fs.readFile(join(__dirname, '../contracts/SupplyChain.json'), 'utf8')
+);
 
 // Initialize blockchain connection
 const provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_NODE_URL || 'http://127.0.0.1:8545');

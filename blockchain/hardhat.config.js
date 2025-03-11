@@ -13,12 +13,17 @@ module.exports = {
       }
     }
   },
+  defaultNetwork: "hardhat",
   networks: {
-    localhost: {
-      url: "http://127.0.0.1:8545",
-      chainId: 31337
-    },
     hardhat: {
+      chainId: 31337,
+      mining: {
+        auto: true,
+        interval: 0
+      }
+    },
+    local: {
+      url: "http://192.168.0.9:8545",
       chainId: 31337
     }
   },

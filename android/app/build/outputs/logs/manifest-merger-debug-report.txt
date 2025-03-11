@@ -1,0 +1,632 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:2:1-50:12
+INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:2:1-50:12
+INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:2:1-50:12
+INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:2:1-50:12
+MERGED from [androidx.databinding:viewbinding:8.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/faf2e55bb2f2a3a2486cbc7ce760d450/transformed/jetified-viewbinding-8.1.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.navigation:navigation-common:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/1c47a14095b9e9616ab3a64f3caaf553/transformed/navigation-common-2.6.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-runtime:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/06f0dcad6e7c20463231bac195750906/transformed/navigation-runtime-2.6.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-fragment:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/99eddc5968fec053cbc8270f25fcb6cf/transformed/navigation-fragment-2.6.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-ui:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/3946928d2e447494214617bcbf8f4a2f/transformed/navigation-ui-2.6.0/AndroidManifest.xml:17:1-22:12
+MERGED from [com.google.android.material:material:1.11.0] /Users/lotirium/.gradle/caches/8.9/transforms/7e9b6a05a9553f8c1fe9402571b62d36/transformed/material-1.11.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/lotirium/.gradle/caches/8.9/transforms/88a35cd4a1b17532f736a9c97f92ecae/transformed/constraintlayout-2.1.4/AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.camera:camera-video:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/119f63efa3b5c9bc5071fd14e407f119/transformed/jetified-camera-video-1.3.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.camera:camera-lifecycle:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/52bf36b1781f7ed08c850a93274f547b/transformed/jetified-camera-lifecycle-1.3.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:17:1-36:12
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/58a804bc60acf2b41b27b2a9155be978/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:17:1-36:12
+MERGED from [androidx.camera:camera-view:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/54abebcef8d78fb603b67682ec931172/transformed/jetified-camera-view-1.3.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/af6036a3c36ad507c16fcc4e7fd6d67e/transformed/jetified-appcompat-resources-1.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.appcompat:appcompat:1.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/0c9cb26b20133550ee66581d5c5138c7/transformed/appcompat-1.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/f39a8f679234323e2733febd4154e9c8/transformed/swiperefreshlayout-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.webkit:webkit:1.7.0] /Users/lotirium/.gradle/caches/8.9/transforms/d78e3f36f5fa55d56183c3a8366d4b8f/transformed/webkit-1.7.0/AndroidManifest.xml:17:1-22:12
+MERGED from [com.github.bumptech.glide:okhttp3-integration:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/aed5f410c974ef30ea070a631e9146c6/transformed/jetified-okhttp3-integration-4.15.1/AndroidManifest.xml:2:1-15:12
+MERGED from [com.github.bumptech.glide:glide:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/6dda0606c63f12acedae87027cd72060/transformed/jetified-glide-4.15.1/AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/4efa7ca7bf39fe225e137f450ec57dad/transformed/jetified-viewpager2-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.fragment:fragment-ktx:1.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/22a2679bf80103de4d71e4d464ed94fb/transformed/jetified-fragment-ktx-1.6.0/AndroidManifest.xml:17:1-22:12
+MERGED from [com.google.mlkit:barcode-scanning:17.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/7abaef467681f5b0fa55bedf5e15ab87/transformed/jetified-barcode-scanning-17.2.0/AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:2:1-18:12
+MERGED from [com.google.mlkit:barcode-scanning-common:17.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/0d7925b06b482011b2bdf6e5998af084/transformed/jetified-barcode-scanning-common-17.0.0/AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/5761ef673d59c2962df01013acf6a197/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:2:1-18:12
+MERGED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:2:1-26:12
+MERGED from [com.google.android.gms:play-services-base:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/ffee8f0028a6a8a88c87073626512fbb/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:16:1-24:12
+MERGED from [com.google.mlkit:vision-interfaces:16.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/db0f6199b85799ec0fa2051e84065bfa/transformed/jetified-vision-interfaces-16.2.0/AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.android.gms:play-services-tasks:18.0.2] /Users/lotirium/.gradle/caches/8.9/transforms/9dcf67c9da4c58d615293988422ef526/transformed/jetified-play-services-tasks-18.0.2/AndroidManifest.xml:2:1-6:12
+MERGED from [com.google.android.gms:play-services-basement:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/77524d10beac14fcf0cfaa49f5c3118f/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:16:1-26:12
+MERGED from [androidx.fragment:fragment:1.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/048edaa1f072b8357e46cae2c80c0b9d/transformed/fragment-1.6.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.activity:activity-ktx:1.8.0] /Users/lotirium/.gradle/caches/8.9/transforms/4c7a212f8ce036f1a80167db1021e238/transformed/jetified-activity-ktx-1.8.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity:1.8.0] /Users/lotirium/.gradle/caches/8.9/transforms/1a7d11d8de9cc6ade8dd205f5013f50b/transformed/jetified-activity-1.8.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/lotirium/.gradle/caches/8.9/transforms/50fdc024eae21ef98fdbae100b33ea59/transformed/jetified-savedstate-ktx-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/lotirium/.gradle/caches/8.9/transforms/9cce4a2f5aa34a5b0bde5fa75c45d3f4/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.emoji2:emoji2-views-helper:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/58f84cc99bc1590bca7274970f42d430/transformed/jetified-emoji2-views-helper-1.2.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/ab69d094b0e54b8ab5b02fb0223fdd6d/transformed/jetified-lifecycle-runtime-ktx-2.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/2620ec6053155be924fafa2f31f5b5ee/transformed/jetified-lifecycle-viewmodel-ktx-2.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/b8d727237e88c158b0c306f14cbcbe25/transformed/jetified-lifecycle-livedata-core-ktx-2.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/f1892437252f64f536709f50974b4c97/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/e9dc8aad3c44f5fd3e7e6259f876a057/transformed/lifecycle-livedata-core-2.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/08487d66e022cfafd9be0362a30040c7/transformed/drawerlayout-1.1.1/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/aa52e0855b8b62a910c7b46f5a134ed7/transformed/coordinatorlayout-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/530651c014f6fb5703cc345aafbeeea6/transformed/dynamicanimation-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/4ad3aca056930d31d24a0689eb566f01/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/6ea80e78380f029e9a7dd2b49ff8dec4/transformed/vectordrawable-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/24336d29cc960f46f9911124a0256eaf/transformed/slidingpanelayout-1.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/f81eec0880c07888805baff399d16a66/transformed/recyclerview-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/54612089bd3b2bc7e060c1133816cfcf/transformed/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/c393ca0e5c77b6fee52376b45acd3e60/transformed/customview-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.core:core-ktx:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/2070c55f95cb130b7964222c2d334faa/transformed/jetified-core-ktx-1.9.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/0aef02b4bd034520ef61aaa3bdfe1f82/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.transition:transition:1.4.1] /Users/lotirium/.gradle/caches/8.9/transforms/ecc99223909927b9e11a57ff3c692e6f/transformed/transition-1.4.1/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.loader:loader:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/eb501144a95b4a0f77102fb9da3ddbeb/transformed/loader-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/fa2252f8d998554ec85c8c9112bba01e/transformed/lifecycle-runtime-2.6.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/dd5475772afbf5c1f70e82d5ae2b043f/transformed/jetified-lifecycle-viewmodel-savedstate-2.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/50b08f0d1de3359222d6dfc2f443d62c/transformed/lifecycle-livedata-2.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/edc15da06a38394402f7f586cf8e3bb5/transformed/lifecycle-viewmodel-2.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.annotation:annotation-experimental:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/d2f796831511c8bf6e6ea0d255f1011d/transformed/jetified-annotation-experimental-1.3.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.multidex:multidex:2.0.1] /Users/lotirium/.gradle/caches/8.9/transforms/0c4d91d147f5db14a25626807ddb3806/transformed/multidex-2.0.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/c9a4fa6b8d97b08a80aac3ced02bdf1a/transformed/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.cardview:cardview:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/82d08368e41ac61490f19c39bbac7bc4/transformed/cardview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/2860583edb73bf7ae0e61a4792d05bf0/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/cbc23668dc976b2234de21b966f2120f/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:17:1-55:12
+MERGED from [com.github.bumptech.glide:gifdecoder:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/e8d56ebee4d2152cd5fa66bf5d9be597/transformed/jetified-gifdecoder-4.15.1/AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.exifinterface:exifinterface:1.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/acd6550eb7d4d003aa439eece603c68f/transformed/exifinterface-1.3.3/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/1d0bdebc259686bd5b5094cffa27e25c/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.tracing:tracing:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/174d440bca46d78aed08793da57547af/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/7fa8fa7335b4d8fe8e6e8d1bb2239c7b/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:15:1-38:12
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:15:1-41:12
+MERGED from [com.google.android.datatransport:transport-api:2.2.1] /Users/lotirium/.gradle/caches/8.9/transforms/359f34e82dab410260a15c5060351106/transformed/jetified-transport-api-2.2.1/AndroidManifest.xml:15:1-22:12
+MERGED from [com.google.firebase:firebase-components:16.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/690f185026754cc5a10f1c308231bcc0/transformed/jetified-firebase-components-16.1.0/AndroidManifest.xml:15:1-23:12
+MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/468062c438a877abf6bf2bfb4703f3c8/transformed/jetified-firebase-encoders-json-17.1.0/AndroidManifest.xml:15:1-23:12
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/9183d79d6a8b08407d3e74c8629ff9d3/transformed/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/6399928bb035ddef0c0bc6838353aff6/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.print:print:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/e766f42bb91d1731b4c01dc7e735a00a/transformed/print-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [com.google.android.odml:image:1.0.0-beta1] /Users/lotirium/.gradle/caches/8.9/transforms/44e33ec57c3076f4052ea360eae588f3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:2:1-9:12
+	package
+		INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml
+	android:versionCode
+		INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.INTERNET
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:5:5-67
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:26:5-67
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:26:5-67
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:5:22-64
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:6:5-79
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:25:5-79
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:25:5-79
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:22:5-79
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:22:5-79
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:6:22-76
+uses-permission#android.permission.ACCESS_WIFI_STATE
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:7:5-76
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:7:22-73
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:8:5-81
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:8:22-78
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:9:5-80
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:9:22-77
+uses-permission#android.permission.CAMERA
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:10:5-65
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:10:22-62
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:11:5-77
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:11:22-74
+uses-feature#android.hardware.camera
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:14:5-60
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:14:19-57
+uses-feature#android.hardware.camera.autofocus
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:15:5-70
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:15:19-67
+application
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:17:5-49:19
+INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:17:5-49:19
+MERGED from [com.google.android.material:material:1.11.0] /Users/lotirium/.gradle/caches/8.9/transforms/7e9b6a05a9553f8c1fe9402571b62d36/transformed/material-1.11.0/AndroidManifest.xml:22:5-20
+MERGED from [com.google.android.material:material:1.11.0] /Users/lotirium/.gradle/caches/8.9/transforms/7e9b6a05a9553f8c1fe9402571b62d36/transformed/material-1.11.0/AndroidManifest.xml:22:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/lotirium/.gradle/caches/8.9/transforms/88a35cd4a1b17532f736a9c97f92ecae/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/lotirium/.gradle/caches/8.9/transforms/88a35cd4a1b17532f736a9c97f92ecae/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
+MERGED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/58a804bc60acf2b41b27b2a9155be978/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/58a804bc60acf2b41b27b2a9155be978/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [com.github.bumptech.glide:okhttp3-integration:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/aed5f410c974ef30ea070a631e9146c6/transformed/jetified-okhttp3-integration-4.15.1/AndroidManifest.xml:9:5-13:19
+MERGED from [com.github.bumptech.glide:okhttp3-integration:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/aed5f410c974ef30ea070a631e9146c6/transformed/jetified-okhttp3-integration-4.15.1/AndroidManifest.xml:9:5-13:19
+MERGED from [com.github.bumptech.glide:glide:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/6dda0606c63f12acedae87027cd72060/transformed/jetified-glide-4.15.1/AndroidManifest.xml:9:5-20
+MERGED from [com.github.bumptech.glide:glide:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/6dda0606c63f12acedae87027cd72060/transformed/jetified-glide-4.15.1/AndroidManifest.xml:9:5-20
+MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/5761ef673d59c2962df01013acf6a197/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/5761ef673d59c2962df01013acf6a197/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:8:5-24:19
+MERGED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:8:5-24:19
+MERGED from [com.google.android.gms:play-services-base:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/ffee8f0028a6a8a88c87073626512fbb/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:19:5-23:19
+MERGED from [com.google.android.gms:play-services-base:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/ffee8f0028a6a8a88c87073626512fbb/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:19:5-23:19
+MERGED from [com.google.android.gms:play-services-tasks:18.0.2] /Users/lotirium/.gradle/caches/8.9/transforms/9dcf67c9da4c58d615293988422ef526/transformed/jetified-play-services-tasks-18.0.2/AndroidManifest.xml:5:5-20
+MERGED from [com.google.android.gms:play-services-tasks:18.0.2] /Users/lotirium/.gradle/caches/8.9/transforms/9dcf67c9da4c58d615293988422ef526/transformed/jetified-play-services-tasks-18.0.2/AndroidManifest.xml:5:5-20
+MERGED from [com.google.android.gms:play-services-basement:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/77524d10beac14fcf0cfaa49f5c3118f/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:20:5-24:19
+MERGED from [com.google.android.gms:play-services-basement:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/77524d10beac14fcf0cfaa49f5c3118f/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:20:5-24:19
+MERGED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/f1892437252f64f536709f50974b4c97/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/f1892437252f64f536709f50974b4c97/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:24:5-31:19
+MERGED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:24:5-31:19
+MERGED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:28:5-89
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:23:5-53:19
+MERGED from [com.github.bumptech.glide:gifdecoder:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/e8d56ebee4d2152cd5fa66bf5d9be597/transformed/jetified-gifdecoder-4.15.1/AndroidManifest.xml:9:5-20
+MERGED from [com.github.bumptech.glide:gifdecoder:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/e8d56ebee4d2152cd5fa66bf5d9be597/transformed/jetified-gifdecoder-4.15.1/AndroidManifest.xml:9:5-20
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/1d0bdebc259686bd5b5094cffa27e25c/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/1d0bdebc259686bd5b5094cffa27e25c/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/7fa8fa7335b4d8fe8e6e8d1bb2239c7b/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/7fa8fa7335b4d8fe8e6e8d1bb2239c7b/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:28:5-36:19
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:28:5-36:19
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:25:5-39:19
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:25:5-39:19
+MERGED from [com.google.android.odml:image:1.0.0-beta1] /Users/lotirium/.gradle/caches/8.9/transforms/44e33ec57c3076f4052ea360eae588f3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:7:5-20
+MERGED from [com.google.android.odml:image:1.0.0-beta1] /Users/lotirium/.gradle/caches/8.9/transforms/44e33ec57c3076f4052ea360eae588f3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:7:5-20
+	android:extractNativeLibs
+		INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
+	android:supportsRtl
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:23:9-35
+	android:label
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:21:9-41
+	android:hardwareAccelerated
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:26:9-43
+	android:roundIcon
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:22:9-54
+	android:icon
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:20:9-43
+	android:allowBackup
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:19:9-35
+	android:theme
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:24:9-40
+	android:enableOnBackInvokedCallback
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:27:9-51
+	android:usesCleartextTraffic
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:25:9-44
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:18:9-44
+activity#com.shipment.app.MainActivity
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:29:9-48:20
+	android:launchMode
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:33:13-44
+	android:exported
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:32:13-36
+	android:configChanges
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:31:13-59
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:30:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:34:13-37:29
+action#android.intent.action.MAIN
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:35:17-69
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:35:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:36:17-77
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:36:27-74
+intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:host:shipment.app+data:scheme:https
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:40:13-47:29
+action#android.intent.action.VIEW
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:41:17-69
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:41:25-66
+category#android.intent.category.DEFAULT
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:42:17-76
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:42:27-73
+category#android.intent.category.BROWSABLE
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:43:17-78
+	android:name
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:43:27-75
+data
+ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:44:17-46:46
+	android:host
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:45:21-48
+	android:scheme
+		ADDED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml:46:21-43
+uses-sdk
+INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml
+INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml
+MERGED from [androidx.databinding:viewbinding:8.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/faf2e55bb2f2a3a2486cbc7ce760d450/transformed/jetified-viewbinding-8.1.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.databinding:viewbinding:8.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/faf2e55bb2f2a3a2486cbc7ce760d450/transformed/jetified-viewbinding-8.1.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-common:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/1c47a14095b9e9616ab3a64f3caaf553/transformed/navigation-common-2.6.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-common:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/1c47a14095b9e9616ab3a64f3caaf553/transformed/navigation-common-2.6.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-runtime:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/06f0dcad6e7c20463231bac195750906/transformed/navigation-runtime-2.6.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-runtime:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/06f0dcad6e7c20463231bac195750906/transformed/navigation-runtime-2.6.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-fragment:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/99eddc5968fec053cbc8270f25fcb6cf/transformed/navigation-fragment-2.6.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-fragment:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/99eddc5968fec053cbc8270f25fcb6cf/transformed/navigation-fragment-2.6.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-ui:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/3946928d2e447494214617bcbf8f4a2f/transformed/navigation-ui-2.6.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-ui:2.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/3946928d2e447494214617bcbf8f4a2f/transformed/navigation-ui-2.6.0/AndroidManifest.xml:20:5-44
+MERGED from [com.google.android.material:material:1.11.0] /Users/lotirium/.gradle/caches/8.9/transforms/7e9b6a05a9553f8c1fe9402571b62d36/transformed/material-1.11.0/AndroidManifest.xml:20:5-44
+MERGED from [com.google.android.material:material:1.11.0] /Users/lotirium/.gradle/caches/8.9/transforms/7e9b6a05a9553f8c1fe9402571b62d36/transformed/material-1.11.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/lotirium/.gradle/caches/8.9/transforms/88a35cd4a1b17532f736a9c97f92ecae/transformed/constraintlayout-2.1.4/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/lotirium/.gradle/caches/8.9/transforms/88a35cd4a1b17532f736a9c97f92ecae/transformed/constraintlayout-2.1.4/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.camera:camera-video:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/119f63efa3b5c9bc5071fd14e407f119/transformed/jetified-camera-video-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-video:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/119f63efa3b5c9bc5071fd14e407f119/transformed/jetified-camera-video-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-lifecycle:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/52bf36b1781f7ed08c850a93274f547b/transformed/jetified-camera-lifecycle-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-lifecycle:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/52bf36b1781f7ed08c850a93274f547b/transformed/jetified-camera-lifecycle-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/58a804bc60acf2b41b27b2a9155be978/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/58a804bc60acf2b41b27b2a9155be978/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-view:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/54abebcef8d78fb603b67682ec931172/transformed/jetified-camera-view-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-view:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/54abebcef8d78fb603b67682ec931172/transformed/jetified-camera-view-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/af6036a3c36ad507c16fcc4e7fd6d67e/transformed/jetified-appcompat-resources-1.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/af6036a3c36ad507c16fcc4e7fd6d67e/transformed/jetified-appcompat-resources-1.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat:1.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/0c9cb26b20133550ee66581d5c5138c7/transformed/appcompat-1.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat:1.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/0c9cb26b20133550ee66581d5c5138c7/transformed/appcompat-1.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/f39a8f679234323e2733febd4154e9c8/transformed/swiperefreshlayout-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/f39a8f679234323e2733febd4154e9c8/transformed/swiperefreshlayout-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.webkit:webkit:1.7.0] /Users/lotirium/.gradle/caches/8.9/transforms/d78e3f36f5fa55d56183c3a8366d4b8f/transformed/webkit-1.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.webkit:webkit:1.7.0] /Users/lotirium/.gradle/caches/8.9/transforms/d78e3f36f5fa55d56183c3a8366d4b8f/transformed/webkit-1.7.0/AndroidManifest.xml:20:5-44
+MERGED from [com.github.bumptech.glide:okhttp3-integration:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/aed5f410c974ef30ea070a631e9146c6/transformed/jetified-okhttp3-integration-4.15.1/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.bumptech.glide:okhttp3-integration:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/aed5f410c974ef30ea070a631e9146c6/transformed/jetified-okhttp3-integration-4.15.1/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.bumptech.glide:glide:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/6dda0606c63f12acedae87027cd72060/transformed/jetified-glide-4.15.1/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.bumptech.glide:glide:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/6dda0606c63f12acedae87027cd72060/transformed/jetified-glide-4.15.1/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/4efa7ca7bf39fe225e137f450ec57dad/transformed/jetified-viewpager2-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/4efa7ca7bf39fe225e137f450ec57dad/transformed/jetified-viewpager2-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment-ktx:1.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/22a2679bf80103de4d71e4d464ed94fb/transformed/jetified-fragment-ktx-1.6.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.fragment:fragment-ktx:1.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/22a2679bf80103de4d71e4d464ed94fb/transformed/jetified-fragment-ktx-1.6.0/AndroidManifest.xml:20:5-44
+MERGED from [com.google.mlkit:barcode-scanning:17.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/7abaef467681f5b0fa55bedf5e15ab87/transformed/jetified-barcode-scanning-17.2.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:barcode-scanning:17.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/7abaef467681f5b0fa55bedf5e15ab87/transformed/jetified-barcode-scanning-17.2.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:barcode-scanning-common:17.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/0d7925b06b482011b2bdf6e5998af084/transformed/jetified-barcode-scanning-common-17.0.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:barcode-scanning-common:17.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/0d7925b06b482011b2bdf6e5998af084/transformed/jetified-barcode-scanning-common-17.0.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/5761ef673d59c2962df01013acf6a197/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/5761ef673d59c2962df01013acf6a197/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.android.gms:play-services-base:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/ffee8f0028a6a8a88c87073626512fbb/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:18:5-43
+MERGED from [com.google.android.gms:play-services-base:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/ffee8f0028a6a8a88c87073626512fbb/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:18:5-43
+MERGED from [com.google.mlkit:vision-interfaces:16.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/db0f6199b85799ec0fa2051e84065bfa/transformed/jetified-vision-interfaces-16.2.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:vision-interfaces:16.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/db0f6199b85799ec0fa2051e84065bfa/transformed/jetified-vision-interfaces-16.2.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-tasks:18.0.2] /Users/lotirium/.gradle/caches/8.9/transforms/9dcf67c9da4c58d615293988422ef526/transformed/jetified-play-services-tasks-18.0.2/AndroidManifest.xml:4:5-43
+MERGED from [com.google.android.gms:play-services-tasks:18.0.2] /Users/lotirium/.gradle/caches/8.9/transforms/9dcf67c9da4c58d615293988422ef526/transformed/jetified-play-services-tasks-18.0.2/AndroidManifest.xml:4:5-43
+MERGED from [com.google.android.gms:play-services-basement:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/77524d10beac14fcf0cfaa49f5c3118f/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:18:5-43
+MERGED from [com.google.android.gms:play-services-basement:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/77524d10beac14fcf0cfaa49f5c3118f/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:18:5-43
+MERGED from [androidx.fragment:fragment:1.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/048edaa1f072b8357e46cae2c80c0b9d/transformed/fragment-1.6.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.fragment:fragment:1.6.0] /Users/lotirium/.gradle/caches/8.9/transforms/048edaa1f072b8357e46cae2c80c0b9d/transformed/fragment-1.6.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity-ktx:1.8.0] /Users/lotirium/.gradle/caches/8.9/transforms/4c7a212f8ce036f1a80167db1021e238/transformed/jetified-activity-ktx-1.8.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.8.0] /Users/lotirium/.gradle/caches/8.9/transforms/4c7a212f8ce036f1a80167db1021e238/transformed/jetified-activity-ktx-1.8.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity:1.8.0] /Users/lotirium/.gradle/caches/8.9/transforms/1a7d11d8de9cc6ade8dd205f5013f50b/transformed/jetified-activity-1.8.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.8.0] /Users/lotirium/.gradle/caches/8.9/transforms/1a7d11d8de9cc6ade8dd205f5013f50b/transformed/jetified-activity-1.8.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/lotirium/.gradle/caches/8.9/transforms/50fdc024eae21ef98fdbae100b33ea59/transformed/jetified-savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/lotirium/.gradle/caches/8.9/transforms/50fdc024eae21ef98fdbae100b33ea59/transformed/jetified-savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/lotirium/.gradle/caches/8.9/transforms/9cce4a2f5aa34a5b0bde5fa75c45d3f4/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/lotirium/.gradle/caches/8.9/transforms/9cce4a2f5aa34a5b0bde5fa75c45d3f4/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.emoji2:emoji2-views-helper:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/58f84cc99bc1590bca7274970f42d430/transformed/jetified-emoji2-views-helper-1.2.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2-views-helper:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/58f84cc99bc1590bca7274970f42d430/transformed/jetified-emoji2-views-helper-1.2.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/ab69d094b0e54b8ab5b02fb0223fdd6d/transformed/jetified-lifecycle-runtime-ktx-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/ab69d094b0e54b8ab5b02fb0223fdd6d/transformed/jetified-lifecycle-runtime-ktx-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/2620ec6053155be924fafa2f31f5b5ee/transformed/jetified-lifecycle-viewmodel-ktx-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/2620ec6053155be924fafa2f31f5b5ee/transformed/jetified-lifecycle-viewmodel-ktx-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/b8d727237e88c158b0c306f14cbcbe25/transformed/jetified-lifecycle-livedata-core-ktx-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/b8d727237e88c158b0c306f14cbcbe25/transformed/jetified-lifecycle-livedata-core-ktx-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/f1892437252f64f536709f50974b4c97/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/f1892437252f64f536709f50974b4c97/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/e9dc8aad3c44f5fd3e7e6259f876a057/transformed/lifecycle-livedata-core-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/e9dc8aad3c44f5fd3e7e6259f876a057/transformed/lifecycle-livedata-core-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/08487d66e022cfafd9be0362a30040c7/transformed/drawerlayout-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/08487d66e022cfafd9be0362a30040c7/transformed/drawerlayout-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/aa52e0855b8b62a910c7b46f5a134ed7/transformed/coordinatorlayout-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/aa52e0855b8b62a910c7b46f5a134ed7/transformed/coordinatorlayout-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/530651c014f6fb5703cc345aafbeeea6/transformed/dynamicanimation-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/530651c014f6fb5703cc345aafbeeea6/transformed/dynamicanimation-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/4ad3aca056930d31d24a0689eb566f01/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/4ad3aca056930d31d24a0689eb566f01/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/6ea80e78380f029e9a7dd2b49ff8dec4/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/6ea80e78380f029e9a7dd2b49ff8dec4/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/24336d29cc960f46f9911124a0256eaf/transformed/slidingpanelayout-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/24336d29cc960f46f9911124a0256eaf/transformed/slidingpanelayout-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/f81eec0880c07888805baff399d16a66/transformed/recyclerview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/f81eec0880c07888805baff399d16a66/transformed/recyclerview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/54612089bd3b2bc7e060c1133816cfcf/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/54612089bd3b2bc7e060c1133816cfcf/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/c393ca0e5c77b6fee52376b45acd3e60/transformed/customview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/c393ca0e5c77b6fee52376b45acd3e60/transformed/customview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.core:core-ktx:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/2070c55f95cb130b7964222c2d334faa/transformed/jetified-core-ktx-1.9.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-ktx:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/2070c55f95cb130b7964222c2d334faa/transformed/jetified-core-ktx-1.9.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/0aef02b4bd034520ef61aaa3bdfe1f82/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/0aef02b4bd034520ef61aaa3bdfe1f82/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.transition:transition:1.4.1] /Users/lotirium/.gradle/caches/8.9/transforms/ecc99223909927b9e11a57ff3c692e6f/transformed/transition-1.4.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.transition:transition:1.4.1] /Users/lotirium/.gradle/caches/8.9/transforms/ecc99223909927b9e11a57ff3c692e6f/transformed/transition-1.4.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.loader:loader:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/eb501144a95b4a0f77102fb9da3ddbeb/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/eb501144a95b4a0f77102fb9da3ddbeb/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/fa2252f8d998554ec85c8c9112bba01e/transformed/lifecycle-runtime-2.6.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/fa2252f8d998554ec85c8c9112bba01e/transformed/lifecycle-runtime-2.6.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/dd5475772afbf5c1f70e82d5ae2b043f/transformed/jetified-lifecycle-viewmodel-savedstate-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/dd5475772afbf5c1f70e82d5ae2b043f/transformed/jetified-lifecycle-viewmodel-savedstate-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/50b08f0d1de3359222d6dfc2f443d62c/transformed/lifecycle-livedata-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/50b08f0d1de3359222d6dfc2f443d62c/transformed/lifecycle-livedata-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/edc15da06a38394402f7f586cf8e3bb5/transformed/lifecycle-viewmodel-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/edc15da06a38394402f7f586cf8e3bb5/transformed/lifecycle-viewmodel-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/d2f796831511c8bf6e6ea0d255f1011d/transformed/jetified-annotation-experimental-1.3.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/d2f796831511c8bf6e6ea0d255f1011d/transformed/jetified-annotation-experimental-1.3.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.multidex:multidex:2.0.1] /Users/lotirium/.gradle/caches/8.9/transforms/0c4d91d147f5db14a25626807ddb3806/transformed/multidex-2.0.1/AndroidManifest.xml:20:5-43
+MERGED from [androidx.multidex:multidex:2.0.1] /Users/lotirium/.gradle/caches/8.9/transforms/0c4d91d147f5db14a25626807ddb3806/transformed/multidex-2.0.1/AndroidManifest.xml:20:5-43
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/c9a4fa6b8d97b08a80aac3ced02bdf1a/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/c9a4fa6b8d97b08a80aac3ced02bdf1a/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cardview:cardview:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/82d08368e41ac61490f19c39bbac7bc4/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cardview:cardview:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/82d08368e41ac61490f19c39bbac7bc4/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/2860583edb73bf7ae0e61a4792d05bf0/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/2860583edb73bf7ae0e61a4792d05bf0/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/cbc23668dc976b2234de21b966f2120f/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/cbc23668dc976b2234de21b966f2120f/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [com.github.bumptech.glide:gifdecoder:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/e8d56ebee4d2152cd5fa66bf5d9be597/transformed/jetified-gifdecoder-4.15.1/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.bumptech.glide:gifdecoder:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/e8d56ebee4d2152cd5fa66bf5d9be597/transformed/jetified-gifdecoder-4.15.1/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/acd6550eb7d4d003aa439eece603c68f/transformed/exifinterface-1.3.3/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/acd6550eb7d4d003aa439eece603c68f/transformed/exifinterface-1.3.3/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/1d0bdebc259686bd5b5094cffa27e25c/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/1d0bdebc259686bd5b5094cffa27e25c/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.tracing:tracing:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/174d440bca46d78aed08793da57547af/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.tracing:tracing:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/174d440bca46d78aed08793da57547af/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/7fa8fa7335b4d8fe8e6e8d1bb2239c7b/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/7fa8fa7335b4d8fe8e6e8d1bb2239c7b/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.android.datatransport:transport-api:2.2.1] /Users/lotirium/.gradle/caches/8.9/transforms/359f34e82dab410260a15c5060351106/transformed/jetified-transport-api-2.2.1/AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.android.datatransport:transport-api:2.2.1] /Users/lotirium/.gradle/caches/8.9/transforms/359f34e82dab410260a15c5060351106/transformed/jetified-transport-api-2.2.1/AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.firebase:firebase-components:16.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/690f185026754cc5a10f1c308231bcc0/transformed/jetified-firebase-components-16.1.0/AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.firebase:firebase-components:16.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/690f185026754cc5a10f1c308231bcc0/transformed/jetified-firebase-components-16.1.0/AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/468062c438a877abf6bf2bfb4703f3c8/transformed/jetified-firebase-encoders-json-17.1.0/AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/468062c438a877abf6bf2bfb4703f3c8/transformed/jetified-firebase-encoders-json-17.1.0/AndroidManifest.xml:19:5-21:41
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/9183d79d6a8b08407d3e74c8629ff9d3/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/9183d79d6a8b08407d3e74c8629ff9d3/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/6399928bb035ddef0c0bc6838353aff6/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/6399928bb035ddef0c0bc6838353aff6/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/e766f42bb91d1731b4c01dc7e735a00a/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/e766f42bb91d1731b4c01dc7e735a00a/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [com.google.android.odml:image:1.0.0-beta1] /Users/lotirium/.gradle/caches/8.9/transforms/44e33ec57c3076f4052ea360eae588f3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.odml:image:1.0.0-beta1] /Users/lotirium/.gradle/caches/8.9/transforms/44e33ec57c3076f4052ea360eae588f3/transformed/jetified-image-1.0.0-beta1/AndroidManifest.xml:5:5-44
+	android:targetSdkVersion
+		INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/lotirium/shipment_project/android/app/src/main/AndroidManifest.xml
+service#androidx.camera.core.impl.MetadataHolderService
+ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:24:9-33:19
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/58a804bc60acf2b41b27b2a9155be978/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:29:9-33:78
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/58a804bc60acf2b41b27b2a9155be978/transformed/jetified-camera-core-1.3.1/AndroidManifest.xml:29:9-33:78
+	tools:node
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:29:13-31
+	android:enabled
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:26:13-36
+	android:exported
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:27:13-37
+	tools:ignore
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:28:13-75
+	android:name
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:25:13-75
+meta-data#androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER
+ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:30:13-32:89
+	android:value
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:32:17-86
+	android:name
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/lotirium/.gradle/caches/8.9/transforms/93640dc39d8b75983ba9137606d337bd/transformed/jetified-camera-camera2-1.3.1/AndroidManifest.xml:31:17-103
+meta-data#com.bumptech.glide.integration.okhttp3.OkHttpGlideModule
+ADDED from [com.github.bumptech.glide:okhttp3-integration:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/aed5f410c974ef30ea070a631e9146c6/transformed/jetified-okhttp3-integration-4.15.1/AndroidManifest.xml:10:9-12:43
+	android:value
+		ADDED from [com.github.bumptech.glide:okhttp3-integration:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/aed5f410c974ef30ea070a631e9146c6/transformed/jetified-okhttp3-integration-4.15.1/AndroidManifest.xml:12:13-40
+	android:name
+		ADDED from [com.github.bumptech.glide:okhttp3-integration:4.15.1] /Users/lotirium/.gradle/caches/8.9/transforms/aed5f410c974ef30ea070a631e9146c6/transformed/jetified-okhttp3-integration-4.15.1/AndroidManifest.xml:11:13-84
+service#com.google.mlkit.common.internal.MlKitComponentDiscoveryService
+ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/5761ef673d59c2962df01013acf6a197/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/5761ef673d59c2962df01013acf6a197/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:15:9-23:19
+MERGED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:15:9-23:19
+	android:exported
+		ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:11:13-37
+	tools:targetApi
+		ADDED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:19:13-32
+	android:directBootAware
+		ADDED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:17:13-43
+	android:name
+		ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:10:13-91
+meta-data#com.google.firebase.components:com.google.mlkit.vision.barcode.internal.BarcodeRegistrar
+ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:12:13-14:85
+	android:value
+		ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:14:17-82
+	android:name
+		ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/bb9cb973ed4f4f609e963b18894ca0c1/transformed/jetified-play-services-mlkit-barcode-scanning-18.3.0/AndroidManifest.xml:13:17-120
+meta-data#com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar
+ADDED from [com.google.mlkit:vision-common:17.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/5761ef673d59c2962df01013acf6a197/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:12:13-14:85
+	android:value
+		ADDED from [com.google.mlkit:vision-common:17.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/5761ef673d59c2962df01013acf6a197/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:14:17-82
+	android:name
+		ADDED from [com.google.mlkit:vision-common:17.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/5761ef673d59c2962df01013acf6a197/transformed/jetified-vision-common-17.3.0/AndroidManifest.xml:13:17-124
+provider#com.google.mlkit.common.internal.MlKitInitProvider
+ADDED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:9:9-13:38
+	android:authorities
+		ADDED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:11:13-69
+	android:exported
+		ADDED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:12:13-37
+	android:initOrder
+		ADDED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:13:13-35
+	android:name
+		ADDED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:10:13-78
+meta-data#com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar
+ADDED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:20:13-22:85
+	android:value
+		ADDED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:22:17-82
+	android:name
+		ADDED from [com.google.mlkit:common:18.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/a1dc56a85c8c9883aab94c7c52b1bd75/transformed/jetified-common-18.9.0/AndroidManifest.xml:21:17-120
+activity#com.google.android.gms.common.api.GoogleApiActivity
+ADDED from [com.google.android.gms:play-services-base:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/ffee8f0028a6a8a88c87073626512fbb/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:20:9-22:45
+	android:exported
+		ADDED from [com.google.android.gms:play-services-base:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/ffee8f0028a6a8a88c87073626512fbb/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:22:19-43
+	android:theme
+		ADDED from [com.google.android.gms:play-services-base:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/ffee8f0028a6a8a88c87073626512fbb/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:21:19-78
+	android:name
+		ADDED from [com.google.android.gms:play-services-base:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/ffee8f0028a6a8a88c87073626512fbb/transformed/jetified-play-services-base-18.1.0/AndroidManifest.xml:20:19-85
+meta-data#com.google.android.gms.version
+ADDED from [com.google.android.gms:play-services-basement:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/77524d10beac14fcf0cfaa49f5c3118f/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:21:9-23:69
+	android:value
+		ADDED from [com.google.android.gms:play-services-basement:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/77524d10beac14fcf0cfaa49f5c3118f/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:23:13-66
+	android:name
+		ADDED from [com.google.android.gms:play-services-basement:18.1.0] /Users/lotirium/.gradle/caches/8.9/transforms/77524d10beac14fcf0cfaa49f5c3118f/transformed/jetified-play-services-basement-18.1.0/AndroidManifest.xml:22:13-58
+provider#androidx.startup.InitializationProvider
+ADDED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/f1892437252f64f536709f50974b4c97/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/f1892437252f64f536709f50974b4c97/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/1d0bdebc259686bd5b5094cffa27e25c/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/lotirium/.gradle/caches/8.9/transforms/1d0bdebc259686bd5b5094cffa27e25c/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+	tools:node
+		ADDED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:28:13-31
+	android:authorities
+		ADDED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
+	android:exported
+		ADDED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
+meta-data#androidx.emoji2.text.EmojiCompatInitializer
+ADDED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.2.0] /Users/lotirium/.gradle/caches/8.9/transforms/b346e1cddc269a7d18b993baf453f079/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:30:17-75
+meta-data#androidx.lifecycle.ProcessLifecycleInitializer
+ADDED from [androidx.lifecycle:lifecycle-process:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/f1892437252f64f536709f50974b4c97/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.lifecycle:lifecycle-process:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/f1892437252f64f536709f50974b4c97/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.lifecycle:lifecycle-process:2.6.1] /Users/lotirium/.gradle/caches/8.9/transforms/f1892437252f64f536709f50974b4c97/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:30:17-78
+uses-library#androidx.window.extensions
+ADDED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:25:9-27:40
+	android:required
+		ADDED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:26:13-54
+uses-library#androidx.window.sidecar
+ADDED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:28:9-30:40
+	android:required
+		ADDED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:30:13-37
+	android:name
+		ADDED from [androidx.window:window:1.0.0] /Users/lotirium/.gradle/caches/8.9/transforms/1ba35b58b239aa9fe1a18e8aa861071f/transformed/jetified-window-1.0.0/AndroidManifest.xml:29:13-51
+permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:23:9-81
+permission#com.shipment.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:23:9-81
+uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:26:22-94
+uses-permission#com.shipment.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.9.0] /Users/lotirium/.gradle/caches/8.9/transforms/d8084f520b71c503ec0992b50d90d249/transformed/core-1.9.0/AndroidManifest.xml:26:22-94
+meta-data#androidx.profileinstaller.ProfileInstallerInitializer
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+receiver#androidx.profileinstaller.ProfileInstallReceiver
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+	android:enabled
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+	android:exported
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+	android:permission
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+	android:directBootAware
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+intent-filter#action:name:androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+action#androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+intent-filter#action:name:androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+action#androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+intent-filter#action:name:androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+action#androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+intent-filter#action:name:androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+action#androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /Users/lotirium/.gradle/caches/8.9/transforms/ed470d15a2757c43585eebd2dd971f1d/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+service#com.google.android.datatransport.runtime.backends.TransportBackendDiscovery
+ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:29:9-35:19
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:36:9-38:40
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:36:9-38:40
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:31:13-37
+	android:name
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:30:13-103
+meta-data#backend:com.google.android.datatransport.cct.CctBackendFactory
+ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:32:13-34:39
+	android:value
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:34:17-36
+	android:name
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/lotirium/.gradle/caches/8.9/transforms/66a57f481fb83c8dc1cd6d9cdbbe345c/transformed/jetified-transport-backend-cct-2.3.3/AndroidManifest.xml:33:17-94
+service#com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService
+ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:26:9-30:19
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:28:13-37
+	android:permission
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:29:13-69
+	android:name
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:27:13-117
+receiver#com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver
+ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:32:9-34:40
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:34:13-37
+	android:name
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/lotirium/.gradle/caches/8.9/transforms/8613e532145c9056b0f8a7fa50ae82b8/transformed/jetified-transport-runtime-2.2.6/AndroidManifest.xml:33:13-132

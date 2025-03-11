@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <!-- Timeline line above -->
+    <View
+        android:id="@+id/line_above"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:background="@color/primary"
+        app:layout_constraintBottom_toTopOf="@id/status_dot"
+        app:layout_constraintStart_toStartOf="@id/status_dot"
+        app:layout_constraintEnd_toEndOf="@id/status_dot"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Status dot -->
+    <View
+        android:id="@+id/status_dot"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:background="@drawable/circle_primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="24dp" />
+
+    <!-- Timeline line below -->
+    <View
+        android:id="@+id/line_below"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:background="@color/primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@id/status_dot"
+        app:layout_constraintEnd_toEndOf="@id/status_dot"
+        app:layout_constraintTop_toBottomOf="@id/status_dot" />
+
+    <!-- Status text -->
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:textSize="16sp"
+        android:textColor="@color/primary"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/status_dot"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Time text -->
+    <TextView
+        android:id="@+id/time_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        app:layout_constraintStart_toEndOf="@id/status_dot"
+        app:layout_constraintTop_toBottomOf="@id/status_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="4dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

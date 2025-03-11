@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- API Configuration -->
+    <string name="api_host">127.0.0.1</string>
+    <string name="api_port">3001</string>
+    <string name="api_protocol">http</string>
+    <string name="ws_protocol">ws</string>
+    
+    <!-- App name -->
+    <string name="app_name">Shipment</string>
+
+    <!-- Bottom Navigation -->
+    <string name="menu_profile">Profile</string>
+
+    <!-- General -->
+    <string name="loading">Loading…</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="retry">Retry</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Typography -->
+    <string name="font_family_display">sans-serif</string>
+    <string name="font_family_body">sans-serif</string>
+
+    <!-- Authentication -->
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="username">Username</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="welcome_back">Welcome Back!</string>
+    <string name="login_subtitle">Sign in to continue shopping</string>
+    <string name="create_account">Create Account</string>
+    <string name="register_subtitle">Create an account to get started</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="logout">Logout</string>
+
+    <!-- Error messages -->
+    <string name="error_no_internet">No internet connection</string>
+    <string name="error_loading_failed">Failed to load content</string>
+    <string name="error_timeout">Connection timed out</string>
+    <string name="error_generic">Something went wrong</string>
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_invalid_password">Password must be at least 6 characters</string>
+    <string name="error_login_failed">Login failed. Please check your credentials.</string>
+    <string name="error_registration_failed">Registration failed. Please try again.</string>
+    <string name="error_logout_failed">Logout failed. Please try again.</string>
+    <string name="error_field_required">This field is required</string>
+
+    <!-- Order Details -->
+    <string name="shipping_address">Shipping Address</string>
+    <string name="billing_address">Billing Address</string>
+    <string name="payment_method">Payment Method</string>
+    <string name="order_summary">Order Summary</string>
+    <string name="subtotal">Subtotal</string>
+    <string name="shipping_fee">Shipping</string>
+    <string name="tax">Tax</string>
+    <string name="total">Total</string>
+    <string name="items_count">%d items</string>
+    <string name="order_item_price_format" formatted="false">%d × $%.2f</string>
+    <string name="address_format" formatted="false">%s\n%s\n%s, %s %s</string>
+    <string name="tracking_number">Tracking Number: %s</string>
+    <string name="quantity_format">Qty: %d</string>
+
+    <!-- Orders List -->
+    <string name="orders">Orders</string>
+    <string name="no_orders">You haven\'t placed any orders yet</string>
+    <string name="order_list_error">Failed to load orders</string>
+    <string name="pull_to_refresh">Pull to refresh</string>
+    <string name="view_orders">View Orders</string>
+    <string name="order_number_format" formatted="false">Order #%s</string>
+
+    <!-- Order Status -->
+    <string name="order_status">Order Status</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_confirmed">Confirmed</string>
+    <string name="status_processing">Processing</string>
+    <string name="status_packed">Packed</string>
+    <string name="status_shipped">Shipped</string>
+    <string name="status_delivered">Delivered</string>
+    <string name="status_cancelled">Cancelled</string>
+    <string name="status_refunded">Refunded</string>
+
+    <!-- Permissions -->
+    <string name="permission_camera_rationale">Camera permission is needed for QR code scanning</string>
+
+    <!-- QR Scanner -->
+    <string name="align_qr_code">Align QR code within the frame</string>
+    <string name="scan_qr_code">Scan QR Code</string>
+    <string name="camera_permission_required">Camera permission is required to scan QR codes</string>
+    <string name="qr_code_scan_error">Failed to scan QR code. Please try again.</string>
+
+    <!-- Product Verification -->
+    <string name="product_authentic">Authentic Product</string>
+    <string name="product_invalid">Invalid Product</string>
+    <string name="product_name_format">Product: %s</string>
+    <string name="manufacturer_format">Manufacturer: %s</string>
+    <string name="store_format">Store: %s</string>
+    <string name="token_id_format">NFT Token ID: %s</string>
+    <string name="order_id_format">Order ID: %s</string>
+    <string name="order_status_format">Status: %s</string>
+    <string name="verified_at_format">Verified at: %s</string>
+    <string name="verify_another_product">Verify Another Product</string>
+    <string name="verification_failed">Verification Failed</string>
+    
+    <!-- Blockchain Status -->
+    <string name="token_pending">NFT Token Pending</string>
+    <string name="not_available">Not Available</string>
+    <string name="nft_pending_message">Product not yet minted on blockchain</string>
+    
+    <!-- Product Images -->
+    <string name="product_image">Product image</string>
+    
+    <!-- Order Items Display -->
+    <string name="order_items_format">%s</string>
+    <string name="order_items_with_more_format">%1$s +%2$d more</string>
+</resources>

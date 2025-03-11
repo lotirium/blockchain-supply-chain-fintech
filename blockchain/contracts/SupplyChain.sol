@@ -34,7 +34,7 @@ contract SupplyChain is AccessControl, Pausable {
     event ShipmentCreated(uint256 indexed productId, address indexed sender, address indexed receiver);
     event StageUpdated(uint256 indexed productId, Stage newStage);
     event LocationUpdated(uint256 indexed productId, string newLocation);
-    event ProductCreated(uint256 indexed productId, address indexed manufacturer, string name);
+    event ProductCreated(uint256 indexed tokenId, string name, address manufacturer);
 
     constructor(address productNFTAddress) {
         productNFT = ProductNFT(productNFTAddress);
@@ -100,44 +100,104 @@ contract SupplyChain is AccessControl, Pausable {
      * @param tokenURI URI containing product metadata
      * @return productId The ID of the newly created product
      */
+    /**
+     * @dev Initializes minting rights for this contract
+     */
+    function initializeMinterRole() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(address(productNFT) != address(0), "ProductNFT not initialized");
+        productNFT.grantMinterRole(address(this));
+    }
+
+    /**
+     * @dev Checks if this contract has minting rights
+     */
+    function checkMinterRole() public view returns (bool) {
+        return productNFT.hasRole(productNFT.MINTER_ROLE(), address(this));
+    }
+
     function createProduct(
         string memory name,
         string memory manufacturer,
         uint256 price,
         string memory tokenURI
     ) public whenNotPaused returns (uint256) {
+        // Log role status for debugging
+        bool isManuf = hasRole(MANUFACTURER_ROLE, msg.sender);
+        bool isRetail = hasRole(RETAILER_ROLE, msg.sender);
+        
         require(
-            hasRole(MANUFACTURER_ROLE, msg.sender) ||
-            hasRole(RETAILER_ROLE, msg.sender),
-            "Caller must be manufacturer or retailer"
+            isManuf || isRetail,
+            string(abi.encodePacked(
+                "Caller must be manufacturer or retailer. Roles status - Manufacturer: ",
+                isManuf ? "true" : "false",
+                ", Retailer: ",
+                isRetail ? "true" : "false"
+            ))
         );
 
-        // Create product through ProductNFT contract
-        uint256 productId = productNFT.createProduct(
+        // Verify minting rights with detailed error
+        bool hasMinter = productNFT.hasRole(productNFT.MINTER_ROLE(), address(this));
+        require(hasMinter, string(abi.encodePacked(
+            "SupplyChain contract needs minting rights. Current status: ",
+            hasMinter ? "true" : "false"
+        )));
+
+        uint256 productId;
+        
+        try productNFT.createProduct(
             msg.sender,
             name,
             manufacturer,
             tokenURI
-        );
+        ) returns (uint256 newProductId) {
+            productId = newProductId;
+            
+            // Initialize supply chain tracking
+            Shipment memory initialShipment = Shipment({
+                productId: productId,
+                sender: msg.sender,
+                receiver: msg.sender,
+                currentStage: Stage.Created,
+                timestamp: block.timestamp,
+                location: "Manufacturing Facility"
+            });
 
-        // Initialize supply chain tracking
-        Shipment memory initialShipment = Shipment({
-            productId: productId,
-            sender: msg.sender,
-            receiver: msg.sender, // Initially, sender and receiver are the same
-            currentStage: Stage.Created,
-            timestamp: block.timestamp,
-            location: "Manufacturing Facility" // Default initial location
-        });
-
-        shipmentHistory[productId].push(initialShipment);
-        
-        emit ProductCreated(productId, msg.sender, name);
-        emit StageUpdated(productId, Stage.Created);
-        
-        return productId;
+            shipmentHistory[productId].push(initialShipment);
+            
+            // Emit events after successful creation
+            emit ProductCreated(productId, name, msg.sender);
+            emit StageUpdated(productId, Stage.Created);
+            
+            return productId;
+        } catch Error(string memory reason) {
+            revert(string(abi.encodePacked(
+                "ProductNFT creation failed: ",
+                reason,
+                ". Caller: ",
+                addressToString(msg.sender)
+            )));
+        } catch (bytes memory) {
+            revert(string(abi.encodePacked(
+                "ProductNFT creation failed with unknown error. Caller: ",
+                addressToString(msg.sender)
+            )));
+        }
     }
-
+    /**
+     * @dev Converts an address to its string representation
+     */
+    function addressToString(address _addr) internal pure returns (string memory) {
+        bytes32 value = bytes32(uint256(uint160(_addr)));
+        bytes memory alphabet = "0123456789abcdef";
+        bytes memory str = new bytes(42);
+        str[0] = "0";
+        str[1] = "x";
+        for (uint256 i = 0; i < 20; i++) {
+            str[2+i*2] = alphabet[uint8(value[i + 12] >> 4)];
+            str[3+i*2] = alphabet[uint8(value[i + 12] & 0x0f)];
+        }
+        return string(str);
+    }
     /**
      * @dev Creates a new shipment for a product
      * @param productId The ID of the product NFT

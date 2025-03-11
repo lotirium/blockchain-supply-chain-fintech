@@ -1,0 +1,282 @@
+[
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_error.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_error.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_item_timeline.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/item_timeline.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_cancelled.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_cancelled.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/color_bottom_nav_colors.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/color/bottom_nav_colors.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_status_shipped.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/status_shipped.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_item_order.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/item_order.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_shipped.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_shipped.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_badge.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_badge.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_phone.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_phone.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_fragment_product_verification.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/fragment_product_verification.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_fragment_order_details.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/fragment_order_details.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_logo_background.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/logo_background.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_dialog_loading.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/dialog_loading.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_fragment_register.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/fragment_register.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_status_processing.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/status_processing.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_status_cancelled.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/status_cancelled.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_cart.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_cart.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_fragment_profile.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/fragment_profile.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_automotive.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_automotive.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_circle_primary.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/circle_primary.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_item_order_summary.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/item_order_summary.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_activity_main.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_stock_status_background.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/stock_status_background.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_fragment_orders.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/fragment_orders.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_placeholder_product.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/placeholder_product.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_status_delivered.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/status_delivered.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_profile.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_profile.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_processing.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_processing.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_qr_code.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_qr_code.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_info.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_info.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_gradient_scrim.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/gradient_scrim.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_home.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_home.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/menu_bottom_navigation_menu.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/menu/bottom_navigation_menu.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_status_packed.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/status_packed.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_success.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_success.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_store.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_store.xml"
+    },
+    {
+        "merged": "com.shipment.app-merged_res-53:/drawable_status_pending.xml.flat",
+        "source": "com.shipment.app-main-55:/drawable/status_pending.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_sports.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_sports.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_status_pending.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/status_pending.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_logout.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_logout.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_status_background.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/status_background.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_confirmed.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_confirmed.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_lock.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_lock.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_orders.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_orders.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_pending.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_pending.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_delivered.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_delivered.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_electronics.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_electronics.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_fragment_qr_scanner.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/fragment_qr_scanner.xml"
+    },
+    {
+        "merged": "com.shipment.app-merged_res-53:/drawable_status_shipped.xml.flat",
+        "source": "com.shipment.app-main-55:/drawable/status_shipped.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/layout_fragment_login.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/layout/fragment_login.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_toys.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_toys.xml"
+    },
+    {
+        "merged": "com.shipment.app-merged_res-53:/drawable_status_processing.xml.flat",
+        "source": "com.shipment.app-main-55:/drawable/status_processing.xml"
+    },
+    {
+        "merged": "com.shipment.app-merged_res-53:/drawable_status_cancelled.xml.flat",
+        "source": "com.shipment.app-main-55:/drawable/status_cancelled.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_add.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_add.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_delete.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_delete.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_categories.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_categories.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_error_product.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/error_product.xml"
+    },
+    {
+        "merged": "com.shipment.app-merged_res-53:/drawable_status_delivered.xml.flat",
+        "source": "com.shipment.app-main-55:/drawable/status_delivered.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_status_confirmed.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/status_confirmed.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_fashion.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_fashion.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_beauty.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_beauty.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_books.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_books.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_remove.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_remove.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_person.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_person.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_packed.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_packed.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/navigation_nav_graph.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/navigation/nav_graph.xml"
+    },
+    {
+        "merged": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-merged_res-53:/drawable_ic_email.xml.flat",
+        "source": "/Users/lotirium/.gradle/daemon/8.9/com.shipment.app-main-55:/drawable/ic_email.xml"
+    }
+]

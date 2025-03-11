@@ -13,13 +13,13 @@ export default defineConfig({
     cors: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://192.168.0.9:3001',
         changeOrigin: true,
         secure: false
       }
     },
     hmr: {
-      host: '127.0.0.1',
+      host: '192.168.0.9',
       port: 3000,
       protocol: 'http'
     },

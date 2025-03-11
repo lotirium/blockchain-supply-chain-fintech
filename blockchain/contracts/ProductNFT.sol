@@ -3,10 +3,32 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract ProductNFT is ERC721URIStorage, Ownable {
+contract ProductNFT is ERC721URIStorage, AccessControl {
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC721URIStorage, AccessControl)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * @dev Grants minter role to an address
+     * @param minter Address to grant minter role to
+     */
+    function grantMinterRole(address minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(MINTER_ROLE, minter);
+    }
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
@@ -27,7 +49,10 @@ contract ProductNFT is ERC721URIStorage, Ownable {
     event ProductTransferred(uint256 indexed tokenId, address from, address to);
     event ProductStatusUpdated(uint256 indexed tokenId, string newStatus);
 
-    constructor() ERC721("Product NFT", "PNFT") {}
+    constructor() ERC721("Product NFT", "PNFT") {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(MINTER_ROLE, msg.sender);
+    }
 
     /**
      * @dev Creates a new product NFT
@@ -41,7 +66,12 @@ contract ProductNFT is ERC721URIStorage, Ownable {
         string memory name,
         string memory manufacturer,
         string memory tokenURI
-    ) public onlyOwner returns (uint256) {
+    ) public onlyRole(MINTER_ROLE) returns (uint256) {
+        require(recipient != address(0), "Invalid recipient address");
+        require(bytes(name).length > 0, "Name cannot be empty");
+        require(bytes(manufacturer).length > 0, "Manufacturer cannot be empty");
+        require(bytes(tokenURI).length > 0, "TokenURI cannot be empty");
+
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
 

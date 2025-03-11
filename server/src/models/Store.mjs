@@ -26,7 +26,6 @@ class Store extends Model {
       'business_address',
       'logo',
       'banner',
-      'hologram_label',
       'shipping_policy',
       'return_policy',
       'is_verified',
@@ -84,8 +83,8 @@ Store.init({
   },
   type: {
     type: DataTypes.ENUM('manufacturer', 'retailer'),
-    allowNull: true, // Allow null for existing records
-    defaultValue: 'manufacturer', // Default for existing records
+    allowNull: true,
+    defaultValue: 'manufacturer',
     validate: {
       isIn: [['manufacturer', 'retailer']]
     }
@@ -111,10 +110,6 @@ Store.init({
   },
   banner: {
     type: DataTypes.STRING
-  },
-  hologram_label: {
-    type: DataTypes.STRING,
-    allowNull: true
   },
   shipping_policy: {
     type: DataTypes.TEXT

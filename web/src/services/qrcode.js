@@ -1,8 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.9:3001';
 
 export const generateOrderQR = async (orderId) => {
   try {
-    const response = await fetch(`${API_URL}/api/qrcode/order/${orderId}/generate`, {
+    const response = await fetch(`${API_URL}/api/qrcode/order/${orderId}/generate-labels`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -14,15 +14,20 @@ export const generateOrderQR = async (orderId) => {
     const data = await response.json();
     
     if (!response.ok) {
-      const error = new Error(data.message || 'Failed to generate QR code');
+      const error = new Error(data.message || 'Failed to generate product labels');
       error.response = { status: response.status, data };
       throw error;
+    }
+
+    // Ensure we have both QR code and hologram path
+    if (!data.success || !data.data?.qrCode || !data.data?.hologramPath) {
+      throw new Error('Invalid response format from server');
     }
 
     return data;
   } catch (error) {
     if (!error.response) {
-      console.error('Network error generating QR code:', error);
+      console.error('Network error generating product labels:', error);
       error.message = 'Network error - please check your connection';
     }
     throw error;
@@ -68,7 +73,7 @@ export const getOrderQRStatus = async (orderId) => {
     const data = await response.json();
     
     if (!response.ok) {
-      const error = new Error(data.message || 'Failed to get QR status');
+      const error = new Error(data.message || 'Failed to get product labels status');
       error.response = { status: response.status, data };
       throw error;
     }
@@ -76,7 +81,7 @@ export const getOrderQRStatus = async (orderId) => {
     return data;
   } catch (error) {
     if (!error.response) {
-      console.error('Network error getting QR status:', error);
+      console.error('Network error getting product labels status:', error);
       error.message = 'Network error - please check your connection';
     }
     throw error;

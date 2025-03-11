@@ -74,7 +74,7 @@ const server = http.createServer((req, res) => {
 });
 
 // Start the server
-server.listen(PORT, () => {
-  console.log(`Server is running at http://127.0.0.1:${PORT}/`);
+server.listen(PORT, '192.168.0.9', () => {
+  console.log(`Server is running at http://192.168.0.9:${PORT}/`);
   console.log(`Serving files from: ${path.join(__dirname, 'public')}`);
 });
