@@ -1,0 +1,24 @@
+- Authentication & User Management
+  - Register User
+  - Login User
+  - User Profile
+- Store Management
+  - Store Information
+  - Dashboard Data
+  - Store Statistics
+- Order Management
+  - Create Order
+  - User Orders
+  - Store Orders
+  - Order by ID
+  - Update Order Status
+  - Order Status History
+- QR Code Management
+  - Generate Order QR Code
+  - Verify QR Code
+  - Order QR Status
+- Blockchain Operations
+  - Blockchain Status
+  - Product Management
+  - Supply Chain Management
+  - Contract Management
