@@ -63,40 +63,14 @@ router.get('/status', async (req, res) => {
 });
 
 // Role Management Routes
-router.post('/roles/manufacturer', requireAdmin, async (req, res) => {
+router.post('/roles/seller', requireAdmin, async (req, res) => {
   try {
-    const result = await blockchainController.grantManufacturerRole(req.body.address);
+    const result = await blockchainController.grantSellerRole(req.body.address);
     res.json(result);
   } catch (error) {
-    console.error('Failed to grant manufacturer role:', error);
+    console.error('Failed to grant seller role:', error);
     res.status(500).json({
-      error: 'Failed to grant manufacturer role',
-      details: error.message
-    });
-  }
-});
-
-router.post('/roles/distributor', requireAdmin, async (req, res) => {
-  try {
-    const result = await blockchainController.grantDistributorRole(req.body.address);
-    res.json(result);
-  } catch (error) {
-    console.error('Failed to grant distributor role:', error);
-    res.status(500).json({
-      error: 'Failed to grant distributor role',
-      details: error.message
-    });
-  }
-});
-
-router.post('/roles/retailer', requireAdmin, async (req, res) => {
-  try {
-    const result = await blockchainController.grantRetailerRole(req.body.address);
-    res.json(result);
-  } catch (error) {
-    console.error('Failed to grant retailer role:', error);
-    res.status(500).json({
-      error: 'Failed to grant retailer role',
+      error: 'Failed to grant seller role',
       details: error.message
     });
   }

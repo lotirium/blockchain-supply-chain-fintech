@@ -21,6 +21,17 @@ async function fundStoreWallets() {
         const provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_NODE_URL || 'http://192.168.0.4:8545');
         const deployerWallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
 
+        // Load SupplyChain contract for role management
+        const { promises: fs } = await import('fs');
+        const supplyChainArtifact = JSON.parse(
+            await fs.readFile(join(__dirname, '../src/contracts/SupplyChain.json'), 'utf8')
+        );
+        const supplyChain = new ethers.Contract(
+            process.env.SUPPLY_CHAIN_ADDRESS,
+            supplyChainArtifact.abi,
+            deployerWallet
+        );
+
         // Find all active stores with wallet addresses
         const stores = await Store.findAll({
             where: {
@@ -60,6 +71,19 @@ async function fundStoreWallets() {
                     console.log(`New balance: ${ethers.formatEther(newBalance)} ETH`);
                 } else {
                     console.log('Store wallet has sufficient funds, skipping...');
+                }
+
+                // Check and grant seller role
+                const hasSellerRole = await supplyChain.isSeller(store.wallet_address);
+                console.log(`Has seller role: ${hasSellerRole}`);
+
+                if (!hasSellerRole) {
+                    console.log('Granting seller role...');
+                    const grantTx = await supplyChain.grantSellerRole(store.wallet_address);
+                    await grantTx.wait();
+                    console.log('Seller role granted successfully');
+                } else {
+                    console.log('Store already has seller role');
                 }
 
                 console.log(`Successfully processed store ${store.id}`);

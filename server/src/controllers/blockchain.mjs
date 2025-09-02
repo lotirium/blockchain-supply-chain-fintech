@@ -546,6 +546,29 @@ class BlockchainController {
         }
     }
 
+    async grantSellerRole(address) {
+        try {
+            const signer = await this.getSigner();
+            const supplyChain = new ethers.Contract(
+                this.addresses.supplyChain,
+                SupplyChain.abi,
+                signer
+            );
+
+            const tx = await supplyChain.grantSellerRole(address);
+            await tx.wait();
+
+            return {
+                success: true,
+                transactionHash: tx.hash,
+                message: `Seller role granted to ${address}`
+            };
+        } catch (error) {
+            console.error('Failed to grant seller role:', error);
+            throw new Error(`Failed to grant seller role: ${error.message}`);
+        }
+    }
+
     async validateConfig() {
         try {
             if (process.env.VERBOSE_LOGS === 'true') console.log('Starting blockchain configuration validation...');

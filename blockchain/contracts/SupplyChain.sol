@@ -7,9 +7,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 
 contract SupplyChain is AccessControl, Pausable {
     // Role definitions
-    bytes32 public constant MANUFACTURER_ROLE = keccak256("MANUFACTURER_ROLE");
-    bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
-    bytes32 public constant RETAILER_ROLE = keccak256("RETAILER_ROLE");
+    bytes32 public constant SELLER_ROLE = keccak256("SELLER_ROLE");
 
     // Reference to the ProductNFT contract
     ProductNFT private productNFT;
@@ -42,54 +40,20 @@ contract SupplyChain is AccessControl, Pausable {
     }
 
     /**
-     * @dev Grants manufacturer role to an account
+     * @dev Grants seller role to an account
      * @param account Address of the account to grant the role to
      */
-    function grantManufacturerRole(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        grantRole(MANUFACTURER_ROLE, account);
+    function grantSellerRole(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(SELLER_ROLE, account);
     }
 
     /**
-     * @dev Grants distributor role to an account
-     * @param account Address of the account to grant the role to
-     */
-    function grantDistributorRole(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        grantRole(DISTRIBUTOR_ROLE, account);
-    }
-
-    /**
-     * @dev Grants retailer role to an account
-     * @param account Address of the account to grant the role to
-     */
-    function grantRetailerRole(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        grantRole(RETAILER_ROLE, account);
-    }
-
-    /**
-     * @dev Checks if an account has manufacturer role
+     * @dev Checks if an account has seller role
      * @param account Address of the account to check
-     * @return bool True if the account has manufacturer role
+     * @return bool True if the account has seller role
      */
-    function isManufacturer(address account) public view returns (bool) {
-        return hasRole(MANUFACTURER_ROLE, account);
-    }
-
-    /**
-     * @dev Checks if an account has distributor role
-     * @param account Address of the account to check
-     * @return bool True if the account has distributor role
-     */
-    function isDistributor(address account) public view returns (bool) {
-        return hasRole(DISTRIBUTOR_ROLE, account);
-    }
-
-    /**
-     * @dev Checks if an account has retailer role
-     * @param account Address of the account to check
-     * @return bool True if the account has retailer role
-     */
-    function isRetailer(address account) public view returns (bool) {
-        return hasRole(RETAILER_ROLE, account);
+    function isSeller(address account) public view returns (bool) {
+        return hasRole(SELLER_ROLE, account);
     }
 
     /**
@@ -122,16 +86,13 @@ contract SupplyChain is AccessControl, Pausable {
         string memory tokenURI
     ) public whenNotPaused returns (uint256) {
         // Log role status for debugging
-        bool isManuf = hasRole(MANUFACTURER_ROLE, msg.sender);
-        bool isRetail = hasRole(RETAILER_ROLE, msg.sender);
-        
+        bool isSell = hasRole(SELLER_ROLE, msg.sender);
+
         require(
-            isManuf || isRetail,
+            isSell,
             string(abi.encodePacked(
-                "Caller must be manufacturer or retailer. Roles status - Manufacturer: ",
-                isManuf ? "true" : "false",
-                ", Retailer: ",
-                isRetail ? "true" : "false"
+                "Caller must be a seller. Seller status: ",
+                isSell ? "true" : "false"
             ))
         );
 
@@ -210,9 +171,8 @@ contract SupplyChain is AccessControl, Pausable {
         string memory location
     ) public whenNotPaused {
         require(
-            hasRole(MANUFACTURER_ROLE, msg.sender) ||
-            hasRole(DISTRIBUTOR_ROLE, msg.sender),
-            "Caller must be manufacturer or distributor"
+            hasRole(SELLER_ROLE, msg.sender),
+            "Caller must be a seller"
         );
 
         Shipment memory newShipment = Shipment({
@@ -235,9 +195,7 @@ contract SupplyChain is AccessControl, Pausable {
      */
     function updateStage(uint256 productId, Stage newStage) public whenNotPaused {
         require(
-            hasRole(MANUFACTURER_ROLE, msg.sender) ||
-            hasRole(DISTRIBUTOR_ROLE, msg.sender) ||
-            hasRole(RETAILER_ROLE, msg.sender),
+            hasRole(SELLER_ROLE, msg.sender),
             "Unauthorized"
         );
 
@@ -256,9 +214,7 @@ contract SupplyChain is AccessControl, Pausable {
      */
     function updateLocation(uint256 productId, string memory newLocation) public whenNotPaused {
         require(
-            hasRole(MANUFACTURER_ROLE, msg.sender) ||
-            hasRole(DISTRIBUTOR_ROLE, msg.sender) ||
-            hasRole(RETAILER_ROLE, msg.sender),
+            hasRole(SELLER_ROLE, msg.sender),
             "Unauthorized"
         );
 

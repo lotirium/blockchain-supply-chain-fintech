@@ -48,14 +48,14 @@ async function grantStoreRoles() {
             try {
                 console.log(`Processing store ${store.id} (${store.name}) at address ${store.wallet_address}...`);
 
-                // Grant retailer role
-                console.log('Granting retailer role...');
-                const tx = await supplyChain.grantRetailerRole(store.wallet_address);
+                // Grant seller role
+                console.log('Granting seller role...');
+                const tx = await supplyChain.grantSellerRole(store.wallet_address);
                 await tx.wait();
-                console.log('Retailer role granted successfully');
+                console.log('Seller role granted successfully');
 
                 // Verify role was granted
-                const hasRole = await supplyChain.isRetailer(store.wallet_address);
+                const hasRole = await supplyChain.isSeller(store.wallet_address);
                 console.log(`Role verification: ${hasRole}`);
 
                 console.log(`Successfully processed store ${store.id}`);
