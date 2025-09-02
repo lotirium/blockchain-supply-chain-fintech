@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addItem } from '../store/slices/cartSlice';
 import { selectProductById, selectProducts } from '../store/slices/productsSlice';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.9:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.4:3001';
 
 function ProductDetails() {
   const { id } = useParams();

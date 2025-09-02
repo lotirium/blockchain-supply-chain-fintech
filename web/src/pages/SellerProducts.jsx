@@ -13,7 +13,7 @@ const formatPrice = (price) => {
   return !isNaN(num) ? num.toFixed(2) : '0.00';
 };
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.9:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.4:3001';
 
 function SellerProducts() {
   const [products, setProducts] = useState([]);

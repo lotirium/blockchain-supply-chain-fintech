@@ -176,7 +176,7 @@ const queue = Queue({ activeLimit: 20, queuedLimit: -1 });
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.NODE_ENV === 'development' ? true : process.env.CORS_ORIGIN || 'http://192.168.0.9:3000',
+  origin: process.env.NODE_ENV === 'development' ? true : process.env.CORS_ORIGIN || 'http://192.168.0.4:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
@@ -284,8 +284,8 @@ const initializeApp = async () => {
     // Test database connection
     await testConnection();
 
-    // Sync database models
-    await syncDatabase(false);
+    // Sync database models (force=true to update schema)
+    await syncDatabase(true);
 
     // Initialize database with default data
     await initializeDatabase();
@@ -298,14 +298,15 @@ const initializeApp = async () => {
 
     // Start server
     const PORT = process.env.PORT || 3001;
-    app.listen(PORT, '0.0.0.0', () => {
+    const HOST = process.env.HOST || '0.0.0.0';
+    app.listen(PORT, HOST, () => {
       console.log(`Server is running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV}`);
-      console.log(`API Server: http://192.168.0.9:${PORT}`);
-      console.log(`File Server: http://192.168.0.9:${PORT}/uploads`);
-      
+      console.log(`API Server: http://${HOST}:${PORT}`);
+      if (process.env.VERBOSE_LOGS === 'true') console.log(`File Server: http://${HOST}:${PORT}/uploads`);
+
       // Start NFT minting job
-      console.log('Starting periodic NFT minting job...');
+      if (process.env.VERBOSE_LOGS === 'true') console.log('Starting periodic NFT minting job...');
       // Run immediately on startup
       mintPendingNFTs().catch(error => {
         console.error('Error in initial NFT minting job:', error);

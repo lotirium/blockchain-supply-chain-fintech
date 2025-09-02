@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const IMAGE_SERVICE_URL = process.env.IMAGE_SERVICE_URL || 'http://192.168.0.9:8000';
+const IMAGE_SERVICE_URL = process.env.IMAGE_SERVICE_URL || 'http://192.168.0.4:8000';
 
 /**
  * Generates a UV-sensitive hologram label for a specific product

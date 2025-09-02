@@ -10,9 +10,9 @@ class WebSocketService {
     initialize(httpServer) {
         this.io = new Server(httpServer, {
             cors: {
-                origin: process.env.NODE_ENV === 'development' 
-                    ? true 
-                    : process.env.CORS_ORIGIN || 'http://192.168.0.9:3000',
+                origin: process.env.NODE_ENV === 'development'
+                    ? true
+                    : process.env.CORS_ORIGIN || 'http://192.168.0.4:3000',
                 credentials: true
             },
             pingTimeout: 10000,

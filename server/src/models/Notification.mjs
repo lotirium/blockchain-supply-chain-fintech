@@ -55,6 +55,7 @@ Notification.init({
   title: {
     type: DataTypes.STRING,
     allowNull: false,
+    defaultValue: 'Untitled',
     validate: {
       notEmpty: true
     }

@@ -16,7 +16,7 @@ async function updateStoreWallets() {
         console.log('Starting store wallet update...');
 
         // Initialize blockchain connection
-        const provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_NODE_URL || 'http://192.168.0.9:8545');
+        const provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_NODE_URL || 'http://192.168.0.4:8545');
         const deployerWallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
 
         // Load SupplyChain contract

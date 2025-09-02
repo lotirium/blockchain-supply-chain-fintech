@@ -6,9 +6,7 @@ blockchain/node_modules/
 
 # Keep lockfiles tracked (do not ignore package.json/package-lock.json)
 
-# Env files
-.env
-*/.env
+# Env files are intentionally tracked
 
 # App data
 server/uploads/

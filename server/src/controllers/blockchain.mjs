@@ -12,7 +12,7 @@ let SupplyChain;
 
 class BlockchainController {
     constructor() {
-        const nodeUrl = process.env.ETHEREUM_NODE_URL || 'http://192.168.0.9:8545';
+        const nodeUrl = process.env.ETHEREUM_NODE_URL || 'http://192.168.0.4:8545';
         this.provider = new ethers.JsonRpcProvider(nodeUrl);
         
         this.addresses = {
@@ -548,8 +548,8 @@ class BlockchainController {
 
     async validateConfig() {
         try {
-            console.log('Starting blockchain configuration validation...');
-            
+            if (process.env.VERBOSE_LOGS === 'true') console.log('Starting blockchain configuration validation...');
+
             // Check environment variables first
             const missingConfig = [];
             if (!process.env.ETHEREUM_NODE_URL) {
@@ -574,15 +574,15 @@ class BlockchainController {
 
             // Load artifacts first
             await this.loadArtifacts();
-            console.log('Contract artifacts loaded successfully');
+            if (process.env.VERBOSE_LOGS === 'true') console.log('Contract artifacts loaded successfully');
 
             // Test network connection
             const network = await this.testConnection();
-            console.log('Network connection successful:', network);
+            if (process.env.VERBOSE_LOGS === 'true') console.log('Network connection successful:', network);
 
             // Verify contract accessibility
             await this.checkContracts();
-            console.log('Contract verification successful');
+            if (process.env.VERBOSE_LOGS === 'true') console.log('Contract verification successful');
 
             return true;
         } catch (error) {

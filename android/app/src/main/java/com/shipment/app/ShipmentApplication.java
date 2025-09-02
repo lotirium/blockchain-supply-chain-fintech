@@ -319,7 +319,7 @@ public class ShipmentApplication extends MultiDexApplication {
 
     @NonNull
     public String getBaseUrl() {
-        return BuildConfig.DEBUG ? "http://192.168.0.9:3001" : "https://shipment.app";
+        return BuildConfig.DEBUG ? "http://192.168.0.4:3001" : "https://shipment.app";
     }
 
     @NonNull

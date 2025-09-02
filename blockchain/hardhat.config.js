@@ -23,7 +23,7 @@ module.exports = {
       }
     },
     local: {
-      url: "http://192.168.0.9:8545",
+      url: "http://192.168.0.4:8545",
       chainId: 31337
     }
   },

@@ -12,7 +12,8 @@ const sequelize = new Sequelize({
   database: process.env.DB_NAME || 'shipment_db',
   username: process.env.DB_USER || 'shipment_user',
   password: process.env.DB_PASSWORD || 'shipment_password_123',
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  // Reduce noisy SQL logs unless explicitly enabled
+  logging: process.env.SEQUELIZE_LOGGING === 'true' ? console.log : false,
   define: {
     timestamps: true,
     underscored: true,

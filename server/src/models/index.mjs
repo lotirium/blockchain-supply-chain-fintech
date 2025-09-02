@@ -67,7 +67,8 @@ export const syncDatabase = async (force = false) => {
   await Promise.all([
     OrderItem.sync({ force }),
     OrderStatusHistory.sync({ force }),
-    Notification.sync({ force })
+    // Ensure new/changed columns are applied before creating indexes
+    Notification.sync({ force, alter: true })
   ]);
 };
 

@@ -172,7 +172,7 @@ public class OrderItem implements Parcelable {
         }
 
         public String getImageUrl() {
-            return !images.isEmpty() ? "http://192.168.0.9:3001" + images.get(0) : null;
+            return !images.isEmpty() ? "http://192.168.0.4:3001" + images.get(0) : null;
         }
     }
 }

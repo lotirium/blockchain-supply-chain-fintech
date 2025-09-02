@@ -6,21 +6,21 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000,
+    port: 3002,
     host: '0.0.0.0',
     strictPort: true,
-    open: true,
+    open: false,
     cors: true,
     proxy: {
       '/api': {
-        target: 'http://192.168.0.9:3001',
+        target: 'http://192.168.0.4:3011',
         changeOrigin: true,
         secure: false
       }
     },
     hmr: {
-      host: '192.168.0.9',
-      port: 3000,
+      host: '192.168.0.4',
+      port: 3002,
       protocol: 'http'
     },
     headers: {

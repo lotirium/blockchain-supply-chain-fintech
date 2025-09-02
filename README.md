@@ -48,7 +48,7 @@ pip install -r requirements.txt
 
 ```bash
 cd blockchain
-npx hardhat node --hostname 192.168.0.9 --port 8545
+npx hardhat node --hostname 192.168.0.4 --port 8545
 
 cd blockchain && npx hardhat run scripts/deploy.js --network local
 ```

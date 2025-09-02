@@ -7,7 +7,7 @@ if (typeof globalThis.CustomEvent !== 'function') {
       this.detail = params.detail;
     }
   }
-  
+
   globalThis.CustomEvent = CustomEvent;
 }
 
@@ -21,14 +21,14 @@ if (typeof globalThis.Event !== 'function') {
       this.composed = params?.composed ?? false;
     }
   }
-  
+
   globalThis.Event = Event;
 }
 
 // Ensure EventTarget is available if it's not
 if (typeof globalThis.EventTarget !== 'function') {
   const { EventEmitter } = await import('events');
-  
+
   class EventTarget {
     constructor() {
       this._events = new EventEmitter();
@@ -47,6 +47,19 @@ if (typeof globalThis.EventTarget !== 'function') {
       return true;
     }
   }
-  
+
   globalThis.EventTarget = EventTarget;
+}
+
+// Polyfill for Promise.withResolvers for Node.js versions that don't support it
+if (typeof Promise.withResolvers !== 'function') {
+  Promise.withResolvers = function withResolvers() {
+    let resolve;
+    let reject;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
 }
