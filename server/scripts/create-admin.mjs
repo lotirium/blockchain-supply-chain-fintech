@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import { User } from '../src/models/index.mjs';
 import { testConnection } from '../src/config/database.mjs';
 
@@ -8,14 +7,14 @@ async function createAdmin() {
     await testConnection();
     console.log('Database connection successful');
 
-    // Delete existing admin user if exists
-    await User.destroy({
-      where: {
-        email: 'admin@marketplace.com'
-      },
-      force: true // Hard delete
-    });
-    console.log('Cleaned up existing admin user');
+    // Check if admin user exists
+    const existing = await User.findOne({ where: { email: 'admin@marketplace.com' }, paranoid: false });
+    if (existing) {
+      console.log('Admin user already exists.');
+      console.log('ID:', existing.id);
+      console.log('Email:', existing.email);
+      return process.exit(0);
+    }
 
     // Create new admin user
     const admin = await User.create({
