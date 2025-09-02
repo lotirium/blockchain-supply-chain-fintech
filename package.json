@@ -4,7 +4,7 @@
   "description": "Supply chain management system",
   "scripts": {
     "dev": "concurrently \"npm run dev:blockchain\" \"npm run dev:server\" \"npm run dev:web\" \"npm run dev:image-service\" \"npm run dev:create-admin\"",
-    "dev:blockchain": "cd blockchain && npx hardhat node --hostname 0.0.0.0 --port 8555",
+    "dev:blockchain": "cd blockchain && npx hardhat node --hostname 0.0.0.0 --port 8545",
     "dev:server": "cd server && PORT=3001 npm run dev",
     "dev:web": "cd web && npm run dev",
     "dev:image-service": "cd image-service && ./venv/bin/python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",

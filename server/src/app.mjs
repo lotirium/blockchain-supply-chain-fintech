@@ -284,8 +284,12 @@ const initializeApp = async () => {
     // Test database connection
     await testConnection();
 
-    // Sync database models (force=true to update schema)
-    await syncDatabase(true);
+    // Sync database models (controlled by DB_SYNC_FORCE env var)
+    const forceSync = process.env.DB_SYNC_FORCE === 'true';
+    if (process.env.VERBOSE_LOGS === 'true') {
+      console.log('Database sync: force =', forceSync);
+    }
+    await syncDatabase(forceSync);
 
     // Initialize database with default data
     await initializeDatabase();
