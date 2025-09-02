@@ -1,11 +1,30 @@
-server/package-lock.json
-server/package.json
-web/package-lock.json
-web/package.json
-blockchain/package-lock.json
-blockchain/package.json
-server/node_modules/*
-web/node_modules/*
-blockchain/node_modules/*
-image-service/src/__pycache__
+# Node.js
+node_modules/
+server/node_modules/
+web/node_modules/
+blockchain/node_modules/
+
+# Keep lockfiles tracked (do not ignore package.json/package-lock.json)
+
+# Env files
+.env
+*/.env
+
+# App data
+server/uploads/
+
+# Hardhat artifacts
+blockchain/artifacts/
+blockchain/cache/
+
+# Python
+**/__pycache__/
+*.pyc
 image-service/venv
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
