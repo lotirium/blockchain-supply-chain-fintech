@@ -48,21 +48,21 @@ async function verifyStoreRoles() {
             try {
                 console.log(`Verifying store ${store.id} (${store.name}) at address ${store.wallet_address}...`);
 
-                // Check if store has retailer role
-                const hasRetailerRole = await supplyChain.isRetailer(store.wallet_address);
-                console.log(`Has retailer role: ${hasRetailerRole}`);
+                // Check if store has seller role
+                const hasSellerRole = await supplyChain.isSeller(store.wallet_address);
+                console.log(`Has seller role: ${hasSellerRole}`);
 
-                if (!hasRetailerRole) {
-                    console.log('Granting retailer role...');
-                    const tx = await supplyChain.grantRetailerRole(store.wallet_address);
+                if (!hasSellerRole) {
+                    console.log('Granting seller role...');
+                    const tx = await supplyChain.grantSellerRole(store.wallet_address);
                     await tx.wait();
-                    console.log('Retailer role granted successfully');
+                    console.log('Seller role granted successfully');
 
                     // Verify role was granted
-                    const hasRoleNow = await supplyChain.isRetailer(store.wallet_address);
+                    const hasRoleNow = await supplyChain.isSeller(store.wallet_address);
                     console.log(`Role verification after grant: ${hasRoleNow}`);
                 } else {
-                    console.log('Store already has retailer role');
+                    console.log('Store already has seller role');
                 }
 
                 console.log(`Successfully processed store ${store.id}`);

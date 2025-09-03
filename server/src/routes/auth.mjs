@@ -133,22 +133,29 @@ router.post('/register', registerValidation, async (req, res) => {
             private_key: newWallet.privateKey.slice(2) // Remove '0x' prefix
           });
 
-          // Get current nonce
-          const nonce = await provider.getTransactionCount(deployerWallet.address);
+          // Fund + grant with retry using fresh signer to avoid nonce races
+          const FALLBACK_DEPLOYER_PK = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+          const getSigner = () => new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || FALLBACK_DEPLOYER_PK, provider);
+          const sendWithRetry = async (makeTx, maxRetries = 3, delayMs = 300) => {
+            for (let i = 0; i < maxRetries; i++) {
+              try { const tx = await makeTx(getSigner()); return await tx.wait(); }
+              catch (e) {
+                const msg = (e?.message || '').toLowerCase();
+                if ((e?.code === 'NONCE_EXPIRED' || msg.includes('nonce too low')) && i < maxRetries - 1) {
+                  await new Promise(r => setTimeout(r, delayMs));
+                  continue;
+                }
+                throw e;
+              }
+            }
+          };
 
-          // Fund the wallet first
-          const fundingTx = await deployerWallet.sendTransaction({
+          await sendWithRetry((signer) => signer.sendTransaction({
             to: newWallet.address,
-            value: ethers.parseEther('100.0'),
-            nonce: nonce
-          });
-          await fundingTx.wait();
+            value: ethers.parseEther('100.0')
+          }));
 
-          // Then grant retailer role
-          const grantTx = await supplyChain.grantRetailerRole(newWallet.address, {
-            nonce: nonce + 1
-          });
-          await grantTx.wait();
+          await sendWithRetry((signer) => supplyChain.connect(signer).grantSellerRole(newWallet.address));
 
           // Add to environment variables
           const envVarName = `STORE_${newWallet.address.slice(2).toUpperCase()}_KEY`;

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Supply chain management system",
   "scripts": {
-    "dev": "npm run dev:setup && npm run dev:services",
-    "dev:setup": "npm run dev:blockchain:start && sleep 5 && npm run deploy:contracts && npm run fund:stores",
+    "dev": "npm run cleanup && npm run dev:setup && npm run dev:services",
+    "dev:setup": "npm run dev:blockchain:start && sleep 2 && npm run deploy:contracts && npm run fund:stores",
     "dev:services": "concurrently \"npm run dev:server\" \"npm run dev:web\" \"npm run dev:image-service\" \"npm run dev:create-admin\"",
     "dev:blockchain:start": "cd blockchain && npx hardhat node --hostname 192.168.0.4 --port 8545 &",
     "dev:blockchain": "cd blockchain && npx hardhat node --hostname 192.168.0.4 --port 8545",
@@ -14,7 +14,7 @@
     "deploy:contracts": "cd blockchain && npx hardhat run scripts/deploy.js --network local",
     "dev:create-admin": "cd server && node scripts/create-admin.mjs",
     "fund:stores": "cd server && node scripts/fund-store-wallets.mjs",
-    "cleanup": "lsof -ti:8545,3001,3002,8000 | xargs -r kill -9 2>/dev/null || true"
+    "cleanup": "echo 'Cleaning up ports...' && (lsof -ti:8545 2>/dev/null | xargs -r kill -9 2>/dev/null || true) && (lsof -ti:3001 2>/dev/null | xargs -r kill -9 2>/dev/null || true) && (lsof -ti:3002 2>/dev/null | xargs -r kill -9 2>/dev/null || true) && (lsof -ti:8000 2>/dev/null | xargs -r kill -9 2>/dev/null || true) && echo 'Ports cleaned' && sleep 1"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

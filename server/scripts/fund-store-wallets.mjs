@@ -1,9 +1,8 @@
 import { ethers } from 'ethers';
 import { Store } from '../src/models/index.mjs';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import dotenv from 'dotenv';
-import { join } from 'path';
 import Sequelize from 'sequelize';
 const { Op } = Sequelize;
 
@@ -13,13 +12,85 @@ const __dirname = dirname(__filename);
 // Load environment variables
 dotenv.config({ path: join(__dirname, '../.env') });
 
+// Helper: create a fresh signer each time to avoid stale nonce
+const FALLBACK_DEPLOYER_PK = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+const getSigner = (provider) => new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || FALLBACK_DEPLOYER_PK, provider);
+
+async function sendWithRetry(label, makeTx, maxRetries = 3, delayMs = 300) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const tx = await makeTx();
+      return await tx.wait();
+    } catch (e) {
+      const msg = (e?.message || '').toLowerCase();
+      if ((e?.code === 'NONCE_EXPIRED' || msg.includes('nonce too low')) && attempt < maxRetries) {
+        await new Promise(r => setTimeout(r, delayMs));
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
+// Helpers for quieter, robust runs
+const QUIET = process.env.FUND_VERBOSE !== 'true';
+const debug = (...args) => { if (!QUIET) console.log(...args); };
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const MIN_BALANCE_ETH = '10.0';
+const FUND_AMOUNT_ETH = '100.0';
+
+async function hasEnoughFunds(provider, address) {
+  const bal = await provider.getBalance(address);
+  return { enough: bal >= ethers.parseEther(MIN_BALANCE_ETH), bal };
+}
+
+async function hasSellerRoleCall(supplyChain, address) {
+  try { return await supplyChain.isSeller(address); } catch { return false; }
+}
+
+async function ensureStoreReady(provider, supplyChain, store) {
+  // Up to 4 attempts to satisfy both funding and role
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    const { enough, bal } = await hasEnoughFunds(provider, store.wallet_address);
+    debug(`[attempt ${attempt}] balance ${ethers.formatEther(bal)} ETH; enough=${enough}`);
+    if (!enough) {
+      await sendWithRetry('fund', async () => {
+        const signer = getSigner(provider);
+        return signer.sendTransaction({ to: store.wallet_address, value: ethers.parseEther(FUND_AMOUNT_ETH) });
+      }, 5, 500);
+      await sleep(200);
+    }
+
+    const hasRole = await hasSellerRoleCall(supplyChain, store.wallet_address);
+    debug(`[attempt ${attempt}] hasSellerRole=${hasRole}`);
+    if (!hasRole) {
+      await sendWithRetry('grant', async () => {
+        const signer = getSigner(provider);
+        return supplyChain.connect(signer).grantSellerRole(store.wallet_address);
+      }, 5, 500);
+      await sleep(200);
+    }
+
+    // Verify both conditions
+    const finalBal = await provider.getBalance(store.wallet_address);
+    const finalEnough = finalBal >= ethers.parseEther(MIN_BALANCE_ETH);
+    const finalRole = await hasSellerRoleCall(supplyChain, store.wallet_address);
+    if (finalEnough && finalRole) {
+      return { funded: !enough, roleGranted: !hasRole, balanceEth: ethers.formatEther(finalBal) };
+    }
+  }
+  const finalBal = await provider.getBalance(store.wallet_address);
+  const finalRole = await hasSellerRoleCall(supplyChain, store.wallet_address);
+  return { funded: false, roleGranted: false, balanceEth: ethers.formatEther(finalBal), failed: true, finalRole };
+}
+
+
 async function fundStoreWallets() {
     try {
         console.log('Starting store wallet funding...');
 
         // Initialize blockchain connection
         const provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_NODE_URL || 'http://192.168.0.4:8545');
-        const deployerWallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
 
         // Load SupplyChain contract for role management
         const { promises: fs } = await import('fs');
@@ -29,7 +100,7 @@ async function fundStoreWallets() {
         const supplyChain = new ethers.Contract(
             process.env.SUPPLY_CHAIN_ADDRESS,
             supplyChainArtifact.abi,
-            deployerWallet
+            provider
         );
 
         // Find all active stores with wallet addresses
@@ -54,17 +125,15 @@ async function fundStoreWallets() {
                 console.log(`Current balance: ${ethers.formatEther(balance)} ETH`);
 
                 if (balance < ethers.parseEther('10.0')) {
-                    // Get current nonce
-                    const nonce = await provider.getTransactionCount(deployerWallet.address);
-
-                    // Fund the wallet
-                    const fundingTx = await deployerWallet.sendTransaction({
-                        to: store.wallet_address,
-                        value: ethers.parseEther('100.0'),
-                        nonce: nonce
+                    // Fund the wallet (let ethers handle nonce)
+                    const receipt = await sendWithRetry('fund', async () => {
+                        const signer = getSigner(provider);
+                        return signer.sendTransaction({
+                            to: store.wallet_address,
+                            value: ethers.parseEther('100.0')
+                        });
                     });
-                    await fundingTx.wait();
-                    console.log(`Funded wallet with 100 ETH. Transaction hash: ${fundingTx.hash}`);
+                    console.log(`Funded wallet with 100 ETH. Tx status: ${receipt.status}`);
 
                     // Verify new balance
                     const newBalance = await provider.getBalance(store.wallet_address);
@@ -79,8 +148,11 @@ async function fundStoreWallets() {
 
                 if (!hasSellerRole) {
                     console.log('Granting seller role...');
-                    const grantTx = await supplyChain.grantSellerRole(store.wallet_address);
-                    await grantTx.wait();
+                    await sendWithRetry('grant', async () => {
+                        const signer = getSigner(provider);
+                        const connected = supplyChain.connect(signer);
+                        return connected.grantSellerRole(store.wallet_address);
+                    });
                     console.log('Seller role granted successfully');
                 } else {
                     console.log('Store already has seller role');

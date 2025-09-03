@@ -163,14 +163,8 @@ const AdminBlockchainDashboard = () => {
   const handleGrantRole = async (address, role) => {
     try {
       switch (role) {
-        case 'manufacturer':
-          await blockchainService.grantManufacturerRole(address);
-          break;
-        case 'distributor':
-          await blockchainService.grantDistributorRole(address);
-          break;
-        case 'retailer':
-          await blockchainService.grantRetailerRole(address);
+        case 'seller':
+          await blockchainService.grantSellerRole(address);
           break;
         default:
           throw new Error('Invalid role');

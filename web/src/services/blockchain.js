@@ -47,27 +47,10 @@ class BlockchainService {
     }
 
     // Role Management
-    async grantManufacturerRole(address) {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/blockchain/roles/manufacturer', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ address })
-        });
-        
-        if (response.status === 401) {
-            throw new Error('Unauthorized. Please make sure you are logged in as an admin.');
-        }
-        
-        return response.json();
-    }
 
-    async grantDistributorRole(address) {
+    async grantSellerRole(address) {
         const token = localStorage.getItem('token');
-        const response = await fetch('/api/blockchain/roles/distributor', {
+        const response = await fetch('/api/blockchain/roles/seller', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -75,29 +58,11 @@ class BlockchainService {
             },
             body: JSON.stringify({ address })
         });
-        
-        if (response.status === 401) {
-            throw new Error('Unauthorized. Please make sure you are logged in as an admin.');
-        }
-        
-        return response.json();
-    }
 
-    async grantRetailerRole(address) {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/blockchain/roles/retailer', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ address })
-        });
-        
         if (response.status === 401) {
             throw new Error('Unauthorized. Please make sure you are logged in as an admin.');
         }
-        
+
         return response.json();
     }
 

@@ -17,7 +17,6 @@ async function updateStoreWallets() {
 
         // Initialize blockchain connection
         const provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_NODE_URL || 'http://192.168.0.4:8545');
-        const deployerWallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
 
         // Load SupplyChain contract
         const supplyChainArtifact = JSON.parse(
@@ -48,24 +47,49 @@ async function updateStoreWallets() {
                 const newWallet = ethers.Wallet.createRandom();
                 console.log(`Generated new wallet: ${newWallet.address}`);
 
-                // Get current nonce
-                const nonce = await provider.getTransactionCount(deployerWallet.address);
-
-                // Fund the wallet first
-                const fundingTx = await deployerWallet.sendTransaction({
-                    to: newWallet.address,
-                    value: ethers.parseEther('100.0'),
-                    nonce: nonce
-                });
-                await fundingTx.wait();
+                // Fund the wallet with retry
+                const fundReceipt = await (async () => {
+                    const FALLBACK_DEPLOYER_PK = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+                    const getSigner = () => new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || FALLBACK_DEPLOYER_PK, provider);
+                    for (let i = 0; i < 3; i++) {
+                        try {
+                            const tx = await getSigner().sendTransaction({
+                                to: newWallet.address,
+                                value: ethers.parseEther('100.0')
+                            });
+                            return await tx.wait();
+                        } catch (e) {
+                            const msg = (e?.message || '').toLowerCase();
+                            if ((e?.code === 'NONCE_EXPIRED' || msg.includes('nonce too low')) && i < 2) {
+                                await new Promise(r => setTimeout(r, 300));
+                                continue;
+                            }
+                            throw e;
+                        }
+                    }
+                })();
                 console.log('Funded wallet with 100 ETH');
 
-                // Grant retailer role
-                const grantTx = await supplyChain.grantRetailerRole(newWallet.address, {
-                    nonce: nonce + 1
-                });
-                await grantTx.wait();
-                console.log('Granted retailer role');
+                // Grant seller role with retry
+                await (async () => {
+                    const FALLBACK_DEPLOYER_PK = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+                    const getSigner = () => new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || FALLBACK_DEPLOYER_PK, provider);
+                    for (let i = 0; i < 3; i++) {
+                        try {
+                            const tx = await supplyChain.connect(getSigner()).grantSellerRole(newWallet.address);
+                            await tx.wait();
+                            return;
+                        } catch (e) {
+                            const msg = (e?.message || '').toLowerCase();
+                            if ((e?.code === 'NONCE_EXPIRED' || msg.includes('nonce too low')) && i < 2) {
+                                await new Promise(r => setTimeout(r, 300));
+                                continue;
+                            }
+                            throw e;
+                        }
+                    }
+                })();
+                console.log('Granted seller role');
 
                 // Update store record
                 await store.update({
